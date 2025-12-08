@@ -49,10 +49,10 @@ class IngestController extends Controller
             'route_name' => 'nullable|string|max:255',
             'method' => 'nullable|string|in:GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS',
             'request_method' => 'nullable|string|in:GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS', // alias for method
-            'request_url' => 'nullable|string|max:2048',
+            'request_url' => 'nullable|string|max:65535', // TEXT column
             'user_id' => 'nullable|string|max:255',
             'ip_address' => 'nullable|string|max:45', // IPv6 max length
-            'user_agent' => 'nullable|string|max:512',
+            'user_agent' => 'nullable|string|max:1024', // can be long
             'app_env' => 'nullable|string|max:50',
             'app_debug' => 'nullable|boolean',
             'referrer' => 'nullable|string|max:2048',
@@ -66,13 +66,25 @@ class IngestController extends Controller
             ], 422);
         }
 
-        // 3. Storage: Create new Log entry
+        // 3. Truncate large JSON fields to prevent storage issues (max ~1MB each)
+        $context = $request->input('context');
+        $extra = $request->input('extra');
+        
+        if ($context && strlen(json_encode($context)) > 1048576) {
+            $context = ['_truncated' => true, '_message' => 'Context too large, truncated'];
+        }
+        
+        if ($extra && strlen(json_encode($extra)) > 1048576) {
+            $extra = ['_truncated' => true, '_message' => 'Extra data too large, truncated'];
+        }
+
+        // 4. Storage: Create new Log entry
         $log = $project->logs()->create([
             'level' => $request->input('level'),
             'channel' => $request->input('channel'),
             'message' => $request->input('message'),
-            'context' => $request->input('context'),
-            'extra' => $request->input('extra'),
+            'context' => $context,
+            'extra' => $extra,
             'controller' => $request->input('controller') ?? $request->input('controller_action'),
             'route_name' => $request->input('route_name'),
             'method' => $request->input('method') ?? $request->input('request_method'),
@@ -85,7 +97,7 @@ class IngestController extends Controller
             'referrer' => $request->input('referrer'),
         ]);
 
-        // 4. The LogCreated event is automatically fired via model events
+        // 5. The LogCreated event is automatically fired via model events
 
         return response()->json([
             'success' => true,

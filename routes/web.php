@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projects/{project}/logs', [LogExplorerController::class, 'index'])->name('projects.logs.index');
     Route::get('/projects/{project}/logs/{log}', [LogExplorerController::class, 'show'])->name('projects.logs.show');
     Route::post('/projects/{project}/logs/{log}/analyze', [LogExplorerController::class, 'analyze'])->name('projects.logs.analyze');
+    Route::delete('/projects/{project}/logs/{log}', [LogExplorerController::class, 'destroy'])->name('projects.logs.destroy');
     
     // Failing Controllers
     Route::get('/projects/{project}/failing-controllers', [FailingControllersController::class, 'index'])->name('projects.failing-controllers.index');
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projects/{project}/settings', [ProjectSettingsController::class, 'show'])->name('projects.settings.show');
     Route::put('/projects/{project}/settings', [ProjectSettingsController::class, 'update'])->name('projects.settings.update');
     Route::post('/projects/{project}/regenerate-key', [ProjectSettingsController::class, 'regenerateKey'])->name('projects.regenerate-key');
+    Route::post('/projects/{project}/truncate-logs', [ProjectSettingsController::class, 'truncateLogs'])->name('projects.truncate-logs');
     Route::delete('/projects/{project}', [ProjectSettingsController::class, 'destroy'])->name('projects.destroy');
     
     // User Profile

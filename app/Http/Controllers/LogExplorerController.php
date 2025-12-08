@@ -112,4 +112,25 @@ class LogExplorerController extends Controller
             'model' => $result['model'] ?? null,
         ]);
     }
+
+    /**
+     * Delete a single log entry.
+     */
+    public function destroy(Project $project, Log $log): JsonResponse
+    {
+        // Ensure the log belongs to the project
+        if ($log->project_id !== $project->id) {
+            return response()->json([
+                'error' => 'Not Found',
+                'message' => 'Log entry not found in this project',
+            ], 404);
+        }
+
+        $log->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Log entry deleted',
+        ]);
+    }
 }

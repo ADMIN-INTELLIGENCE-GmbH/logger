@@ -6,14 +6,39 @@
 <div x-data="{ 
     selectedLog: null,
     showModal: false,
+    showDeleteConfirm: false,
     llmAnalysis: null,
     llmLoading: false,
     llmError: null,
     openLog(log) {
         this.selectedLog = log;
         this.showModal = true;
+        this.showDeleteConfirm = false;
         this.llmAnalysis = null;
         this.llmError = null;
+    },
+    async deleteLog() {
+        if (!this.selectedLog) return;
+        
+        try {
+            const response = await fetch(`/projects/{{ $project->id }}/logs/${this.selectedLog.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                this.showModal = false;
+                window.location.reload();
+            } else {
+                alert('Failed to delete log');
+            }
+        } catch (error) {
+            alert('Failed to connect to the server');
+        }
     },
     async askLLM() {
         if (!this.selectedLog) return;
@@ -217,10 +242,6 @@
                                     <span x-show="selectedLog.app_debug" class="ml-1 text-xs text-yellow-600 dark:text-yellow-400 font-medium">(debug)</span>
                                 </div>
                                 <div>
-                                    <span class="font-medium text-gray-500 dark:text-gray-400">Controller:</span>
-                                    <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.controller || '-'"></span>
-                                </div>
-                                <div>
                                     <span class="font-medium text-gray-500 dark:text-gray-400">Route:</span>
                                     <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.route_name || '-'"></span>
                                 </div>
@@ -236,6 +257,12 @@
                                     <span class="font-medium text-gray-500 dark:text-gray-400">IP Address:</span>
                                     <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.ip_address || '-'"></span>
                                 </div>
+                            </div>
+
+                            <!-- Controller (full width) -->
+                            <div x-show="selectedLog.controller">
+                                <span class="font-medium text-gray-500 dark:text-gray-400 text-sm">Controller:</span>
+                                <div class="mt-1 bg-gray-50 dark:bg-gray-900 p-2 rounded-md text-sm text-gray-900 dark:text-white break-all font-mono" x-text="selectedLog.controller"></div>
                             </div>
 
                             <!-- User Agent (full width) -->
@@ -322,6 +349,39 @@
                     <button type="button" @click="showModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
                         Close
                     </button>
+                    <!-- Delete Button -->
+                    <div class="sm:flex-1"></div>
+                    <template x-if="!showDeleteConfirm">
+                        <button 
+                            type="button" 
+                            @click="showDeleteConfirm = true"
+                            class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-red-300 dark:border-red-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm"
+                        >
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                        </button>
+                    </template>
+                    <template x-if="showDeleteConfirm">
+                        <div class="mt-3 sm:mt-0 flex items-center gap-2">
+                            <span class="text-sm text-red-600 dark:text-red-400">Are you sure?</span>
+                            <button 
+                                type="button" 
+                                @click="deleteLog()"
+                                class="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                                Yes, Delete
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="showDeleteConfirm = false"
+                                class="inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-3 py-1.5 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
