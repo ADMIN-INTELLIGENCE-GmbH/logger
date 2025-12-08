@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Project;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+
+class ProjectSettingsController extends Controller
+{
+    /**
+     * Get project settings.
+     */
+    public function show(Project $project): View
+    {
+        return view('projects.settings', compact('project'));
+    }
+
+    /**
+     * Update project settings.
+     */
+    public function update(Request $request, Project $project): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'retention_days' => [
+                'sometimes',
+                'required',
+                'integer',
+                Rule::in([7, 14, 30, 90, -1]),
+            ],
+            'webhook_url' => 'sometimes|nullable|url|max:500',
+            'is_active' => 'sometimes|boolean',
+        ]);
+
+        $project->update($validated);
+
+        return redirect()->route('projects.settings.show', $project)
+            ->with('success', 'Project settings updated successfully.');
+    }
+
+    /**
+     * Regenerate the magic key.
+     */
+    public function regenerateKey(Project $project): RedirectResponse
+    {
+        $project->regenerateMagicKey();
+
+        return redirect()->route('projects.settings.show', $project)
+            ->with('success', 'Magic key regenerated successfully. New key: ' . $project->magic_key);
+    }
+
+    /**
+     * Delete a project.
+     */
+    public function destroy(Project $project): RedirectResponse
+    {
+        $project->delete();
+
+        return redirect()->route('projects.index')
+            ->with('success', 'Project deleted successfully.');
+    }
+}
