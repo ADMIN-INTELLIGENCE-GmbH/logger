@@ -19,9 +19,12 @@
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900">
-    <div class="min-h-screen">
+    <div class="min-h-screen flex flex-col">
         <!-- Navigation -->
         <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,15 +32,18 @@
                     <div class="flex items-center space-x-8">
                         <!-- Logo -->
                         <a href="{{ route('projects.index') }}" class="flex items-center space-x-2">
-                            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
+                            <img x-show="!darkMode" src="/admin-intelligence-black.svg" alt="Admin Intelligence" class="h-8 w-auto">
+                            <img x-show="darkMode" src="/admin-intelligence-white.svg" alt="Admin Intelligence" class="h-8 w-auto">
                             <span class="font-semibold text-xl text-gray-800 dark:text-white">Logger</span>
                         </a>
 
                         <!-- Project Navigation -->
                         <div class="hidden md:flex items-center space-x-4 text-sm">
                             <a href="{{ route('projects.index') }}" class="{{ request()->routeIs('projects.index') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Projects</a>
+                            
+                            @if(Auth::user()->isAdmin())
+                                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Users</a>
+                            @endif
                             
                             @isset($project)
                                 <span class="text-gray-400 dark:text-gray-500">|</span>
@@ -104,7 +110,7 @@
         @endif
 
         <!-- Page Content -->
-        <main class="py-8">
+        <main class="py-8 flex-grow">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 @yield('content')
             </div>
@@ -113,7 +119,7 @@
         <!-- Footer -->
         <footer class="border-t border-gray-200 dark:border-gray-700 mt-auto">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <p class="text-center text-gray-500 dark:text-gray-400 text-sm">Logger © {{ date('Y') }}</p>
+                <p class="text-center text-gray-500 dark:text-gray-400 text-sm">powered by <a href="https://admin-intelligence.de" target="_blank" rel="noopener noreferrer" class="font-semibold underline">ADMIN INTELLIGENCE</a></p>
             </div>
         </footer>
     </div>

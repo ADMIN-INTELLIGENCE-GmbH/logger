@@ -1,3 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* AI Analysis Loading Spinner */
+.ai-spinner {
+    background-image: linear-gradient(rgb(186, 66, 255) 35%, rgb(0, 225, 255));
+    width: 50px;
+    height: 50px;
+    animation: ai-spinning 1.7s linear infinite;
+    text-align: center;
+    border-radius: 50px;
+    filter: blur(1px);
+    box-shadow: 0px -5px 20px 0px rgb(186, 66, 255), 0px 5px 20px 0px rgb(0, 225, 255);
+}
+
+.ai-spinner-inner {
+    background-color: rgb(36, 36, 36);
+    width: 50px;
+    height: 50px;
+    border-radius: 50px;
+    filter: blur(10px);
+}
+
+@keyframes ai-spinning {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* AI Analysis content - force proper dark mode colors */
+.ai-analysis-content {
+    color: #111827;
+}
+
+.dark .ai-analysis-content {
+    color: #f3f4f6;
+}
+
+.dark .ai-analysis-content h1,
+.dark .ai-analysis-content h2,
+.dark .ai-analysis-content h3,
+.dark .ai-analysis-content h4,
+.dark .ai-analysis-content h5,
+.dark .ai-analysis-content h6 {
+    color: #f9fafb;
+}
+
+.dark .ai-analysis-content strong {
+    color: #f9fafb;
+}
+
+.dark .ai-analysis-content code {
+    color: #e879f9;
+    background-color: rgba(88, 28, 135, 0.3);
+}
+
+.dark .ai-analysis-content pre {
+    background-color: #1f2937;
+}
+
+.dark .ai-analysis-content a {
+    color: #a5b4fc;
+}
+
+.dark .ai-analysis-content li::marker {
+    color: #9ca3af;
+}

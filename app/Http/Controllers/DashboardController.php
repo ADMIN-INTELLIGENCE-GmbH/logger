@@ -14,45 +14,83 @@ class DashboardController extends Controller
     /**
      * Show the project dashboard.
      */
-    public function index(Project $project): View
+    public function index(Request $request, Project $project): View
     {
         $now = now();
-        $yesterday = $now->copy()->subDay();
+        
+        // Get time range from request (default: 24h)
+        $range = $request->input('range', '24h');
+        $levelFilter = $request->input('level', 'all');
+        
+        // Calculate time period based on range
+        $startDate = match ($range) {
+            '1h' => $now->copy()->subHour(),
+            '6h' => $now->copy()->subHours(6),
+            '24h' => $now->copy()->subDay(),
+            '7d' => $now->copy()->subDays(7),
+            '30d' => $now->copy()->subDays(30),
+            '90d' => $now->copy()->subDays(90),
+            default => $now->copy()->subDay(),
+        };
 
-        // Total logs in last 24 hours
-        $totalLogs24h = Log::where('project_id', $project->id)
-            ->where('created_at', '>=', $yesterday)
-            ->count();
+        // Base query
+        $baseQuery = Log::where('project_id', $project->id)
+            ->where('created_at', '>=', $startDate);
 
-        // Error count in last 24 hours
-        $errorLogs24h = Log::where('project_id', $project->id)
-            ->where('created_at', '>=', $yesterday)
+        // Total logs in selected period
+        $totalLogs = (clone $baseQuery)->count();
+
+        // Error count in selected period
+        $errorLogs = (clone $baseQuery)
             ->whereIn('level', ['error', 'critical'])
             ->count();
 
         // Error rate percentage
-        $errorRate = $totalLogs24h > 0 
-            ? round(($errorLogs24h / $totalLogs24h) * 100, 2) 
+        $errorRate = $totalLogs > 0 
+            ? round(($errorLogs / $totalLogs) * 100, 2) 
             : 0;
 
-        // Logs by hour for the last 24 hours (for chart)
-        // Use database-agnostic date formatting
+        // Determine grouping based on range
         $driver = DB::getDriverName();
-        $hourExpression = match ($driver) {
-            'mysql', 'mariadb' => "DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00')",
-            'pgsql' => "TO_CHAR(created_at, 'YYYY-MM-DD HH24:00:00')",
-            default => "strftime('%Y-%m-%d %H:00:00', created_at)", // SQLite
-        };
+        
+        if (in_array($range, ['1h', '6h', '24h'])) {
+            // Group by hour
+            $hourExpression = match ($driver) {
+                'mysql', 'mariadb' => "DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00')",
+                'pgsql' => "TO_CHAR(created_at, 'YYYY-MM-DD HH24:00:00')",
+                default => "strftime('%Y-%m-%d %H:00:00', created_at)",
+            };
+            $groupFormat = 'hour';
+        } else {
+            // Group by day
+            $hourExpression = match ($driver) {
+                'mysql', 'mariadb' => "DATE_FORMAT(created_at, '%Y-%m-%d')",
+                'pgsql' => "TO_CHAR(created_at, 'YYYY-MM-DD')",
+                default => "strftime('%Y-%m-%d', created_at)",
+            };
+            $groupFormat = 'day';
+        }
 
-        $chartData = Log::where('project_id', $project->id)
-            ->where('created_at', '>=', $yesterday)
-            ->selectRaw("{$hourExpression} as hour, level, COUNT(*) as count")
-            ->groupBy('hour', 'level')
-            ->orderBy('hour')
+        // Build chart query with optional level filter
+        $chartQuery = Log::where('project_id', $project->id)
+            ->where('created_at', '>=', $startDate);
+        
+        if ($levelFilter !== 'all') {
+            if ($levelFilter === 'errors') {
+                $chartQuery->whereIn('level', ['error', 'critical']);
+            } else {
+                $chartQuery->where('level', $levelFilter);
+            }
+        }
+
+        $chartData = $chartQuery
+            ->selectRaw("{$hourExpression} as period, level, COUNT(*) as count")
+            ->groupBy('period', 'level')
+            ->orderBy('period')
             ->get()
-            ->groupBy('hour')
-            ->map(function ($logs, $hour) {
-                $data = ['hour' => $hour, 'info' => 0, 'debug' => 0, 'error' => 0, 'critical' => 0];
+            ->groupBy('period')
+            ->map(function ($logs, $period) {
+                $data = ['period' => $period, 'info' => 0, 'debug' => 0, 'warning' => 0, 'error' => 0, 'critical' => 0];
                 foreach ($logs as $log) {
                     $data[$log->level] = $log->count;
                 }
@@ -61,9 +99,12 @@ class DashboardController extends Controller
             ->values();
 
         $stats = [
-            'total_logs_24h' => $totalLogs24h,
-            'error_logs_24h' => $errorLogs24h,
+            'total_logs' => $totalLogs,
+            'error_logs' => $errorLogs,
             'error_rate' => $errorRate,
+            'range' => $range,
+            'level_filter' => $levelFilter,
+            'group_format' => $groupFormat,
         ];
 
         return view('projects.dashboard', compact('project', 'stats', 'chartData'));

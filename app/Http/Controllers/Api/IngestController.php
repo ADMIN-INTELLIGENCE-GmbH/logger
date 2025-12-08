@@ -41,12 +41,21 @@ class IngestController extends Controller
         $validator = Validator::make($request->all(), [
             'level' => 'required|string|in:' . implode(',', Log::LEVELS),
             'message' => 'required|string|max:65535',
+            'channel' => 'nullable|string|max:255',
             'context' => 'nullable|array',
+            'extra' => 'nullable|array',
             'controller' => 'nullable|string|max:255',
+            'controller_action' => 'nullable|string|max:255', // alias for controller
             'route_name' => 'nullable|string|max:255',
             'method' => 'nullable|string|in:GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS',
+            'request_method' => 'nullable|string|in:GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS', // alias for method
+            'request_url' => 'nullable|string|max:2048',
             'user_id' => 'nullable|string|max:255',
             'ip_address' => 'nullable|string|max:45', // IPv6 max length
+            'user_agent' => 'nullable|string|max:512',
+            'app_env' => 'nullable|string|max:50',
+            'app_debug' => 'nullable|boolean',
+            'referrer' => 'nullable|string|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -60,13 +69,20 @@ class IngestController extends Controller
         // 3. Storage: Create new Log entry
         $log = $project->logs()->create([
             'level' => $request->input('level'),
+            'channel' => $request->input('channel'),
             'message' => $request->input('message'),
             'context' => $request->input('context'),
-            'controller' => $request->input('controller'),
+            'extra' => $request->input('extra'),
+            'controller' => $request->input('controller') ?? $request->input('controller_action'),
             'route_name' => $request->input('route_name'),
-            'method' => $request->input('method'),
+            'method' => $request->input('method') ?? $request->input('request_method'),
+            'request_url' => $request->input('request_url'),
             'user_id' => $request->input('user_id'),
             'ip_address' => $request->input('ip_address', $request->ip()),
+            'user_agent' => $request->input('user_agent', $request->userAgent()),
+            'app_env' => $request->input('app_env'),
+            'app_debug' => $request->input('app_debug'),
+            'referrer' => $request->input('referrer'),
         ]);
 
         // 4. The LogCreated event is automatically fired via model events

@@ -6,9 +6,44 @@
 <div x-data="{ 
     selectedLog: null,
     showModal: false,
+    llmAnalysis: null,
+    llmLoading: false,
+    llmError: null,
     openLog(log) {
         this.selectedLog = log;
         this.showModal = true;
+        this.llmAnalysis = null;
+        this.llmError = null;
+    },
+    async askLLM() {
+        if (!this.selectedLog) return;
+        
+        this.llmLoading = true;
+        this.llmError = null;
+        this.llmAnalysis = null;
+        
+        try {
+            const response = await fetch(`/projects/{{ $project->id }}/logs/${this.selectedLog.id}/analyze`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.llmAnalysis = data.analysis;
+            } else {
+                this.llmError = data.error || 'Failed to analyze log';
+            }
+        } catch (error) {
+            this.llmError = 'Failed to connect to the server';
+        } finally {
+            this.llmLoading = false;
+        }
     }
 }">
     <!-- Header -->
@@ -173,6 +208,15 @@
                                     <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.created_at"></span>
                                 </div>
                                 <div>
+                                    <span class="font-medium text-gray-500 dark:text-gray-400">Channel:</span>
+                                    <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.channel || '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-500 dark:text-gray-400">Environment:</span>
+                                    <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.app_env || '-'"></span>
+                                    <span x-show="selectedLog.app_debug" class="ml-1 text-xs text-yellow-600 dark:text-yellow-400 font-medium">(debug)</span>
+                                </div>
+                                <div>
                                     <span class="font-medium text-gray-500 dark:text-gray-400">Controller:</span>
                                     <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.controller || '-'"></span>
                                 </div>
@@ -194,6 +238,24 @@
                                 </div>
                             </div>
 
+                            <!-- User Agent (full width) -->
+                            <div x-show="selectedLog.user_agent">
+                                <span class="font-medium text-gray-500 dark:text-gray-400 text-sm">User Agent:</span>
+                                <div class="mt-1 bg-gray-50 dark:bg-gray-900 p-2 rounded-md text-sm text-gray-900 dark:text-white break-all" x-text="selectedLog.user_agent"></div>
+                            </div>
+
+                            <!-- Request URL (full width) -->
+                            <div x-show="selectedLog.request_url">
+                                <span class="font-medium text-gray-500 dark:text-gray-400 text-sm">Request URL:</span>
+                                <div class="mt-1 bg-gray-50 dark:bg-gray-900 p-2 rounded-md text-sm text-gray-900 dark:text-white break-all" x-text="selectedLog.request_url"></div>
+                            </div>
+
+                            <!-- Referrer (full width) -->
+                            <div x-show="selectedLog.referrer">
+                                <span class="font-medium text-gray-500 dark:text-gray-400 text-sm">Referrer:</span>
+                                <div class="mt-1 bg-gray-50 dark:bg-gray-900 p-2 rounded-md text-sm text-gray-900 dark:text-white break-all" x-text="selectedLog.referrer"></div>
+                            </div>
+
                             <!-- Message -->
                             <div>
                                 <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Message</h4>
@@ -205,11 +267,59 @@
                                 <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Context</h4>
                                 <pre class="bg-gray-800 dark:bg-gray-900 text-green-400 p-4 rounded-md text-sm overflow-x-auto max-h-96"><code x-text="JSON.stringify(selectedLog.context, null, 2)"></code></pre>
                             </div>
+
+                            <!-- Extra (Monolog processor data) -->
+                            <div x-show="selectedLog.extra && Object.keys(selectedLog.extra).length > 0">
+                                <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Extra (Monolog Data)</h4>
+                                <pre class="bg-gray-800 dark:bg-gray-900 text-blue-400 p-4 rounded-md text-sm overflow-x-auto max-h-48"><code x-text="JSON.stringify(selectedLog.extra, null, 2)"></code></pre>
+                            </div>
+
+                            <!-- LLM Analysis Section -->
+                            <div x-show="llmLoading" class="mt-4">
+                                <div class="flex items-center justify-center py-8">
+                                    <div class="ai-spinner">
+                                        <div class="ai-spinner-inner"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div x-show="llmError" class="mt-4">
+                                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
+                                    <div class="flex">
+                                        <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p class="ml-3 text-sm text-red-700 dark:text-red-300" x-text="llmError"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div x-show="llmAnalysis" class="mt-4">
+                                <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                    </svg>
+                                    AI Analysis
+                                </h4>
+                                <div class="ai-analysis-content bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md p-4 prose prose-sm max-w-none overflow-x-auto" x-html="marked.parse(llmAnalysis)"></div>
+                            </div>
                         </div>
                     </template>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" @click="showModal = false" class="w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse sm:gap-3">
+                    <button 
+                        type="button" 
+                        @click="askLLM()" 
+                        :disabled="llmLoading"
+                        class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        <span x-show="!llmLoading">Ask LLM</span>
+                        <span x-show="llmLoading">Analyzing...</span>
+                    </button>
+                    <button type="button" @click="showModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
                         Close
                     </button>
                 </div>

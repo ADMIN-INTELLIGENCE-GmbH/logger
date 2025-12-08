@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Log;
 use App\Models\Project;
+use App\Services\OpenAIService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -80,6 +81,35 @@ class LogExplorerController extends Controller
         return response()->json([
             'log' => $log,
             'context_formatted' => $log->context ? json_encode($log->context, JSON_PRETTY_PRINT) : null,
+        ]);
+    }
+
+    /**
+     * Analyze a log entry using OpenAI.
+     */
+    public function analyze(Project $project, Log $log, OpenAIService $openAIService): JsonResponse
+    {
+        // Ensure the log belongs to the project
+        if ($log->project_id !== $project->id) {
+            return response()->json([
+                'error' => 'Not Found',
+                'message' => 'Log entry not found in this project',
+            ], 404);
+        }
+
+        $result = $openAIService->analyzeLog($log);
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'error' => $result['error'],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'analysis' => $result['analysis'],
+            'model' => $result['model'] ?? null,
         ]);
     }
 }
