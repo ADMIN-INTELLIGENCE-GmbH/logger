@@ -56,8 +56,6 @@ test_php:
 # Build stage - Compile frontend assets
 build_frontend:
   stage: build
-  tags:
-    - shell
   script:
     # Check if any frontend-related files have changed
     - |
