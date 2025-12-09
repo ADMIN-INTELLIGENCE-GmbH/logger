@@ -3,14 +3,25 @@ stages:
   - build
   - deploy
 
-# Include GitLab security scanning templates (optional - remove if not needed)
+# Include GitLab security scanning templates (requires Docker runner)
 include:
   - template: Security/Secret-Detection.gitlab-ci.yml
   - template: Security/SAST.gitlab-ci.yml
 
+# Override security jobs to use docker tag
+secret_detection:
+  tags:
+    - docker
+
+sast:
+  tags:
+    - docker
+
 # Test stage - Check PHP syntax, run tests, and check code style
 test_php:
   stage: test
+  tags:
+    - shell  # Keep using shell runner for PHP tests (has PHP/composer/node installed)
   script:
     # Check if any PHP-related files have changed
     - |
@@ -47,6 +58,8 @@ test_php:
 # Build stage - Compile frontend assets
 build_frontend:
   stage: build
+  tags:
+    - shell
   script:
     # Check if any frontend-related files have changed
     - |
@@ -75,6 +88,8 @@ build_frontend:
 # Deploy to development environment
 deploy_development:
   stage: deploy
+  tags:
+    - shell
   needs:
     - test_php
     - build_frontend
@@ -124,6 +139,8 @@ deploy_development:
 # Deploy to staging environment
 deploy_staging:
   stage: deploy
+  tags:
+    - shell
   needs:
     - test_php
     - build_frontend
@@ -173,6 +190,8 @@ deploy_staging:
 # Deploy to production environment
 deploy_production:
   stage: deploy
+  tags:
+    - shell
   needs:
     - test_php
     - build_frontend
