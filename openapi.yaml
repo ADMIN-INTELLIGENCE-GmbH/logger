@@ -1,0 +1,417 @@
+openapi: 3.0.3
+info:
+  title: Logger API
+  description: |
+    A centralized log aggregation service for collecting, storing, and analyzing application logs across multiple projects.
+    
+    ## Authentication
+    
+    The API uses project-specific API keys for authentication. Include your project key in the `X-Project-Key` header for all log ingestion requests.
+    
+    ## Rate Limiting
+    
+    The log ingestion endpoint is rate-limited to 1000 requests per minute per IP address. Rate limit information is returned in response headers:
+    - `X-RateLimit-Limit`: Maximum requests allowed per window
+    - `X-RateLimit-Remaining`: Requests remaining in current window
+    - `X-RateLimit-Reset`: Unix timestamp when the rate limit resets
+    
+    ## Companion Package
+    
+    For Laravel applications, use the [Laravel Log Shipper](https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper) package to easily ship logs to this service.
+  version: 1.0.0
+  contact:
+    name: ADMIN INTELLIGENCE GmbH
+    email: support@admin-intelligence.de
+    url: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://your-logger-instance.com/api
+    description: Production server
+  - url: http://localhost:8000/api
+    description: Local development
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Logs
+    description: Log ingestion endpoints
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns the health status of the Logger service including database and cache connectivity.
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: healthy
+                checks:
+                  database: ok
+                  cache: ok
+                version: 1.0.0
+                timestamp: '2024-12-09T10:30:00+00:00'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: unhealthy
+                checks:
+                  database: error
+                  cache: ok
+                version: 1.0.0
+                timestamp: '2024-12-09T10:30:00+00:00'
+
+  /ingest:
+    post:
+      tags:
+        - Logs
+      summary: Ingest a log entry
+      description: |
+        Submit a single log entry to the Logger service. The log will be stored and optionally trigger webhook notifications based on project settings.
+        
+        **Authentication Required**: Include your project API key in the `X-Project-Key` header.
+      operationId: ingestLog
+      security:
+        - ProjectKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogEntry'
+            examples:
+              minimal:
+                summary: Minimal log entry
+                value:
+                  level: error
+                  message: Database connection failed
+              full:
+                summary: Full log entry
+                value:
+                  level: error
+                  message: Database connection failed
+                  channel: database
+                  datetime: '2024-12-09 10:30:00.123456'
+                  context:
+                    exception: PDOException
+                    sql: SELECT * FROM users WHERE id = ?
+                    file: /app/Http/Controllers/UserController.php
+                    line: 42
+                  extra:
+                    memory_usage: 1048576
+                  controller_action: App\Http\Controllers\UserController@show
+                  route_name: users.show
+                  request_method: GET
+                  request_url: https://example.com/users/123
+                  user_id: '12345'
+                  ip_address: 192.168.1.1
+                  user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)
+                  app_env: production
+                  app_debug: false
+                  referrer: https://example.com/dashboard
+      responses:
+        '201':
+          description: Log entry created successfully
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestSuccessResponse'
+              example:
+                success: true
+                message: Log entry created
+                log_id: 12345
+        '401':
+          description: Unauthorized - Missing or invalid project key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing_key:
+                  summary: Missing API key
+                  value:
+                    error: Unauthorized
+                    message: Missing X-Project-Key header
+                invalid_key:
+                  summary: Invalid API key
+                  value:
+                    error: Unauthorized
+                    message: Invalid project key or project is inactive
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                error: Validation Error
+                message: Invalid payload
+                errors:
+                  level:
+                    - The log level is required.
+                  message:
+                    - The log message is required.
+        '429':
+          description: Rate limit exceeded
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds until the rate limit resets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Too Many Requests
+                message: Rate limit exceeded. Try again later.
+
+components:
+  securitySchemes:
+    ProjectKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Project-Key
+      description: |
+        Project-specific API key (64 characters). Obtain this from your project settings in the Logger dashboard.
+
+  headers:
+    X-RateLimit-Limit:
+      description: The maximum number of requests allowed per time window
+      schema:
+        type: integer
+        example: 1000
+    X-RateLimit-Remaining:
+      description: The number of requests remaining in the current time window
+      schema:
+        type: integer
+        example: 999
+    X-RateLimit-Reset:
+      description: Unix timestamp when the rate limit window resets
+      schema:
+        type: integer
+        example: 1702116660
+
+  schemas:
+    LogEntry:
+      type: object
+      required:
+        - level
+        - message
+      properties:
+        level:
+          type: string
+          enum:
+            - debug
+            - info
+            - notice
+            - warning
+            - error
+            - critical
+            - alert
+            - emergency
+          description: PSR-3 compliant log level
+          example: error
+        message:
+          type: string
+          maxLength: 65535
+          description: The log message
+          example: Database connection failed
+        channel:
+          type: string
+          maxLength: 255
+          description: The logging channel name
+          example: database
+        datetime:
+          type: string
+          format: date-time
+          description: Original timestamp when the log was created (Y-m-d H:i:s.u format)
+          example: '2024-12-09 10:30:00.123456'
+        context:
+          type: object
+          additionalProperties: true
+          description: Additional structured data related to the log
+          example:
+            exception: PDOException
+            sql: SELECT * FROM users
+        extra:
+          type: object
+          additionalProperties: true
+          description: Additional Monolog processor data
+          example:
+            memory_usage: 1048576
+        controller:
+          type: string
+          maxLength: 255
+          description: Controller class name (alternative to controller_action)
+          example: App\Http\Controllers\UserController
+        controller_action:
+          type: string
+          maxLength: 255
+          description: Controller and action handling the request
+          example: App\Http\Controllers\UserController@show
+        route_name:
+          type: string
+          maxLength: 255
+          description: Laravel route name
+          example: users.show
+        method:
+          type: string
+          enum: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
+          description: HTTP method (alternative to request_method)
+          example: GET
+        request_method:
+          type: string
+          enum: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
+          description: HTTP request method
+          example: GET
+        request_url:
+          type: string
+          maxLength: 65535
+          description: Full request URL including query string
+          example: https://example.com/users/123?include=orders
+        user_id:
+          type: string
+          maxLength: 255
+          description: User identifier (supports UUIDs or integers as strings)
+          example: '12345'
+        ip_address:
+          type: string
+          maxLength: 45
+          description: Client IP address (auto-detected if omitted)
+          example: 192.168.1.1
+        user_agent:
+          type: string
+          maxLength: 1024
+          description: Browser/client user agent string
+          example: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)
+        app_env:
+          type: string
+          maxLength: 50
+          description: Application environment
+          example: production
+        app_debug:
+          type: boolean
+          description: Whether debug mode is enabled
+          example: false
+        referrer:
+          type: string
+          maxLength: 2048
+          description: HTTP Referer header
+          example: https://example.com/dashboard
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - checks
+        - version
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Overall health status
+        checks:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [ok, error]
+              description: Database connectivity status
+            cache:
+              type: string
+              enum: [ok, error]
+              description: Cache connectivity status
+        version:
+          type: string
+          description: Application version
+          example: 1.0.0
+        timestamp:
+          type: string
+          format: date-time
+          description: Current server timestamp in ISO 8601 format
+
+    IngestSuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+        - log_id
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Log entry created
+        log_id:
+          type: integer
+          description: ID of the created log entry
+          example: 12345
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: Unauthorized
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid project key or project is inactive
+
+    ValidationErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - errors
+      properties:
+        error:
+          type: string
+          example: Validation Error
+        message:
+          type: string
+          example: Invalid payload
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Field-specific validation errors
+          example:
+            level:
+              - The log level is required.

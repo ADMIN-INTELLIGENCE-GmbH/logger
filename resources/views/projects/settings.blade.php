@@ -69,10 +69,11 @@
                     <div>
                         <label for="webhook_threshold" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notification Threshold</label>
                         <select name="webhook_threshold" id="webhook_threshold" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
-                            <option value="debug" {{ $project->webhook_threshold == 'debug' ? 'selected' : '' }}>Debug (all logs)</option>
-                            <option value="info" {{ $project->webhook_threshold == 'info' ? 'selected' : '' }}>Info and above</option>
-                            <option value="error" {{ $project->webhook_threshold == 'error' ? 'selected' : '' }}>Error and above</option>
-                            <option value="critical" {{ $project->webhook_threshold == 'critical' ? 'selected' : '' }}>Critical only</option>
+                            @foreach(\App\Models\Log::LEVELS as $level)
+                                <option value="{{ $level }}" {{ $project->webhook_threshold == $level ? 'selected' : '' }}>
+                                    {{ ucfirst($level) }}{{ $level === 'debug' ? ' (all logs)' : ' and above' }}
+                                </option>
+                            @endforeach
                         </select>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Only logs at or above this level will trigger webhook notifications</p>
                         @error('webhook_threshold')

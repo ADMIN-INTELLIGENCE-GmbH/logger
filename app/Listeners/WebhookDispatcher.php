@@ -122,6 +122,23 @@ class WebhookDispatcher implements ShouldQueue
                     'delivery_id' => $delivery->id,
                 ]);
             }
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            // RequestException has a response we can extract the status code from
+            $delivery->update([
+                'status_code' => $e->response?->status(),
+                'response_body' => $e->response ? substr($e->response->body(), 0, 1000) : null,
+                'error_message' => $e->getMessage(),
+                'success' => false,
+                'delivered_at' => now(),
+            ]);
+
+            LaravelLog::error('Webhook exception', [
+                'url' => $url,
+                'status' => $e->response?->status(),
+                'error' => $e->getMessage(),
+                'log_id' => $log->id,
+                'delivery_id' => $delivery->id,
+            ]);
         } catch (\Exception $e) {
             $delivery->update([
                 'error_message' => $e->getMessage(),

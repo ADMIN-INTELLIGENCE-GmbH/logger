@@ -120,9 +120,58 @@ class Log extends Model
     }
 
     /**
-     * Scope to search message.
+     * Scope to search message using full-text search when available.
+     * Falls back to LIKE for SQLite or when full-text search is not available.
      */
     public function scopeSearchMessage($query, string $search)
+    {
+        $driver = $query->getConnection()->getDriverName();
+        
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            // Use MySQL FULLTEXT search with MATCH AGAINST
+            // Boolean mode allows partial matching and is more forgiving
+            return $query->whereRaw(
+                'MATCH(message) AGAINST(? IN BOOLEAN MODE)',
+                [$this->prepareFullTextSearch($search)]
+            );
+        } elseif ($driver === 'pgsql') {
+            // Use PostgreSQL full-text search
+            return $query->whereRaw(
+                "message_search @@ plainto_tsquery('english', ?)",
+                [$search]
+            );
+        }
+        
+        // Fallback to LIKE for SQLite and other databases
+        return $query->where('message', 'like', "%{$search}%");
+    }
+
+    /**
+     * Prepare search string for MySQL FULLTEXT boolean mode.
+     * Adds + prefix to require words and handles special characters.
+     */
+    protected function prepareFullTextSearch(string $search): string
+    {
+        // Split into words, filter empty, and add + prefix for required match
+        $words = array_filter(explode(' ', trim($search)));
+        
+        return implode(' ', array_map(function ($word) {
+            // Remove special boolean mode characters except asterisk for wildcards
+            $word = preg_replace('/[+\-><()~*"@]/', '', $word);
+            
+            if (strlen($word) >= 3) {
+                // Add wildcard for partial matching
+                return '+' . $word . '*';
+            }
+            
+            return $word;
+        }, $words));
+    }
+
+    /**
+     * Scope for simple LIKE search (useful when full-text is not desired).
+     */
+    public function scopeSearchMessageLike($query, string $search)
     {
         return $query->where('message', 'like', "%{$search}%");
     }

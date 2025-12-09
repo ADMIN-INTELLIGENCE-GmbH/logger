@@ -42,7 +42,7 @@ class ProjectSettingsController extends Controller
             'webhook_threshold' => [
                 'sometimes',
                 'required',
-                Rule::in(['debug', 'info', 'error', 'critical']),
+                Rule::in(\App\Models\Log::LEVELS),
             ],
             'webhook_format' => [
                 'sometimes',

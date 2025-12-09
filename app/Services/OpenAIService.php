@@ -8,7 +8,7 @@ use Illuminate\Http\Client\RequestException;
 
 class OpenAIService
 {
-    protected string $apiKey;
+    protected ?string $apiKey;
     protected string $model;
     protected ?string $projectId;
 

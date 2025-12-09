@@ -28,7 +28,8 @@ class LogExplorerController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('message', 'like', '%' . $request->input('search') . '%');
+            // Use full-text search scope (falls back to LIKE for SQLite)
+            $query->searchMessage($request->input('search'));
         }
 
         if ($request->filled('user_id')) {

@@ -20,5 +20,5 @@ Route::get('/health', HealthController::class)->name('api.health');
 
 // Log ingestion endpoint with rate limiting (1000 requests per minute per IP)
 Route::post('/ingest', IngestController::class)
-    ->middleware('throttle:1000,1')
+    ->middleware(['throttle:1000,1', 'rate.headers:1000,1'])
     ->name('api.ingest');

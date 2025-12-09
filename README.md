@@ -2,7 +2,7 @@
 
 A centralized log aggregation service for collecting, storing, and analyzing application logs across multiple projects. Built with Laravel.
 
-> **📦 Looking for the Laravel package?** Use [Laravel Log Shipper](https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper) to easily ship logs from your Laravel applications to this service.
+> ** Looking for the Laravel package?** Use [Laravel Log Shipper](https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper) to easily ship logs from your Laravel applications to this service.
 
 ## Overview
 
@@ -117,6 +117,20 @@ php artisan app:prune-logs --dry-run  # Preview without deleting
 
 ## API Usage
 
+### OpenAPI Specification
+
+A complete OpenAPI 3.0 specification is available at [`openapi.yaml`](openapi.yaml). You can import this into tools like [Swagger UI](https://swagger.io/tools/swagger-ui/), [Postman](https://www.postman.com/), or [Insomnia](https://insomnia.rest/) to explore the API interactively.
+
+### Rate Limiting
+
+The log ingestion endpoint is rate-limited to **1000 requests per minute per IP address**. Rate limit information is returned in response headers:
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests allowed per window |
+| `X-RateLimit-Remaining` | Requests remaining in current window |
+| `X-RateLimit-Reset` | Unix timestamp when the rate limit resets |
+
 ### Ingesting Logs
 
 Send a POST request to the ingestion endpoint with your project key:
@@ -143,14 +157,22 @@ curl -X POST https://your-logger-instance.com/api/ingest \
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `level` | string | Yes | Log level: `debug`, `info`, `error`, `critical` |
+| `level` | string | Yes | PSR-3 log level: `debug`, `info`, `notice`, `warning`, `error`, `critical`, `alert`, `emergency` |
 | `message` | string | Yes | Log message (max 65535 characters) |
+| `channel` | string | No | Logging channel name |
+| `datetime` | string | No | Original log timestamp (Y-m-d H:i:s.u format) |
 | `context` | object | No | Additional structured data |
+| `extra` | object | No | Monolog processor data |
 | `controller` | string | No | Controller class name |
 | `route_name` | string | No | Laravel route name |
 | `method` | string | No | HTTP method (GET, POST, etc.) |
+| `request_url` | string | No | Full request URL |
 | `user_id` | string | No | User identifier |
 | `ip_address` | string | No | Client IP (auto-detected if omitted) |
+| `user_agent` | string | No | Browser/client user agent |
+| `app_env` | string | No | Application environment |
+| `app_debug` | boolean | No | Whether debug mode is enabled |
+| `referrer` | string | No | HTTP Referer header |
 
 ### Response
 
@@ -274,8 +296,7 @@ The MIT License (MIT). Please see [LICENSE](LICENSE) for more information.
 
 ## Credits
 
-- [Julian Billinger](https://github.com/jbillinger)
-- [ADMIN INTELLIGENCE GmbH](https://github.com/ADMIN-INTELLIGENCE-GmbH)
+[Julian Billinger](https://github.com/j-bill) | [ADMIN INTELLIGENCE GmbH](https://admin-intelligence.com)
 
 ## Support
 
