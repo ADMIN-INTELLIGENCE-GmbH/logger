@@ -46,7 +46,7 @@ class RateLimitHeaders
      */
     protected function resolveRequestSignature(Request $request): string
     {
-        return sha1(
+        return hash('sha256',
             $request->method().
             '|'.$request->path().
             '|'.$request->ip()

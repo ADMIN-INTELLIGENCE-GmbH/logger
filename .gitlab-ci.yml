@@ -20,8 +20,6 @@ sast:
 # Test stage - Check PHP syntax, run tests, and check code style
 test_php:
   stage: test
-  tags:
-    - shell  # Keep using shell runner for PHP tests (has PHP/composer/node installed)
   script:
     # Check if any PHP-related files have changed
     - |
@@ -88,8 +86,6 @@ build_frontend:
 # Deploy to development environment
 deploy_development:
   stage: deploy
-  tags:
-    - shell
   needs:
     - test_php
     - build_frontend
@@ -139,8 +135,6 @@ deploy_development:
 # Deploy to staging environment
 deploy_staging:
   stage: deploy
-  tags:
-    - shell
   needs:
     - test_php
     - build_frontend
@@ -190,8 +184,6 @@ deploy_staging:
 # Deploy to production environment
 deploy_production:
   stage: deploy
-  tags:
-    - shell
   needs:
     - test_php
     - build_frontend
