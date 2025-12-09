@@ -119,7 +119,7 @@ php artisan app:prune-logs --dry-run  # Preview without deleting
 
 ### OpenAPI Specification
 
-A complete OpenAPI 3.0 specification is available at [`openapi.yaml`](openapi.yaml). You can import this into tools like [Swagger UI](https://swagger.io/tools/swagger-ui/), [Postman](https://www.postman.com/), or [Insomnia](https://insomnia.rest/) to explore the API interactively.
+A complete OpenAPI 3.0 specification is available at [`openapi.yaml`](openapi.yaml). You can view interactive API documentation at [https://admin-intelligence-gmbh.github.io/logger/](https://admin-intelligence-gmbh.github.io/logger/) or import the spec into tools like [Swagger UI](https://swagger.io/tools/swagger-ui/), [Postman](https://www.postman.com/), or [Insomnia](https://insomnia.rest/) to explore the API interactively.
 
 ### Rate Limiting
 
