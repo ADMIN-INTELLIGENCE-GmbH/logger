@@ -1,8 +1,15 @@
 # Logger
 
+[![Tests](https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/actions/workflows/tests.yml/badge.svg)](https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4)](https://php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20)](https://laravel.com)
+
 A centralized log aggregation service for collecting, storing, and analyzing application logs across multiple projects. Built with Laravel.
 
-> ** Looking for the Laravel package?** Use [Laravel Log Shipper](https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper) to easily ship logs from your Laravel applications to this service.
+> **Looking for the Laravel package?**
+>
+> Use [Laravel Log Shipper](https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper) to easily ship logs from your Laravel applications to this service.
 
 ## Overview
 
