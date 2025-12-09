@@ -37,7 +37,7 @@ class LogExplorerController extends Controller
         }
 
         if ($request->filled('controller')) {
-            $query->where('controller', 'like', '%' . $request->input('controller') . '%');
+            $query->where('controller', 'like', '%'.$request->input('controller').'%');
         }
 
         if ($request->filled('route_name')) {
@@ -108,7 +108,7 @@ class LogExplorerController extends Controller
 
         $result = $openAIService->analyzeLog($log);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json([
                 'success' => false,
                 'error' => $result['error'],

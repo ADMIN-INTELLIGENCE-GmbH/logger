@@ -19,7 +19,7 @@ class RegisteredUserController extends Controller
      */
     public function create(): View|RedirectResponse
     {
-        if (!config('app.registration_enabled')) {
+        if (! config('app.registration_enabled')) {
             return redirect()->route('login')
                 ->with('error', 'Public registration is disabled. Contact an administrator.');
         }
@@ -34,7 +34,7 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        if (!config('app.registration_enabled')) {
+        if (! config('app.registration_enabled')) {
             abort(403, 'Public registration is disabled.');
         }
 

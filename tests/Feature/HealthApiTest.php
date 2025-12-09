@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -46,10 +45,10 @@ class HealthApiTest extends TestCase
         $response = $this->getJson('/api/health');
 
         $response->assertStatus(200);
-        
+
         $timestamp = $response->json('timestamp');
         $this->assertNotNull($timestamp);
-        
+
         // Verify it's a valid ISO 8601 timestamp
         $parsed = \DateTime::createFromFormat(\DateTime::ATOM, $timestamp);
         $this->assertInstanceOf(\DateTime::class, $parsed);

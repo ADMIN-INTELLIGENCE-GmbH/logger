@@ -118,7 +118,7 @@ class Project extends Model
      */
     public function hasWebhook(): bool
     {
-        return !empty($this->webhook_url) && $this->webhook_enabled;
+        return ! empty($this->webhook_url) && $this->webhook_enabled;
     }
 
     /**
@@ -126,7 +126,7 @@ class Project extends Model
      */
     public function hasWebhookUrl(): bool
     {
-        return !empty($this->webhook_url);
+        return ! empty($this->webhook_url);
     }
 
     /**

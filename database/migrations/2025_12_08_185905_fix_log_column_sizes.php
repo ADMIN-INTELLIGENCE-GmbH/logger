@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('logs', function (Blueprint $table) {
             // user_agent can be very long (some browsers send 500+ chars)
             $table->text('user_agent')->nullable()->change();
-            
+
             // referrer URLs can be long
             $table->text('referrer')->nullable()->change();
         });

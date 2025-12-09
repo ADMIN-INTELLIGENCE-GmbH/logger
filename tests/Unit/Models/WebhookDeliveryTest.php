@@ -16,7 +16,7 @@ class WebhookDeliveryTest extends TestCase
     {
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
+
         $delivery = WebhookDelivery::factory()->create([
             'project_id' => $project->id,
             'log_id' => $log->id,
@@ -30,7 +30,7 @@ class WebhookDeliveryTest extends TestCase
     {
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
+
         $delivery = WebhookDelivery::factory()->create([
             'project_id' => $project->id,
             'log_id' => $log->id,
@@ -43,7 +43,7 @@ class WebhookDeliveryTest extends TestCase
     public function test_webhook_delivery_can_have_null_log_id(): void
     {
         $project = Project::factory()->create();
-        
+
         $delivery = WebhookDelivery::factory()->create([
             'project_id' => $project->id,
             'log_id' => null,
@@ -58,7 +58,7 @@ class WebhookDeliveryTest extends TestCase
     {
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
+
         $delivery = WebhookDelivery::factory()->create([
             'project_id' => $project->id,
             'log_id' => $log->id,
@@ -73,7 +73,7 @@ class WebhookDeliveryTest extends TestCase
     {
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
+
         $delivery = WebhookDelivery::factory()->create([
             'project_id' => $project->id,
             'log_id' => $log->id,
@@ -87,13 +87,13 @@ class WebhookDeliveryTest extends TestCase
     {
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
+
         $oldDelivery = WebhookDelivery::factory()->create([
             'project_id' => $project->id,
             'log_id' => $log->id,
             'created_at' => now()->subHour(),
         ]);
-        
+
         $newDelivery = WebhookDelivery::factory()->create([
             'project_id' => $project->id,
             'log_id' => $log->id,
@@ -110,7 +110,7 @@ class WebhookDeliveryTest extends TestCase
     {
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
+
         WebhookDelivery::factory()->count(10)->create([
             'project_id' => $project->id,
             'log_id' => $log->id,

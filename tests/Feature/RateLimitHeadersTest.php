@@ -22,17 +22,17 @@ class RateLimitHeadersTest extends TestCase
         ]);
 
         $response->assertStatus(201);
-        
+
         // Check rate limit headers are present
         $response->assertHeader('X-RateLimit-Limit', '1000');
         $this->assertTrue($response->headers->has('X-RateLimit-Remaining'));
         $this->assertTrue($response->headers->has('X-RateLimit-Reset'));
-        
+
         // Remaining should be less than or equal to limit
         $remaining = (int) $response->headers->get('X-RateLimit-Remaining');
         $this->assertLessThanOrEqual(1000, $remaining);
         $this->assertGreaterThanOrEqual(0, $remaining);
-        
+
         // Reset should be in the future
         $reset = (int) $response->headers->get('X-RateLimit-Reset');
         $this->assertGreaterThan(time() - 1, $reset);

@@ -44,6 +44,7 @@ class PruneLogs extends Command
 
         if ($projects->isEmpty()) {
             $this->info('No projects with retention policies found.');
+
             return self::SUCCESS;
         }
 
@@ -67,7 +68,7 @@ class PruneLogs extends Command
     protected function pruneProjectLogs(Project $project, int $chunkSize, bool $dryRun): int
     {
         $cutoffDate = now()->subDays($project->retention_days);
-        
+
         $this->line("Processing project: {$project->name} (retention: {$project->retention_days} days)");
 
         // Count logs to be deleted
@@ -77,6 +78,7 @@ class PruneLogs extends Command
 
         if ($count === 0) {
             $this->line("  → No logs older than {$project->retention_days} days");
+
             return 0;
         }
 
@@ -89,7 +91,7 @@ class PruneLogs extends Command
 
         // Use chunked deletion to avoid memory issues with high volume
         $deleted = 0;
-        
+
         do {
             // Delete in chunks using raw SQL for better performance
             $affectedRows = DB::table('logs')

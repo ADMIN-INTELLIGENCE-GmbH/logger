@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\IngestLogRequest;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class IngestController extends Controller
 {
@@ -29,7 +28,7 @@ class IngestController extends Controller
 
         $project = Project::findByMagicKey($projectKey);
 
-        if (!$project) {
+        if (! $project) {
             return response()->json([
                 'error' => 'Unauthorized',
                 'message' => 'Invalid project key or project is inactive',

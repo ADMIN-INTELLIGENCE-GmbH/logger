@@ -40,12 +40,12 @@ class WebhookDispatcher implements ShouldQueue
         $project = $log->project;
 
         // Check if project has a webhook URL configured and enabled
-        if (!$project->hasWebhook()) {
+        if (! $project->hasWebhook()) {
             return;
         }
 
         // Check if log level meets the project's threshold
-        if (!$log->meetsThreshold($project->webhook_threshold)) {
+        if (! $log->meetsThreshold($project->webhook_threshold)) {
             return;
         }
 
@@ -55,6 +55,7 @@ class WebhookDispatcher implements ShouldQueue
                 'project_id' => $project->id,
                 'log_id' => $log->id,
             ]);
+
             return;
         }
 
@@ -75,6 +76,7 @@ class WebhookDispatcher implements ShouldQueue
         }
 
         Cache::put($cacheKey, $count + 1, $this->rateLimitWindow);
+
         return false;
     }
 
@@ -103,6 +105,7 @@ class WebhookDispatcher implements ShouldQueue
                 ->withHeaders($headers)
                 ->retry(3, 100, function ($exception, $request) use ($delivery) {
                     $delivery->increment('attempt');
+
                     return true;
                 })
                 ->post($url, $payload);
@@ -114,7 +117,7 @@ class WebhookDispatcher implements ShouldQueue
                 'delivered_at' => now(),
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 LaravelLog::warning('Webhook failed', [
                     'url' => $url,
                     'status' => $response->status(),
@@ -540,7 +543,7 @@ class WebhookDispatcher implements ShouldQueue
             'summary' => "{$levelEmoji} [{$project->name}] {$log->level}: {$log->message}",
             'sections' => [
                 [
-                    'activityTitle' => "{$levelEmoji} Log Entry - " . strtoupper($log->level),
+                    'activityTitle' => "{$levelEmoji} Log Entry - ".strtoupper($log->level),
                     'activitySubtitle' => $project->name,
                     'facts' => array_values(array_filter([
                         [

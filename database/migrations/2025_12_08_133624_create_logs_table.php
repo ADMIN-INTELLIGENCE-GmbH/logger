@@ -17,14 +17,14 @@ return new class extends Migration
             $table->string('level'); // error, info, debug, critical
             $table->text('message');
             $table->json('context')->nullable();
-            
+
             // Indexed columns for filtering
             $table->string('controller')->nullable()->index();
             $table->string('route_name')->nullable()->index();
             $table->string('method')->nullable(); // GET, POST, etc
             $table->string('user_id')->nullable()->index(); // stored as string to support UUIDs or Integers
             $table->string('ip_address')->nullable()->index();
-            
+
             $table->timestamp('created_at')->nullable()->index();
 
             $table->foreign('project_id')

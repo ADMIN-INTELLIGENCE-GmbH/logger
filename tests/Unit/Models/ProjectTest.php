@@ -94,10 +94,10 @@ class ProjectTest extends TestCase
     {
         // Fake events to prevent LogCreated from triggering webhooks
         Event::fake(['App\Events\LogCreated']);
-        
+
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
+
         WebhookDelivery::factory()->count(2)->create([
             'project_id' => $project->id,
             'log_id' => $log->id,

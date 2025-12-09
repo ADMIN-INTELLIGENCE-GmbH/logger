@@ -26,7 +26,7 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->company() . ' ' . fake()->randomElement(['App', 'API', 'Service', 'Platform']),
+            'name' => fake()->company().' '.fake()->randomElement(['App', 'API', 'Service', 'Platform']),
             'magic_key' => Str::random(64),
             'retention_days' => fake()->randomElement([7, 14, 30, 90, -1]),
             'webhook_url' => fake()->optional(0.3)->url(),
@@ -57,7 +57,7 @@ class ProjectFactory extends Factory
     /**
      * Indicate that the project has a webhook configured.
      */
-    public function withWebhook(string $url = null): static
+    public function withWebhook(?string $url = null): static
     {
         return $this->state(fn (array $attributes) => [
             'webhook_url' => $url ?? fake()->url(),

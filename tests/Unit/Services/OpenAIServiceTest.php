@@ -17,7 +17,7 @@ class OpenAIServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Reset config for each test
         Config::set('openai.api_key', null);
         Config::set('openai.model', 'gpt-4o-mini');
@@ -27,8 +27,8 @@ class OpenAIServiceTest extends TestCase
     public function test_is_configured_returns_false_when_no_api_key(): void
     {
         Config::set('openai.api_key', null);
-        
-        $service = new OpenAIService();
+
+        $service = new OpenAIService;
 
         $this->assertFalse($service->isConfigured());
     }
@@ -36,8 +36,8 @@ class OpenAIServiceTest extends TestCase
     public function test_is_configured_returns_true_when_api_key_set(): void
     {
         Config::set('openai.api_key', 'sk-test-key');
-        
-        $service = new OpenAIService();
+
+        $service = new OpenAIService;
 
         $this->assertTrue($service->isConfigured());
     }
@@ -45,11 +45,11 @@ class OpenAIServiceTest extends TestCase
     public function test_analyze_log_returns_error_when_not_configured(): void
     {
         Config::set('openai.api_key', null);
-        
+
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
-        $service = new OpenAIService();
+
+        $service = new OpenAIService;
         $result = $service->analyzeLog($log);
 
         $this->assertFalse($result['success']);
@@ -60,16 +60,16 @@ class OpenAIServiceTest extends TestCase
     {
         Config::set('openai.api_key', 'sk-test-key');
         Config::set('openai.model', 'gpt-4o-mini');
-        
+
         Http::fake([
             'api.openai.com/*' => Http::response([
                 'choices' => [
-                    ['message' => ['content' => 'This is a test analysis response.']]
+                    ['message' => ['content' => 'This is a test analysis response.']],
                 ],
                 'usage' => ['total_tokens' => 100],
             ], 200),
         ]);
-        
+
         $project = Project::factory()->create();
         $log = Log::factory()->create([
             'project_id' => $project->id,
@@ -77,8 +77,8 @@ class OpenAIServiceTest extends TestCase
             'message' => 'Test error message',
             'context' => ['key' => 'value'],
         ]);
-        
-        $service = new OpenAIService();
+
+        $service = new OpenAIService;
         $result = $service->analyzeLog($log);
 
         $this->assertTrue($result['success']);
@@ -96,19 +96,19 @@ class OpenAIServiceTest extends TestCase
     {
         Config::set('openai.api_key', 'sk-test-key');
         Config::set('openai.project_id', 'proj-12345');
-        
+
         Http::fake([
             'api.openai.com/*' => Http::response([
                 'choices' => [
-                    ['message' => ['content' => 'Analysis']]
+                    ['message' => ['content' => 'Analysis']],
                 ],
             ], 200),
         ]);
-        
+
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
-        $service = new OpenAIService();
+
+        $service = new OpenAIService;
         $service->analyzeLog($log);
 
         Http::assertSent(function ($request) {
@@ -119,17 +119,17 @@ class OpenAIServiceTest extends TestCase
     public function test_analyze_log_handles_api_error(): void
     {
         Config::set('openai.api_key', 'sk-test-key');
-        
+
         Http::fake([
             'api.openai.com/*' => Http::response([
-                'error' => ['message' => 'Rate limit exceeded']
+                'error' => ['message' => 'Rate limit exceeded'],
             ], 429),
         ]);
-        
+
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
-        $service = new OpenAIService();
+
+        $service = new OpenAIService;
         $result = $service->analyzeLog($log);
 
         $this->assertFalse($result['success']);
@@ -139,19 +139,19 @@ class OpenAIServiceTest extends TestCase
     public function test_analyze_log_handles_empty_response(): void
     {
         Config::set('openai.api_key', 'sk-test-key');
-        
+
         Http::fake([
             'api.openai.com/*' => Http::response([
                 'choices' => [
-                    ['message' => ['content' => null]]
+                    ['message' => ['content' => null]],
                 ],
             ], 200),
         ]);
-        
+
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
-        $service = new OpenAIService();
+
+        $service = new OpenAIService;
         $result = $service->analyzeLog($log);
 
         $this->assertFalse($result['success']);
@@ -161,17 +161,17 @@ class OpenAIServiceTest extends TestCase
     public function test_analyze_log_handles_connection_error(): void
     {
         Config::set('openai.api_key', 'sk-test-key');
-        
+
         Http::fake([
             'api.openai.com/*' => function () {
                 throw new \Illuminate\Http\Client\ConnectionException('Connection refused');
             },
         ]);
-        
+
         $project = Project::factory()->create();
         $log = Log::factory()->create(['project_id' => $project->id]);
-        
-        $service = new OpenAIService();
+
+        $service = new OpenAIService;
         $result = $service->analyzeLog($log);
 
         $this->assertFalse($result['success']);

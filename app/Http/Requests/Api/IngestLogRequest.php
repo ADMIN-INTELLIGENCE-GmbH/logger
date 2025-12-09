@@ -25,7 +25,7 @@ class IngestLogRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'level' => 'required|string|in:' . implode(',', Log::LEVELS),
+            'level' => 'required|string|in:'.implode(',', Log::LEVELS),
             'message' => 'required|string|max:65535',
             'channel' => 'nullable|string|max:255',
             'datetime' => 'nullable|date',
@@ -55,7 +55,7 @@ class IngestLogRequest extends FormRequest
     {
         return [
             'level.required' => 'The log level is required.',
-            'level.in' => 'The log level must be one of: ' . implode(', ', Log::LEVELS),
+            'level.in' => 'The log level must be one of: '.implode(', ', Log::LEVELS),
             'message.required' => 'The log message is required.',
             'message.max' => 'The log message may not exceed 65535 characters.',
         ];
@@ -102,6 +102,7 @@ class IngestLogRequest extends FormRequest
                 return null;
             }
         }
+
         return null;
     }
 
@@ -114,6 +115,7 @@ class IngestLogRequest extends FormRequest
         if ($context && strlen(json_encode($context)) > 1048576) {
             return ['_truncated' => true, '_message' => 'Context too large, truncated'];
         }
+
         return $context;
     }
 
@@ -126,6 +128,7 @@ class IngestLogRequest extends FormRequest
         if ($extra && strlen(json_encode($extra)) > 1048576) {
             return ['_truncated' => true, '_message' => 'Extra data too large, truncated'];
         }
+
         return $extra;
     }
 }

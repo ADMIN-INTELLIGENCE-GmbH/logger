@@ -46,7 +46,7 @@ class ProjectController extends Controller
         ]);
 
         return redirect()->route('projects.dashboard', $project)
-            ->with('success', 'Project created successfully. Your magic key: ' . $project->magic_key);
+            ->with('success', 'Project created successfully. Your magic key: '.$project->magic_key);
     }
 
     /**

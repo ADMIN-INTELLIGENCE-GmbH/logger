@@ -73,6 +73,6 @@ class ProjectSeeder extends Seeder
             ->forProject($project)
             ->create();
 
-        $this->command->info("  → Created 100 sample logs");
+        $this->command->info('  → Created 100 sample logs');
     }
 }

@@ -17,11 +17,11 @@ class DashboardController extends Controller
     public function index(Request $request, Project $project): View
     {
         $now = now();
-        
+
         // Get time range from request (default: 24h)
         $range = $request->input('range', '24h');
         $levelFilter = $request->input('level', 'all');
-        
+
         // Calculate time period based on range
         $startDate = match ($range) {
             '1h' => $now->copy()->subHour(),
@@ -46,13 +46,13 @@ class DashboardController extends Controller
             ->count();
 
         // Error rate percentage
-        $errorRate = $totalLogs > 0 
-            ? round(($errorLogs / $totalLogs) * 100, 2) 
+        $errorRate = $totalLogs > 0
+            ? round(($errorLogs / $totalLogs) * 100, 2)
             : 0;
 
         // Determine grouping based on range
         $driver = DB::getDriverName();
-        
+
         if (in_array($range, ['1h', '6h', '24h'])) {
             // Group by hour
             $hourExpression = match ($driver) {
@@ -74,7 +74,7 @@ class DashboardController extends Controller
         // Build chart query with optional level filter
         $chartQuery = Log::where('project_id', $project->id)
             ->where('created_at', '>=', $startDate);
-        
+
         if ($levelFilter !== 'all') {
             if ($levelFilter === 'errors') {
                 // PSR-3: error (4) and above
@@ -105,6 +105,7 @@ class DashboardController extends Controller
                 foreach ($logs as $log) {
                     $data[$log->level] = $log->count;
                 }
+
                 return $data;
             })
             ->values();

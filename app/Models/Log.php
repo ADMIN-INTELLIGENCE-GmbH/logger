@@ -126,7 +126,7 @@ class Log extends Model
     public function scopeSearchMessage($query, string $search)
     {
         $driver = $query->getConnection()->getDriverName();
-        
+
         if ($driver === 'mysql' || $driver === 'mariadb') {
             // Use MySQL FULLTEXT search with MATCH AGAINST
             // Boolean mode allows partial matching and is more forgiving
@@ -141,7 +141,7 @@ class Log extends Model
                 [$search]
             );
         }
-        
+
         // Fallback to LIKE for SQLite and other databases
         return $query->where('message', 'like', "%{$search}%");
     }
@@ -154,16 +154,16 @@ class Log extends Model
     {
         // Split into words, filter empty, and add + prefix for required match
         $words = array_filter(explode(' ', trim($search)));
-        
+
         return implode(' ', array_map(function ($word) {
             // Remove special boolean mode characters except asterisk for wildcards
             $word = preg_replace('/[+\-><()~*"@]/', '', $word);
-            
+
             if (strlen($word) >= 3) {
                 // Add wildcard for partial matching
-                return '+' . $word . '*';
+                return '+'.$word.'*';
             }
-            
+
             return $word;
         }, $words));
     }

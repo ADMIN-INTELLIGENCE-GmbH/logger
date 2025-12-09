@@ -21,7 +21,7 @@ class WebhookDispatcherTest extends TestCase
     {
         parent::setUp();
         Cache::flush();
-        
+
         // Prevent model events from auto-dispatching webhooks during test setup
         Event::fake([LogCreated::class]);
     }
@@ -32,7 +32,7 @@ class WebhookDispatcherTest extends TestCase
             'webhook_url' => null,
             'webhook_enabled' => true,
         ]);
-        
+
         $log = Log::factory()->create([
             'project_id' => $project->id,
             'level' => 'error',
@@ -41,7 +41,7 @@ class WebhookDispatcherTest extends TestCase
         Http::fake();
         Event::fake([LogCreated::class]); // Re-fake after log creation
 
-        $dispatcher = new WebhookDispatcher();
+        $dispatcher = new WebhookDispatcher;
         $dispatcher->handle(new LogCreated($log));
 
         Http::assertNothingSent();
@@ -54,7 +54,7 @@ class WebhookDispatcherTest extends TestCase
             'webhook_url' => 'https://hooks.slack.com/test',
             'webhook_enabled' => false,
         ]);
-        
+
         $log = Log::factory()->create([
             'project_id' => $project->id,
             'level' => 'error',
@@ -62,7 +62,7 @@ class WebhookDispatcherTest extends TestCase
 
         Http::fake();
 
-        $dispatcher = new WebhookDispatcher();
+        $dispatcher = new WebhookDispatcher;
         $dispatcher->handle(new LogCreated($log));
 
         Http::assertNothingSent();
@@ -75,7 +75,7 @@ class WebhookDispatcherTest extends TestCase
             'webhook_enabled' => true,
             'webhook_threshold' => 'error',
         ]);
-        
+
         $log = Log::factory()->create([
             'project_id' => $project->id,
             'level' => 'info', // Below error threshold
@@ -83,7 +83,7 @@ class WebhookDispatcherTest extends TestCase
 
         Http::fake();
 
-        $dispatcher = new WebhookDispatcher();
+        $dispatcher = new WebhookDispatcher;
         $dispatcher->handle(new LogCreated($log));
 
         Http::assertNothingSent();
@@ -97,7 +97,7 @@ class WebhookDispatcherTest extends TestCase
             'webhook_threshold' => 'error',
             'webhook_format' => 'slack',
         ]);
-        
+
         $log = Log::factory()->create([
             'project_id' => $project->id,
             'level' => 'error',
@@ -108,7 +108,7 @@ class WebhookDispatcherTest extends TestCase
             'hooks.slack.com/*' => Http::response(['ok' => true], 200),
         ]);
 
-        $dispatcher = new WebhookDispatcher();
+        $dispatcher = new WebhookDispatcher;
         $dispatcher->handle(new LogCreated($log));
 
         Http::assertSent(function ($request) {
@@ -116,7 +116,7 @@ class WebhookDispatcherTest extends TestCase
         });
 
         $this->assertEquals(1, WebhookDelivery::count());
-        
+
         $delivery = WebhookDelivery::first();
         $this->assertTrue($delivery->success);
         $this->assertEquals(200, $delivery->status_code);
@@ -131,7 +131,7 @@ class WebhookDispatcherTest extends TestCase
             'webhook_threshold' => 'error',
             'webhook_format' => 'slack',
         ]);
-        
+
         $log = Log::factory()->create([
             'project_id' => $project->id,
             'level' => 'error',
@@ -141,7 +141,7 @@ class WebhookDispatcherTest extends TestCase
             'hooks.slack.com/*' => Http::response(['error' => 'invalid_token'], 401),
         ]);
 
-        $dispatcher = new WebhookDispatcher();
+        $dispatcher = new WebhookDispatcher;
         $dispatcher->handle(new LogCreated($log));
 
         $delivery = WebhookDelivery::first();
@@ -162,7 +162,7 @@ class WebhookDispatcherTest extends TestCase
             'hooks.slack.com/*' => Http::response(['ok' => true], 200),
         ]);
 
-        $dispatcher = new WebhookDispatcher();
+        $dispatcher = new WebhookDispatcher;
 
         // Simulate hitting rate limit (30 per minute)
         for ($i = 0; $i < 35; $i++) {
@@ -205,7 +205,7 @@ class WebhookDispatcherTest extends TestCase
             'webhook_threshold' => 'error',
             'webhook_format' => 'discord',
         ]);
-        
+
         $log = Log::factory()->create([
             'project_id' => $project->id,
             'level' => 'error',
@@ -216,11 +216,12 @@ class WebhookDispatcherTest extends TestCase
             'discord.com/*' => Http::response([], 204),
         ]);
 
-        $dispatcher = new WebhookDispatcher();
+        $dispatcher = new WebhookDispatcher;
         $dispatcher->handle(new LogCreated($log));
 
         Http::assertSent(function ($request) {
             $payload = $request->data();
+
             // Discord uses 'embeds' instead of 'attachments'
             return isset($payload['embeds']) || isset($payload['content']);
         });

@@ -102,12 +102,12 @@ class LogTest extends TestCase
     public function test_log_casts_app_debug_to_boolean(): void
     {
         $project = Project::factory()->create();
-        
+
         $log1 = Log::factory()->create([
             'project_id' => $project->id,
             'app_debug' => true,
         ]);
-        
+
         $log2 = Log::factory()->create([
             'project_id' => $project->id,
             'app_debug' => false,
@@ -120,12 +120,12 @@ class LogTest extends TestCase
     public function test_scope_level_filters_by_level(): void
     {
         $project = Project::factory()->create();
-        
+
         Log::factory()->count(3)->create([
             'project_id' => $project->id,
             'level' => 'error',
         ]);
-        
+
         Log::factory()->count(2)->create([
             'project_id' => $project->id,
             'level' => 'info',
@@ -138,12 +138,12 @@ class LogTest extends TestCase
     public function test_scope_controller_filters_by_controller(): void
     {
         $project = Project::factory()->create();
-        
+
         Log::factory()->create([
             'project_id' => $project->id,
             'controller' => 'App\\Http\\Controllers\\UserController',
         ]);
-        
+
         Log::factory()->create([
             'project_id' => $project->id,
             'controller' => 'App\\Http\\Controllers\\OrderController',
@@ -155,12 +155,12 @@ class LogTest extends TestCase
     public function test_scope_for_user_filters_by_user_id(): void
     {
         $project = Project::factory()->create();
-        
+
         Log::factory()->count(2)->create([
             'project_id' => $project->id,
             'user_id' => 'user-123',
         ]);
-        
+
         Log::factory()->create([
             'project_id' => $project->id,
             'user_id' => 'user-456',
@@ -172,12 +172,12 @@ class LogTest extends TestCase
     public function test_scope_search_message_finds_matching_logs(): void
     {
         $project = Project::factory()->create();
-        
+
         Log::factory()->create([
             'project_id' => $project->id,
             'message' => 'Database connection failed',
         ]);
-        
+
         Log::factory()->create([
             'project_id' => $project->id,
             'message' => 'User login successful',
@@ -191,17 +191,17 @@ class LogTest extends TestCase
     public function test_scope_created_between_filters_by_date_range(): void
     {
         $project = Project::factory()->create();
-        
+
         Log::factory()->create([
             'project_id' => $project->id,
             'created_at' => now()->subDays(5),
         ]);
-        
+
         Log::factory()->create([
             'project_id' => $project->id,
             'created_at' => now()->subDays(2),
         ]);
-        
+
         Log::factory()->create([
             'project_id' => $project->id,
             'created_at' => now(),

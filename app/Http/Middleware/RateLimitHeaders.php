@@ -47,9 +47,9 @@ class RateLimitHeaders
     protected function resolveRequestSignature(Request $request): string
     {
         return sha1(
-            $request->method() .
-            '|' . $request->path() .
-            '|' . $request->ip()
+            $request->method().
+            '|'.$request->path().
+            '|'.$request->ip()
         );
     }
 
@@ -59,7 +59,7 @@ class RateLimitHeaders
     protected function calculateRemainingAttempts(string $key, int $maxAttempts): int
     {
         $attempts = $this->limiter->attempts($key);
-        
+
         return max(0, $maxAttempts - $attempts);
     }
 
@@ -70,7 +70,7 @@ class RateLimitHeaders
     {
         $response->headers->set('X-RateLimit-Limit', $maxAttempts);
         $response->headers->set('X-RateLimit-Remaining', max(0, $remainingAttempts));
-        
+
         if ($retryAfter !== null && $retryAfter > 0) {
             $response->headers->set('X-RateLimit-Reset', time() + $retryAfter);
         } else {

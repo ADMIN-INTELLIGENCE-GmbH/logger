@@ -40,56 +40,61 @@ class CreateAdminUser extends Command
         // Check if admin already exists
         $existingAdmin = User::where('role', User::ROLE_ADMIN)->first();
         if ($existingAdmin) {
-            if (!$this->confirm('An admin user already exists (' . $existingAdmin->email . '). Do you want to create another one?', false)) {
+            if (! $this->confirm('An admin user already exists ('.$existingAdmin->email.'). Do you want to create another one?', false)) {
                 $this->info('Setup cancelled.');
+
                 return Command::SUCCESS;
             }
         }
 
         // Get name
         $name = $this->option('name') ?? $this->ask('Enter admin name');
-        
+
         // Validate name
         $validator = Validator::make(['name' => $name], [
             'name' => 'required|string|min:2|max:255',
         ]);
-        
+
         if ($validator->fails()) {
-            $this->error('Invalid name: ' . implode(', ', $validator->errors()->all()));
+            $this->error('Invalid name: '.implode(', ', $validator->errors()->all()));
+
             return Command::FAILURE;
         }
 
         // Get email
         $email = $this->option('email') ?? $this->ask('Enter admin email');
-        
+
         // Validate email
         $validator = Validator::make(['email' => $email], [
             'email' => 'required|email|unique:users,email',
         ]);
-        
+
         if ($validator->fails()) {
-            $this->error('Invalid email: ' . implode(', ', $validator->errors()->all()));
+            $this->error('Invalid email: '.implode(', ', $validator->errors()->all()));
+
             return Command::FAILURE;
         }
 
         // Get password
         $password = $this->option('password') ?? $this->secret('Enter admin password (min 8 characters)');
-        
+
         // Validate password
         $validator = Validator::make(['password' => $password], [
             'password' => 'required|string|min:8',
         ]);
-        
+
         if ($validator->fails()) {
-            $this->error('Invalid password: ' . implode(', ', $validator->errors()->all()));
+            $this->error('Invalid password: '.implode(', ', $validator->errors()->all()));
+
             return Command::FAILURE;
         }
 
         // Confirm password if entered interactively
-        if (!$this->option('password')) {
+        if (! $this->option('password')) {
             $confirmPassword = $this->secret('Confirm password');
             if ($password !== $confirmPassword) {
                 $this->error('Passwords do not match.');
+
                 return Command::FAILURE;
             }
         }
@@ -117,12 +122,13 @@ class CreateAdminUser extends Command
                 ]
             );
             $this->info('');
-            $this->info('You can now log in at: ' . url('/login'));
+            $this->info('You can now log in at: '.url('/login'));
             $this->info('');
 
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->error('Failed to create admin user: ' . $e->getMessage());
+            $this->error('Failed to create admin user: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }

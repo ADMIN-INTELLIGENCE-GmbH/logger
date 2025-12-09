@@ -66,7 +66,7 @@ class ProjectSettingsController extends Controller
         $project->regenerateMagicKey();
 
         return redirect()->route('projects.settings.show', $project)
-            ->with('success', 'Magic key regenerated successfully. New key: ' . $project->magic_key);
+            ->with('success', 'Magic key regenerated successfully. New key: '.$project->magic_key);
     }
 
     /**
@@ -85,7 +85,7 @@ class ProjectSettingsController extends Controller
      */
     public function testWebhook(Project $project): RedirectResponse
     {
-        if (!$project->hasWebhookUrl()) {
+        if (! $project->hasWebhookUrl()) {
             return redirect()->route('projects.settings.show', $project)
                 ->with('error', 'No webhook URL configured.');
         }
@@ -94,12 +94,13 @@ class ProjectSettingsController extends Controller
 
         if ($delivery->success) {
             return redirect()->route('projects.settings.show', $project)
-                ->with('success', 'Test webhook sent successfully! Status: ' . $delivery->status_code);
+                ->with('success', 'Test webhook sent successfully! Status: '.$delivery->status_code);
         }
 
         $errorMessage = $delivery->error_message ?? "HTTP {$delivery->status_code}";
+
         return redirect()->route('projects.settings.show', $project)
-            ->with('error', 'Webhook test failed: ' . $errorMessage);
+            ->with('error', 'Webhook test failed: '.$errorMessage);
     }
 
     /**
