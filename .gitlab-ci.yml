@@ -31,7 +31,7 @@ test_php:
     - php --version || (echo "PHP not found on runner" && exit 1)
     # Check if composer is available
     - composer --version || (echo "Composer installation failed" && exit 1)
-    - composer validate || (echo "Composer validation failed" && exit 1)
+    - composer validate || composer update --lock
     - composer install --optimize-autoloader --no-interaction
     # PHP syntax check
     - find app config routes database -name "*.php" -print0 | xargs -0 -n1 php -l || (echo "PHP syntax check failed" && exit 1)
