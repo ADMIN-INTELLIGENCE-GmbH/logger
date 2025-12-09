@@ -1,0 +1,220 @@
+stages:
+  - test
+  - build
+  - deploy
+
+# Include GitLab security scanning templates (optional - remove if not needed)
+include:
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+
+# Test stage - Check PHP syntax, run tests, and check code style
+test_php:
+  stage: test
+  script:
+    # Check if any PHP-related files have changed
+    - |
+      if ! git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(php|json)$|^database/'; then
+        echo "No PHP-related files changed, skipping PHP tests"
+        exit 0
+      fi
+    # Check if PHP is available
+    - php --version || (echo "PHP not found on runner" && exit 1)
+    # Check if composer is available
+    - composer --version || (echo "Composer installation failed" && exit 1)
+    - composer validate || (echo "Composer validation failed" && exit 1)
+    - composer install --optimize-autoloader --no-interaction
+    # PHP syntax check
+    - find app config routes database -name "*.php" -print0 | xargs -0 -n1 php -l || (echo "PHP syntax check failed" && exit 1)
+    # Laravel Pint code style check
+    - vendor/bin/pint --test || (echo "Code style check failed" && exit 1)
+    # Setup Laravel environment
+    - (test -f .env.example && cp .env.example .env) || (echo "No .env.example found, cannot proceed with artisan commands" && exit 1)
+    - php artisan key:generate --ansi || (echo "Failed to generate key" && exit 1)
+    # Run PHPUnit tests
+    - php artisan test --ansi || (echo "Tests failed" && exit 1)
+    # Cache config and routes
+    - php artisan config:cache --ansi || (echo "Failed to cache config" && exit 1)
+    - php artisan route:cache --ansi || (echo "Failed to cache routes" && exit 1)
+  cache:
+    key:
+      files:
+        - composer.lock
+    paths:
+      - vendor/
+    policy: pull-push
+
+# Build stage - Compile frontend assets
+build_frontend:
+  stage: build
+  script:
+    # Check if any frontend-related files have changed
+    - |
+      if ! git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json)$|^resources/|^package'; then
+        echo "No frontend files changed, skipping frontend build"
+        exit 0
+      fi
+    # Check if node/npm is available
+    - node --version || (echo "Node.js not found on runner" && exit 1)
+    - npm --version || (echo "npm not found on runner" && exit 1)
+    - npm install --force
+    - npm run build
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+      - ~/.npm
+    policy: pull-push
+  artifacts:
+    paths:
+      - public/build/
+    expire_in: 1 hour
+
+# Deploy to development environment
+deploy_development:
+  stage: deploy
+  needs:
+    - test_php
+    - build_frontend
+  only:
+    - development
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+  script:
+    - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && php artisan down || true"
+    - PULLED_FILES=$(ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && git pull")
+    - echo "$PULLED_FILES"
+    - |
+      if echo "$PULLED_FILES" | grep -E 'composer.json|composer.lock'; then
+        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && composer install --no-dev --optimize-autoloader"
+      else
+        echo "No composer changes, skipping composer install"
+      fi
+    - |
+      # Only upload pre-built assets if frontend files changed
+      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json)$|^resources/|^package'; then
+        echo "Frontend files changed, uploading pre-built assets from CI build"
+        scp -r public/build/ website@"$SERVER_IP_DEV":"$TARGET_FOLDER_DEV/public/"
+      else
+        echo "No frontend changes, skipping asset upload"
+      fi
+    - |
+      if echo "$PULLED_FILES" | grep -E 'database/migrations/'; then
+        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && php artisan migrate --force"
+      else
+        echo "No migrations changes, skipping migrations"
+      fi
+    - |
+      if echo "$PULLED_FILES" | grep -E 'app/Jobs/|app/Listeners/|config/queue'; then
+        echo "Queue-related files changed, restarting queue workers..."
+        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && php artisan queue:restart"
+      else
+        echo "No queue changes, skipping restart"
+      fi
+    - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && php artisan up"
+  after_script:
+    - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && php artisan up || true"
+
+# Deploy to staging environment
+deploy_staging:
+  stage: deploy
+  needs:
+    - test_php
+    - build_frontend
+  only:
+    - staging
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+  script:
+    - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && php artisan down || true"
+    - PULLED_FILES=$(ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && git pull")
+    - echo "$PULLED_FILES"
+    - |
+      if echo "$PULLED_FILES" | grep -E 'composer.json|composer.lock'; then
+        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && composer install --no-dev --optimize-autoloader"
+      else
+        echo "No composer changes, skipping composer install"
+      fi
+    - |
+      # Only upload pre-built assets if frontend files changed
+      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json)$|^resources/|^package'; then
+        echo "Frontend files changed, uploading pre-built assets from CI build"
+        scp -r public/build/ website@"$SERVER_IP_DEV":"$TARGET_FOLDER_STAGING/public/"
+      else
+        echo "No frontend changes, skipping asset upload"
+      fi
+    - |
+      if echo "$PULLED_FILES" | grep -E 'database/migrations/'; then
+        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && php artisan migrate --force"
+      else
+        echo "No migrations changes, skipping migrations"
+      fi
+    - |
+      if echo "$PULLED_FILES" | grep -E 'app/Jobs/|app/Listeners/|config/queue'; then
+        echo "Queue-related files changed, restarting queue workers..."
+        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && php artisan queue:restart"
+      else
+        echo "No queue changes, skipping restart"
+      fi
+    - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && php artisan up"
+  after_script:
+    - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && php artisan up || true"
+
+# Deploy to production environment
+deploy_production:
+  stage: deploy
+  needs:
+    - test_php
+    - build_frontend
+  only:
+    - main
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+  script:
+    - ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && php artisan down || true"
+    - PULLED_FILES=$(ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && git pull")
+    - echo "$PULLED_FILES"
+    - |
+      if echo "$PULLED_FILES" | grep -E 'composer.json|composer.lock'; then
+        ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && composer install --no-dev --optimize-autoloader"
+      else
+        echo "No composer changes, skipping composer install"
+      fi
+    - |
+      # Only upload pre-built assets if frontend files changed
+      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json)$|^resources/|^package'; then
+        echo "Frontend files changed, uploading pre-built assets from CI build"
+        scp -r public/build/ website@"$SERVER_IP":"$TARGET_FOLDER/public/"
+      else
+        echo "No frontend changes, skipping asset upload"
+      fi
+    - |
+      if echo "$PULLED_FILES" | grep -E 'database/migrations/'; then
+        ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && php artisan migrate --force"
+      else
+        echo "No migrations changes, skipping migrations"
+      fi
+    - |
+      if echo "$PULLED_FILES" | grep -E 'app/Jobs/|app/Listeners/|config/queue'; then
+        echo "Queue-related files changed, restarting queue workers..."
+        ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && php artisan queue:restart"
+      else
+        echo "No queue changes, skipping restart"
+      fi
+    - ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && php artisan up"
+  after_script:
+    - ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && php artisan up || true"
