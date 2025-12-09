@@ -16,7 +16,7 @@ class FailingControllersController extends Controller
     public function index(Project $project): View
     {
         $failingControllers = Log::where('project_id', $project->id)
-            ->whereIn('level', ['error', 'critical'])
+            ->whereIn('level', ['error', 'critical', 'alert', 'emergency'])
             ->whereNotNull('controller')
             ->select('controller', DB::raw('COUNT(*) as total'))
             ->groupBy('controller')
@@ -26,7 +26,7 @@ class FailingControllersController extends Controller
 
         // Also get total errors for context
         $totalErrors = Log::where('project_id', $project->id)
-            ->whereIn('level', ['error', 'critical'])
+            ->whereIn('level', ['error', 'critical', 'alert', 'emergency'])
             ->count();
 
         return view('projects.failing-controllers.index', compact('project', 'failingControllers', 'totalErrors'));
@@ -39,7 +39,7 @@ class FailingControllersController extends Controller
     {
         $logs = Log::where('project_id', $project->id)
             ->where('controller', $controller)
-            ->whereIn('level', ['error', 'critical'])
+            ->whereIn('level', ['error', 'critical', 'alert', 'emergency'])
             ->orderByDesc('created_at')
             ->limit(100)
             ->get();
@@ -47,7 +47,7 @@ class FailingControllersController extends Controller
         // Group by unique error messages
         $uniqueErrors = Log::where('project_id', $project->id)
             ->where('controller', $controller)
-            ->whereIn('level', ['error', 'critical'])
+            ->whereIn('level', ['error', 'critical', 'alert', 'emergency'])
             ->select('message', DB::raw('COUNT(*) as count'), DB::raw('MAX(created_at) as last_occurred'))
             ->groupBy('message')
             ->orderByDesc('count')

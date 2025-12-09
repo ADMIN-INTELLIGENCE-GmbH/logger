@@ -2,6 +2,8 @@
 
 A centralized log aggregation service for collecting, storing, and analyzing application logs across multiple projects. Built with Laravel.
 
+> **📦 Looking for the Laravel package?** Use [Laravel Log Shipper](https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper) to easily ship logs from your Laravel applications to this service.
+
 ## Overview
 
 Logger provides a simple HTTP API for ingesting logs from any application, a web dashboard for viewing and filtering logs, and automated retention management. It supports webhook notifications for critical events and is designed to handle high-volume log ingestion.
@@ -13,7 +15,8 @@ Logger provides a simple HTTP API for ingesting logs from any application, a web
 - **Log Explorer**: Search, filter, and browse logs with pagination
 - **Failing Controllers Report**: Identify error hotspots by controller
 - **Retention Policies**: Configurable per-project log retention (7, 14, 30, 90 days, or infinite)
-- **Webhook Notifications**: Slack/Discord/Mattermost-compatible alerts for errors and critical events
+- **Webhook Notifications**: Slack/Discord/Mattermost/Teams-compatible alerts for errors and critical events
+- **AI-Powered Analysis**: Optional OpenAI integration for intelligent log analysis
 - **Dark Mode**: Full dark theme support
 
 ## Requirements
@@ -267,10 +270,13 @@ tests/
 
 ## License
 
-Proprietary software. All rights reserved.
+The MIT License (MIT). Please see [LICENSE](LICENSE) for more information.
 
-## Author
+## Credits
 
-Julian Billinger  
-ADMIN INTELLIGENCE GmbH  
-support@admin-intelligence.de
+- [Julian Billinger](https://github.com/jbillinger)
+- [ADMIN INTELLIGENCE GmbH](https://github.com/ADMIN-INTELLIGENCE-GmbH)
+
+## Support
+
+For support, please contact support@admin-intelligence.de or open an issue on GitHub.

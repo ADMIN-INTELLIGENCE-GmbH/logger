@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\IngestController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,5 +15,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Log ingestion endpoint
-Route::post('/ingest', IngestController::class)->name('api.ingest');
+// Health check endpoint (no rate limiting)
+Route::get('/health', HealthController::class)->name('api.health');
+
+// Log ingestion endpoint with rate limiting (1000 requests per minute per IP)
+Route::post('/ingest', IngestController::class)
+    ->middleware('throttle:1000,1')
+    ->name('api.ingest');

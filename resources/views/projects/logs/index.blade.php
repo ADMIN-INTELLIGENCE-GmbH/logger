@@ -85,7 +85,7 @@
                 <label for="level" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Level</label>
                 <select name="level" id="level" class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                     <option value="">All Levels</option>
-                    @foreach(['debug', 'info', 'error', 'critical'] as $level)
+                    @foreach(\App\Models\Log::LEVELS as $level)
                         <option value="{{ $level }}" {{ request('level') === $level ? 'selected' : '' }}>
                             {{ ucfirst($level) }}
                         </option>

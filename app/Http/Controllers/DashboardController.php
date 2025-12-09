@@ -40,9 +40,9 @@ class DashboardController extends Controller
         // Total logs in selected period
         $totalLogs = (clone $baseQuery)->count();
 
-        // Error count in selected period
+        // Error count in selected period (PSR-3: error and above)
         $errorLogs = (clone $baseQuery)
-            ->whereIn('level', ['error', 'critical'])
+            ->whereIn('level', ['error', 'critical', 'alert', 'emergency'])
             ->count();
 
         // Error rate percentage
@@ -77,7 +77,8 @@ class DashboardController extends Controller
         
         if ($levelFilter !== 'all') {
             if ($levelFilter === 'errors') {
-                $chartQuery->whereIn('level', ['error', 'critical']);
+                // PSR-3: error (4) and above
+                $chartQuery->whereIn('level', ['error', 'critical', 'alert', 'emergency']);
             } else {
                 $chartQuery->where('level', $levelFilter);
             }
@@ -90,7 +91,17 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('period')
             ->map(function ($logs, $period) {
-                $data = ['period' => $period, 'info' => 0, 'debug' => 0, 'warning' => 0, 'error' => 0, 'critical' => 0];
+                $data = [
+                    'period' => $period,
+                    'debug' => 0,
+                    'info' => 0,
+                    'notice' => 0,
+                    'warning' => 0,
+                    'error' => 0,
+                    'critical' => 0,
+                    'alert' => 0,
+                    'emergency' => 0,
+                ];
                 foreach ($logs as $log) {
                     $data[$log->level] = $log->count;
                 }

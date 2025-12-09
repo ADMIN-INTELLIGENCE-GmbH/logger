@@ -123,4 +123,30 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Public Registration
+    |--------------------------------------------------------------------------
+    |
+    | This option controls whether new users can register themselves on this
+    | Logger instance. For security, this is disabled by default since this
+    | is typically a private log aggregation service. Use the setup:admin
+    | command to create admin users instead.
+    |
+    */
+
+    'registration_enabled' => env('REGISTRATION_ENABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | The version of the application for display in the API health check
+    | and other places where version information is needed.
+    |
+    */
+
+    'version' => env('APP_VERSION', '1.0.0'),
+
 ];

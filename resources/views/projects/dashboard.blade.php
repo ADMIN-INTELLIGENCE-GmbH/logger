@@ -63,12 +63,15 @@
                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Show:</label>
                 <select name="level" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                     <option value="all" {{ $stats['level_filter'] === 'all' ? 'selected' : '' }}>All Levels</option>
-                    <option value="errors" {{ $stats['level_filter'] === 'errors' ? 'selected' : '' }}>Errors Only</option>
-                    <option value="critical" {{ $stats['level_filter'] === 'critical' ? 'selected' : '' }}>Critical Only</option>
-                    <option value="error" {{ $stats['level_filter'] === 'error' ? 'selected' : '' }}>Error Only</option>
-                    <option value="warning" {{ $stats['level_filter'] === 'warning' ? 'selected' : '' }}>Warning Only</option>
-                    <option value="info" {{ $stats['level_filter'] === 'info' ? 'selected' : '' }}>Info Only</option>
-                    <option value="debug" {{ $stats['level_filter'] === 'debug' ? 'selected' : '' }}>Debug Only</option>
+                    <option value="errors" {{ $stats['level_filter'] === 'errors' ? 'selected' : '' }}>Errors & Above</option>
+                    <option value="emergency" {{ $stats['level_filter'] === 'emergency' ? 'selected' : '' }}>Emergency</option>
+                    <option value="alert" {{ $stats['level_filter'] === 'alert' ? 'selected' : '' }}>Alert</option>
+                    <option value="critical" {{ $stats['level_filter'] === 'critical' ? 'selected' : '' }}>Critical</option>
+                    <option value="error" {{ $stats['level_filter'] === 'error' ? 'selected' : '' }}>Error</option>
+                    <option value="warning" {{ $stats['level_filter'] === 'warning' ? 'selected' : '' }}>Warning</option>
+                    <option value="notice" {{ $stats['level_filter'] === 'notice' ? 'selected' : '' }}>Notice</option>
+                    <option value="info" {{ $stats['level_filter'] === 'info' ? 'selected' : '' }}>Info</option>
+                    <option value="debug" {{ $stats['level_filter'] === 'debug' ? 'selected' : '' }}>Debug</option>
                 </select>
             </div>
 

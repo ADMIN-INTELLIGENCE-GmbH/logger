@@ -30,6 +30,7 @@ class Log extends Model
         'app_env',
         'app_debug',
         'referrer',
+        'logged_at',
     ];
 
     protected $casts = [
@@ -37,6 +38,7 @@ class Log extends Model
         'extra' => 'array',
         'app_debug' => 'boolean',
         'created_at' => 'datetime',
+        'logged_at' => 'datetime',
     ];
 
     /**
@@ -47,18 +49,31 @@ class Log extends Model
     ];
 
     /**
-     * Valid log levels.
+     * Valid log levels (PSR-3 compliant).
      */
-    public const LEVELS = ['debug', 'info', 'error', 'critical'];
+    public const LEVELS = [
+        'debug',
+        'info',
+        'notice',
+        'warning',
+        'error',
+        'critical',
+        'alert',
+        'emergency',
+    ];
 
     /**
-     * Log level severity (higher = more severe).
+     * Log level severity (higher = more severe, PSR-3 compliant).
      */
     public const LEVEL_SEVERITY = [
         'debug' => 0,
         'info' => 1,
-        'error' => 2,
-        'critical' => 3,
+        'notice' => 2,
+        'warning' => 3,
+        'error' => 4,
+        'critical' => 5,
+        'alert' => 6,
+        'emergency' => 7,
     ];
 
     /**

@@ -23,6 +23,10 @@ class LogExplorerController extends Controller
             $query->where('level', $request->input('level'));
         }
 
+        if ($request->filled('channel')) {
+            $query->where('channel', $request->input('channel'));
+        }
+
         if ($request->filled('search')) {
             $query->where('message', 'like', '%' . $request->input('search') . '%');
         }
@@ -45,6 +49,10 @@ class LogExplorerController extends Controller
 
         if ($request->filled('ip_address')) {
             $query->where('ip_address', $request->input('ip_address'));
+        }
+
+        if ($request->filled('app_env')) {
+            $query->where('app_env', $request->input('app_env'));
         }
 
         if ($request->filled('from_date')) {

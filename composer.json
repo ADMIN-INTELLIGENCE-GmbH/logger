@@ -1,10 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "adminintelligence/logger",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "A centralized log aggregation service for collecting, storing, and analyzing application logs across multiple projects.",
+    "keywords": ["laravel", "logging", "log-aggregation", "monitoring", "observability"],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Julian Billinger",
+            "email": "support@admin-intelligence.de"
+        }
+    ],
+    "homepage": "https://github.com/ADMIN-INTELLIGENCE-GmbH/logger",
+    "support": {
+        "issues": "https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/issues",
+        "source": "https://github.com/ADMIN-INTELLIGENCE-GmbH/logger"
+    },
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",

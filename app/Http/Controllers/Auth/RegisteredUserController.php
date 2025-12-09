@@ -17,8 +17,13 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): View
+    public function create(): View|RedirectResponse
     {
+        if (!config('app.registration_enabled')) {
+            return redirect()->route('login')
+                ->with('error', 'Public registration is disabled. Contact an administrator.');
+        }
+
         return view('auth.register');
     }
 
@@ -29,6 +34,10 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if (!config('app.registration_enabled')) {
+            abort(403, 'Public registration is disabled.');
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
