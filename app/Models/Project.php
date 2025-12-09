@@ -12,21 +12,38 @@ class Project extends Model
 {
     use HasFactory, HasUuids;
 
+    /**
+     * Supported webhook formats.
+     */
+    public const WEBHOOK_FORMATS = [
+        'slack' => 'Slack',
+        'mattermost' => 'Mattermost',
+        'discord' => 'Discord',
+        'teams' => 'Microsoft Teams',
+        'generic' => 'Generic JSON',
+    ];
+
     protected $fillable = [
         'name',
         'magic_key',
         'retention_days',
         'webhook_url',
+        'webhook_enabled',
+        'webhook_threshold',
+        'webhook_format',
+        'webhook_secret',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'webhook_enabled' => 'boolean',
         'retention_days' => 'integer',
     ];
 
     protected $hidden = [
         'magic_key',
+        'webhook_secret',
     ];
 
     /**
@@ -81,6 +98,14 @@ class Project extends Model
     }
 
     /**
+     * Get all webhook deliveries for this project.
+     */
+    public function webhookDeliveries(): HasMany
+    {
+        return $this->hasMany(WebhookDelivery::class);
+    }
+
+    /**
      * Check if the project has infinite retention.
      */
     public function hasInfiniteRetention(): bool
@@ -89,10 +114,29 @@ class Project extends Model
     }
 
     /**
-     * Check if the project has a webhook configured.
+     * Check if the project has a webhook configured and enabled.
      */
     public function hasWebhook(): bool
     {
+        return !empty($this->webhook_url) && $this->webhook_enabled;
+    }
+
+    /**
+     * Check if the project has a webhook URL (regardless of enabled state).
+     */
+    public function hasWebhookUrl(): bool
+    {
         return !empty($this->webhook_url);
+    }
+
+    /**
+     * Generate a new webhook secret.
+     */
+    public function regenerateWebhookSecret(): self
+    {
+        $this->webhook_secret = Str::random(64);
+        $this->save();
+
+        return $this;
     }
 }

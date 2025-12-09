@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Listeners\WebhookDispatcher;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,12 @@ class ProjectSettingsController extends Controller
      */
     public function show(Project $project): View
     {
-        return view('projects.settings', compact('project'));
+        $webhookDeliveries = $project->webhookDeliveries()
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return view('projects.settings', compact('project', 'webhookDeliveries'));
     }
 
     /**
@@ -32,6 +38,17 @@ class ProjectSettingsController extends Controller
                 Rule::in([7, 14, 30, 90, -1]),
             ],
             'webhook_url' => 'sometimes|nullable|url|max:500',
+            'webhook_enabled' => 'sometimes|boolean',
+            'webhook_threshold' => [
+                'sometimes',
+                'required',
+                Rule::in(['debug', 'info', 'error', 'critical']),
+            ],
+            'webhook_format' => [
+                'sometimes',
+                'required',
+                Rule::in(array_keys(Project::WEBHOOK_FORMATS)),
+            ],
             'is_active' => 'sometimes|boolean',
         ]);
 
@@ -50,6 +67,39 @@ class ProjectSettingsController extends Controller
 
         return redirect()->route('projects.settings.show', $project)
             ->with('success', 'Magic key regenerated successfully. New key: ' . $project->magic_key);
+    }
+
+    /**
+     * Regenerate the webhook secret.
+     */
+    public function regenerateWebhookSecret(Project $project): RedirectResponse
+    {
+        $project->regenerateWebhookSecret();
+
+        return redirect()->route('projects.settings.show', $project)
+            ->with('success', 'Webhook secret regenerated successfully.');
+    }
+
+    /**
+     * Send a test webhook.
+     */
+    public function testWebhook(Project $project): RedirectResponse
+    {
+        if (!$project->hasWebhookUrl()) {
+            return redirect()->route('projects.settings.show', $project)
+                ->with('error', 'No webhook URL configured.');
+        }
+
+        $delivery = WebhookDispatcher::sendTestWebhook($project);
+
+        if ($delivery->success) {
+            return redirect()->route('projects.settings.show', $project)
+                ->with('success', 'Test webhook sent successfully! Status: ' . $delivery->status_code);
+        }
+
+        $errorMessage = $delivery->error_message ?? "HTTP {$delivery->status_code}";
+        return redirect()->route('projects.settings.show', $project)
+            ->with('error', 'Webhook test failed: ' . $errorMessage);
     }
 
     /**

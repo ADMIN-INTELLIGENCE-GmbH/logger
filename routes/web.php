@@ -33,6 +33,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projects/{project}/settings', [ProjectSettingsController::class, 'show'])->name('projects.settings.show');
     Route::put('/projects/{project}/settings', [ProjectSettingsController::class, 'update'])->name('projects.settings.update');
     Route::post('/projects/{project}/regenerate-key', [ProjectSettingsController::class, 'regenerateKey'])->name('projects.regenerate-key');
+    Route::post('/projects/{project}/regenerate-webhook-secret', [ProjectSettingsController::class, 'regenerateWebhookSecret'])->name('projects.regenerate-webhook-secret');
+    Route::post('/projects/{project}/test-webhook', [ProjectSettingsController::class, 'testWebhook'])->name('projects.test-webhook');
     Route::post('/projects/{project}/truncate-logs', [ProjectSettingsController::class, 'truncateLogs'])->name('projects.truncate-logs');
     Route::delete('/projects/{project}', [ProjectSettingsController::class, 'destroy'])->name('projects.destroy');
     

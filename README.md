@@ -66,6 +66,27 @@ npm run dev
 php artisan serve
 ```
 
+## Creating an Admin User
+
+After installation, create an admin user account to access the dashboard:
+
+```bash
+php artisan setup:admin
+```
+
+This command will launch an interactive setup wizard that guides you through:
+1. Entering the admin user's name
+2. Setting the admin email address
+3. Creating a secure password (minimum 8 characters)
+
+You can also provide these values as options to automate the process:
+
+```bash
+php artisan setup:admin --name="John Doe" --email="admin@example.com" --password="secure-password-123"
+```
+
+Once created, you can log in to the dashboard at `/login` using the admin credentials.
+
 ## Configuration
 
 ### Creating a Project
