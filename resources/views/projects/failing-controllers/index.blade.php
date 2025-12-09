@@ -91,7 +91,7 @@
                                     </svg>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{{ route('projects.logs.index', ['project' => $project, 'controller' => $controller->controller, 'level' => 'error']) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+                                    <a href="{{ route('projects.logs.index', ['project' => $project, 'controller' => class_basename($controller->controller), 'level' => 'error']) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
                                         View Logs →
                                     </a>
                                 </td>

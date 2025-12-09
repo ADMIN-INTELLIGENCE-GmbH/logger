@@ -62,4 +62,16 @@ class ProjectSettingsController extends Controller
         return redirect()->route('projects.index')
             ->with('success', 'Project deleted successfully.');
     }
+
+    /**
+     * Truncate all logs for a project.
+     */
+    public function truncateLogs(Project $project): RedirectResponse
+    {
+        $count = $project->logs()->count();
+        $project->logs()->delete();
+
+        return redirect()->route('projects.settings.show', $project)
+            ->with('success', "Deleted {$count} log entries.");
+    }
 }

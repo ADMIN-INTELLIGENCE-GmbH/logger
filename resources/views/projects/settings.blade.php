@@ -3,7 +3,7 @@
 @section('title', $project->name . ' - Settings')
 
 @section('content')
-<div x-data="{ showRegenerateConfirm: false, showDeleteConfirm: false }">
+<div x-data="{ showRegenerateConfirm: false, showDeleteConfirm: false, showTruncateConfirm: false }">
     <!-- Header -->
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Project Settings</h1>
@@ -87,6 +87,19 @@
                         </div>
                         <button @click="showRegenerateConfirm = true" type="button" class="inline-flex items-center px-3 py-2 border border-orange-300 dark:border-orange-600 text-sm font-medium rounded-md text-orange-700 dark:text-orange-400 bg-white dark:bg-gray-700 hover:bg-orange-50 dark:hover:bg-orange-900/20">
                             Regenerate Key
+                        </button>
+                    </div>
+
+                    <hr class="border-gray-200 dark:border-gray-700">
+
+                    <!-- Truncate Logs -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-900 dark:text-white">Truncate All Logs</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Delete all log entries for this project. This cannot be undone.</p>
+                        </div>
+                        <button @click="showTruncateConfirm = true" type="button" class="inline-flex items-center px-3 py-2 border border-red-300 dark:border-red-600 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20">
+                            Truncate Logs
                         </button>
                     </div>
 
@@ -208,6 +221,42 @@
                         </button>
                     </form>
                     <button type="button" @click="showDeleteConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Truncate Logs Confirmation Modal -->
+    <div x-show="showTruncateConfirm" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="showTruncateConfirm" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showTruncateConfirm = false"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div x-show="showTruncateConfirm" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Truncate All Logs</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Are you sure you want to delete all log entries for this project? This action cannot be undone.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <form action="{{ route('projects.truncate-logs', $project) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm">
+                            Truncate All Logs
+                        </button>
+                    </form>
+                    <button type="button" @click="showTruncateConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
                         Cancel
                     </button>
                 </div>

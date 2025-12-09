@@ -28,8 +28,10 @@ class LogFactory extends Factory
         return [
             'project_id' => Project::factory(),
             'level' => fake()->randomElement(Log::LEVELS),
+            'channel' => fake()->randomElement(['stack', 'single', 'daily', 'slack', 'syslog', 'errorlog']),
             'message' => fake()->sentence(),
             'context' => $this->generateContext(),
+            'extra' => $this->generateExtra(),
             'controller' => fake()->optional(0.7)->randomElement([
                 'App\\Http\\Controllers\\UserController',
                 'App\\Http\\Controllers\\OrderController',
@@ -44,10 +46,38 @@ class LogFactory extends Factory
                 'auth.login', 'auth.logout', 'auth.register',
             ]),
             'method' => fake()->randomElement(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+            'request_url' => fake()->optional(0.8)->url(),
             'user_id' => fake()->optional(0.8)->uuid(),
             'ip_address' => fake()->ipv4(),
+            'user_agent' => fake()->optional(0.9)->userAgent(),
+            'app_env' => fake()->randomElement(['local', 'staging', 'production']),
+            'app_debug' => fake()->boolean(30),
+            'referrer' => fake()->optional(0.5)->url(),
             'created_at' => fake()->dateTimeBetween('-30 days', 'now'),
         ];
+    }
+
+    /**
+     * Generate realistic extra data (Monolog processor data).
+     */
+    protected function generateExtra(): array
+    {
+        $extra = [];
+
+        if (fake()->boolean(60)) {
+            $extra['memory_usage'] = fake()->numberBetween(10000000, 100000000);
+            $extra['memory_peak_usage'] = fake()->numberBetween(15000000, 150000000);
+        }
+
+        if (fake()->boolean(40)) {
+            $extra['process_id'] = fake()->numberBetween(1000, 99999);
+        }
+
+        if (fake()->boolean(30)) {
+            $extra['uid'] = fake()->uuid();
+        }
+
+        return $extra;
     }
 
     /**

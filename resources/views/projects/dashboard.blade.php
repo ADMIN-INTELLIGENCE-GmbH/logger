@@ -42,9 +42,45 @@
         </div>
     </div>
 
+    <!-- Time Range & Filter Controls -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <form method="GET" action="{{ route('projects.dashboard', $project) }}" class="flex flex-wrap items-center gap-4">
+            <!-- Time Range -->
+            <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range:</label>
+                <select name="range" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                    <option value="1h" {{ $stats['range'] === '1h' ? 'selected' : '' }}>Last 1 hour</option>
+                    <option value="6h" {{ $stats['range'] === '6h' ? 'selected' : '' }}>Last 6 hours</option>
+                    <option value="24h" {{ $stats['range'] === '24h' ? 'selected' : '' }}>Last 24 hours</option>
+                    <option value="7d" {{ $stats['range'] === '7d' ? 'selected' : '' }}>Last 7 days</option>
+                    <option value="30d" {{ $stats['range'] === '30d' ? 'selected' : '' }}>Last 30 days</option>
+                    <option value="90d" {{ $stats['range'] === '90d' ? 'selected' : '' }}>Last 90 days</option>
+                </select>
+            </div>
+
+            <!-- Level Filter -->
+            <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Show:</label>
+                <select name="level" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                    <option value="all" {{ $stats['level_filter'] === 'all' ? 'selected' : '' }}>All Levels</option>
+                    <option value="errors" {{ $stats['level_filter'] === 'errors' ? 'selected' : '' }}>Errors Only</option>
+                    <option value="critical" {{ $stats['level_filter'] === 'critical' ? 'selected' : '' }}>Critical Only</option>
+                    <option value="error" {{ $stats['level_filter'] === 'error' ? 'selected' : '' }}>Error Only</option>
+                    <option value="warning" {{ $stats['level_filter'] === 'warning' ? 'selected' : '' }}>Warning Only</option>
+                    <option value="info" {{ $stats['level_filter'] === 'info' ? 'selected' : '' }}>Info Only</option>
+                    <option value="debug" {{ $stats['level_filter'] === 'debug' ? 'selected' : '' }}>Debug Only</option>
+                </select>
+            </div>
+
+            <a href="{{ route('projects.dashboard', $project) }}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                Reset
+            </a>
+        </form>
+    </div>
+
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Total Logs (24h) -->
+        <!-- Total Logs -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
@@ -53,13 +89,13 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Logs (24h)</h3>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($stats['total_logs_24h']) }}</p>
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Logs ({{ $stats['range'] }})</h3>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($stats['total_logs']) }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Error Logs (24h) -->
+        <!-- Error Logs -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg">
@@ -68,8 +104,8 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Errors (24h)</h3>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($stats['error_logs_24h']) }}</p>
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Errors ({{ $stats['range'] }})</h3>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($stats['error_logs']) }}</p>
                 </div>
             </div>
         </div>
@@ -92,7 +128,13 @@
 
     <!-- Chart -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Logs by Hour (Last 24h)</h3>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            Logs by {{ $stats['group_format'] === 'hour' ? 'Hour' : 'Day' }} 
+            (Last {{ $stats['range'] }})
+            @if($stats['level_filter'] !== 'all')
+                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">- {{ ucfirst($stats['level_filter']) }}</span>
+            @endif
+        </h3>
         <div class="h-64">
             <canvas id="logsChart"></canvas>
         </div>
@@ -151,10 +193,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('logsChart').getContext('2d');
     const chartData = @json($chartData);
+    const groupFormat = @json($stats['group_format']);
     
     const labels = chartData.map(d => {
-        const date = new Date(d.hour);
-        return date.getHours() + ':00';
+        const date = new Date(d.period);
+        if (groupFormat === 'hour') {
+            return date.getHours() + ':00';
+        } else {
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
     });
     
     new Chart(ctx, {
@@ -164,25 +211,31 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [
                 {
                     label: 'Info',
-                    data: chartData.map(d => d.info),
+                    data: chartData.map(d => d.info || 0),
                     backgroundColor: 'rgba(34, 197, 94, 0.8)',
                     stack: 'stack0',
                 },
                 {
                     label: 'Debug',
-                    data: chartData.map(d => d.debug),
+                    data: chartData.map(d => d.debug || 0),
                     backgroundColor: 'rgba(156, 163, 175, 0.8)',
                     stack: 'stack0',
                 },
                 {
+                    label: 'Warning',
+                    data: chartData.map(d => d.warning || 0),
+                    backgroundColor: 'rgba(245, 158, 11, 0.8)',
+                    stack: 'stack0',
+                },
+                {
                     label: 'Error',
-                    data: chartData.map(d => d.error),
+                    data: chartData.map(d => d.error || 0),
                     backgroundColor: 'rgba(239, 68, 68, 0.8)',
                     stack: 'stack0',
                 },
                 {
                     label: 'Critical',
-                    data: chartData.map(d => d.critical),
+                    data: chartData.map(d => d.critical || 0),
                     backgroundColor: 'rgba(127, 29, 29, 0.8)',
                     stack: 'stack0',
                 }

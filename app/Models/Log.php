@@ -16,17 +16,26 @@ class Log extends Model
     protected $fillable = [
         'project_id',
         'level',
+        'channel',
         'message',
         'context',
+        'extra',
         'controller',
         'route_name',
         'method',
+        'request_url',
         'user_id',
         'ip_address',
+        'user_agent',
+        'app_env',
+        'app_debug',
+        'referrer',
     ];
 
     protected $casts = [
         'context' => 'array',
+        'extra' => 'array',
+        'app_debug' => 'boolean',
         'created_at' => 'datetime',
     ];
 
