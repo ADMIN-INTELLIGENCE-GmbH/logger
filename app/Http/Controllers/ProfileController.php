@@ -16,8 +16,10 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $project = null; // Ensure project-specific nav is hidden
         return view('profile.edit', [
             'user' => $request->user(),
+            'project' => $project,
         ]);
     }
 

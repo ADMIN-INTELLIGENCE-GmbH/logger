@@ -31,27 +31,29 @@
                 <div class="flex justify-between h-16">
                     <div class="flex items-center space-x-8">
                         <!-- Logo -->
-                        <a href="{{ route('projects.index') }}" class="flex items-center space-x-2">
+                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-2">
                             <img x-show="!darkMode" src="/admin-intelligence-black.svg" alt="Admin Intelligence" class="h-8 w-auto">
                             <img x-show="darkMode" src="/admin-intelligence-white.svg" alt="Admin Intelligence" class="h-8 w-auto">
                             <span class="font-semibold text-xl text-gray-800 dark:text-white">Logger</span>
                         </a>
 
-                        <!-- Project Navigation -->
+                        <!-- Main Navigation -->
                         <div class="hidden md:flex items-center space-x-4 text-sm">
-                            <a href="{{ route('projects.index') }}" class="{{ request()->routeIs('projects.index') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Projects</a>
+                            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Dashboard</a>
+                            <a href="{{ route('projects.index') }}" class="{{ request()->routeIs('projects.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Projects</a>
                             
                             @if(Auth::user()->isAdmin())
                                 <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Users</a>
                             @endif
-                            
-                            @isset($project)
-                                <span class="text-gray-400 dark:text-gray-500">|</span>
-                                <a href="{{ route('projects.dashboard', $project) }}" class="{{ request()->routeIs('projects.dashboard') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Dashboard</a>
+
+                            <!-- Project-specific Navigation -->
+                            @if(isset($project) && $project)
+                                <span class="text-gray-400 dark:text-gray-600">|</span>
+                                <a href="{{ route('projects.dashboard', $project) }}" class="{{ request()->routeIs('projects.dashboard') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Server Dashboard</a>
                                 <a href="{{ route('projects.logs.index', $project) }}" class="{{ request()->routeIs('projects.logs.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Log Explorer</a>
                                 <a href="{{ route('projects.failing-controllers.index', $project) }}" class="{{ request()->routeIs('projects.failing-controllers.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Failing Controllers</a>
                                 <a href="{{ route('projects.settings.show', $project) }}" class="{{ request()->routeIs('projects.settings.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Settings</a>
-                            @endisset
+                            @endif
                         </div>
                     </div>
 

@@ -111,8 +111,14 @@
                 <input type="text" name="controller" id="controller" value="{{ request('controller') }}" placeholder="Controller class..." class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
             </div>
 
+            <!-- Method -->
+            <div>
+                <label for="method" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Method</label>
+                <input type="text" name="method" id="method" value="{{ request('method') }}" placeholder="Method name..." class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+            </div>
+
             <!-- Filter Buttons -->
-            <div class="lg:col-span-4 flex justify-end space-x-3">
+            <div class="lg:col-span-5 flex justify-end space-x-3">
                 <a href="{{ route('projects.logs.index', $project) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                     Clear Filters
                 </a>
@@ -149,7 +155,7 @@
                     @forelse($logs as $log)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" @click="openLog({{ $log->toJson() }})">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {{ $log->created_at->format('M d, H:i:s') }}
+                                {{ ($log->logged_at ?? $log->created_at)->format('M d, H:i:s') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -229,8 +235,12 @@
                                     }" x-text="selectedLog.level.toUpperCase()"></span>
                                 </div>
                                 <div>
-                                    <span class="font-medium text-gray-500 dark:text-gray-400">Timestamp:</span>
-                                    <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.created_at"></span>
+                                    <span class="font-medium text-gray-500 dark:text-gray-400">Logged At:</span>
+                                    <span class="ml-2 text-gray-900 dark:text-white" x-text="selectedLog.logged_at || selectedLog.created_at"></span>
+                                </div>
+                                <div x-show="selectedLog.logged_at && selectedLog.created_at !== selectedLog.logged_at">
+                                    <span class="font-medium text-gray-500 dark:text-gray-400">Received At:</span>
+                                    <span class="ml-2 text-gray-600 dark:text-gray-400 text-sm" x-text="selectedLog.created_at"></span>
                                 </div>
                                 <div>
                                     <span class="font-medium text-gray-500 dark:text-gray-400">Channel:</span>

@@ -33,12 +33,16 @@ class Project extends Model
         'webhook_format',
         'webhook_secret',
         'is_active',
+        'server_stats',
+        'last_server_stats_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'webhook_enabled' => 'boolean',
         'retention_days' => 'integer',
+        'server_stats' => 'array',
+        'last_server_stats_at' => 'datetime',
     ];
 
     protected $hidden = [

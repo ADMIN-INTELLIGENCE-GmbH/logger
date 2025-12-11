@@ -37,15 +37,26 @@ class LogExplorerController extends Controller
         }
 
         if ($request->filled('controller')) {
-            $query->where('controller', 'like', '%'.$request->input('controller').'%');
+            $controller = $request->input('controller');
+            // Controller field stores the full controller class name, so use exact match
+            $query->where('controller', '=', $controller);
+        }
+
+        // Filter by controller method if specified (extracted from context trace)
+        if ($request->filled('method')) {
+            $method = $request->input('method');
+            // Search the context trace for this method
+            if ($method !== 'unknown') {
+                // For real methods, search in the context trace (JSON has "function": "methodName")
+                $query->whereRaw("context LIKE ?", ['%"function": "'.$method.'"%']);
+            } else {
+                // For unknown, we need logs where context has no function field
+                $query->whereRaw("context NOT LIKE ?", ['%"function"%']);
+            }
         }
 
         if ($request->filled('route_name')) {
             $query->where('route_name', $request->input('route_name'));
-        }
-
-        if ($request->filled('method')) {
-            $query->where('method', $request->input('method'));
         }
 
         if ($request->filled('ip_address')) {

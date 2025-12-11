@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\IngestController;
+use App\Http\Controllers\Api\StatsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,3 +23,8 @@ Route::get('/health', HealthController::class)->name('api.health');
 Route::post('/ingest', IngestController::class)
     ->middleware(['throttle:1000,1', 'rate.headers:1000,1'])
     ->name('api.ingest');
+
+// Server stats endpoint
+Route::post('/stats', StatsController::class)
+    ->middleware(['throttle:60,1', 'rate.headers:60,1'])
+    ->name('api.stats');

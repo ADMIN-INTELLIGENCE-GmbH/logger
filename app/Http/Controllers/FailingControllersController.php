@@ -15,14 +15,42 @@ class FailingControllersController extends Controller
      */
     public function index(Project $project): View
     {
-        $failingControllers = Log::where('project_id', $project->id)
+        // Get all error logs with controllers
+        $logs = Log::where('project_id', $project->id)
             ->whereIn('level', ['error', 'critical', 'alert', 'emergency'])
             ->whereNotNull('controller')
-            ->select('controller', DB::raw('COUNT(*) as total'))
-            ->groupBy('controller')
-            ->orderByDesc('total')
-            ->limit(50)
+            ->select('id', 'controller', 'context')
             ->get();
+
+        // Group by controller class
+        $grouped = $logs->groupBy('controller');
+
+        // Convert to collection with totals and method breakdown
+        $failingControllers = $grouped->map(function ($logs, $controller) {
+            // Extract methods from context traces
+            $methods = $logs->groupBy(function ($log) {
+                // Context is already an array due to model casting
+                $context = $log->context;
+                if (is_array($context) && isset($context['trace']) && is_array($context['trace'])) {
+                    foreach ($context['trace'] as $frame) {
+                        if (isset($frame['function'])) {
+                            return $frame['function'];
+                        }
+                    }
+                }
+                return 'unknown';
+            })->map(function ($methodLogs) {
+                return $methodLogs->count();
+            })->sortByDesc(function ($count) {
+                return $count;
+            });
+
+            return (object)[
+                'controller' => $controller,
+                'total' => $logs->count(),
+                'methods' => $methods,
+            ];
+        })->sortByDesc('total')->take(50)->values();
 
         // Also get total errors for context
         $totalErrors = Log::where('project_id', $project->id)

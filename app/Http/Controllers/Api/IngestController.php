@@ -35,7 +35,19 @@ class IngestController extends Controller
             ], 401);
         }
 
-        // 2. Create new Log entry (validation handled by FormRequest)
+        // 2. Check if this is a batch request or single log
+        if ($request->isBatchRequest()) {
+            return $this->handleBatchIngest($request, $project);
+        }
+
+        return $this->handleSingleIngest($request, $project);
+    }
+
+    /**
+     * Handle single log ingestion.
+     */
+    protected function handleSingleIngest(IngestLogRequest $request, Project $project): JsonResponse
+    {
         $log = $project->logs()->create([
             'level' => $request->input('level'),
             'channel' => $request->input('channel'),
@@ -55,12 +67,69 @@ class IngestController extends Controller
             'logged_at' => $request->getLogDatetime(),
         ]);
 
-        // 3. The LogCreated event is automatically fired via model events
+        // The LogCreated event is automatically fired via model events
 
         return response()->json([
             'success' => true,
             'message' => 'Log entry created',
             'log_id' => $log->id,
         ], 201);
+    }
+
+    /**
+     * Handle batch log ingestion.
+     */
+    protected function handleBatchIngest(IngestLogRequest $request, Project $project): JsonResponse
+    {
+        // Support both raw array format and wrapped {"logs": [...]} format
+        $logs = $request->has('logs') ? $request->input('logs', []) : $request->all();
+        $createdLogs = [];
+        $errors = [];
+
+        foreach ($logs as $index => $logData) {
+            try {
+                $log = $project->logs()->create([
+                    'level' => $logData['level'],
+                    'channel' => $logData['channel'] ?? null,
+                    'message' => $logData['message'],
+                    'context' => $request->getTruncatedContext($logData),
+                    'extra' => $request->getTruncatedExtra($logData),
+                    'controller' => $request->getLogController($logData),
+                    'route_name' => $logData['route_name'] ?? null,
+                    'method' => $request->getHttpMethod($logData),
+                    'request_url' => $logData['request_url'] ?? null,
+                    'user_id' => $logData['user_id'] ?? null,
+                    'ip_address' => $logData['ip_address'] ?? $request->ip(),
+                    'user_agent' => $logData['user_agent'] ?? $request->userAgent(),
+                    'app_env' => $logData['app_env'] ?? null,
+                    'app_debug' => $logData['app_debug'] ?? null,
+                    'referrer' => $logData['referrer'] ?? null,
+                    'logged_at' => $request->getLogDatetime($logData),
+                ]);
+
+                $createdLogs[] = $log->id;
+            } catch (\Exception $e) {
+                $errors[] = [
+                    'index' => $index,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        // The LogCreated event is automatically fired via model events for each log
+
+        $response = [
+            'success' => true,
+            'message' => 'Batch log ingestion completed',
+            'created' => count($createdLogs),
+            'failed' => count($errors),
+            'log_ids' => $createdLogs,
+        ];
+
+        if (!empty($errors)) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, 201);
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FailingControllersController;
+use App\Http\Controllers\GlobalDashboardController;
 use App\Http\Controllers\LogExplorerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
@@ -11,10 +12,13 @@ use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('projects.index');
+    return redirect()->route('dashboard');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Global Dashboard
+    Route::get('/dashboard', [GlobalDashboardController::class, 'index'])->name('dashboard');
+    
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');

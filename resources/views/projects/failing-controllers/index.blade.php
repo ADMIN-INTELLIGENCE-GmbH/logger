@@ -3,7 +3,7 @@
 @section('title', $project->name . ' - Failing Controllers')
 
 @section('content')
-<div>
+<div x-data="{ expandedRows: {} }">
     <!-- Header -->
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Failing Controllers</h1>
@@ -57,6 +57,7 @@
                         @foreach($failingControllers as $index => $controller)
                             @php
                                 $percentage = $totalErrors > 0 ? round(($controller->total / $totalErrors) * 100, 1) : 0;
+                                $uniqueId = 'expanded-' . $index;
                             @endphp
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -70,8 +71,20 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ class_basename($controller->controller) }}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ $controller->controller }}</div>
+                                    <div class="flex items-center">
+                                        <button @click="expandedRows['{{ $uniqueId }}'] = !expandedRows['{{ $uniqueId }}']" class="mr-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none">
+                                            <svg x-show="!expandedRows['{{ $uniqueId }}']" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                            <svg x-show="expandedRows['{{ $uniqueId }}']" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ class_basename($controller->controller) }}</div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ $controller->controller }}</div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="text-lg font-bold text-red-600 dark:text-red-400">{{ number_format($controller->total) }}</span>
@@ -91,9 +104,40 @@
                                     </svg>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{{ route('projects.logs.index', ['project' => $project, 'controller' => class_basename($controller->controller), 'level' => 'error']) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+                                    <a href="{{ route('projects.logs.index', ['project' => $project, 'controller' => $controller->controller, 'level' => 'error']) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
                                         View Logs →
                                     </a>
+                                </td>
+                            </tr>
+                            <!-- Expanded Methods Breakdown -->
+                            <tr x-show="expandedRows['{{ $uniqueId }}']" x-transition class="bg-gray-50 dark:bg-gray-900">
+                                <td colspan="6" class="px-6 py-4">
+                                    <div>
+                                        <h4 class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-3">Method Breakdown ({{ $controller->methods->count() }} methods)</h4>
+                                        <div class="space-y-2">
+                                            @forelse($controller->methods as $method => $count)
+                                                <div class="flex items-center justify-between py-3 px-4 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                                                    <div class="flex items-center space-x-3 flex-1">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                                                            {{ $method }}
+                                                        </span>
+                                                        <span class="text-sm text-gray-600 dark:text-gray-400">{{ number_format($count) }} {{ Str::plural('error', $count) }}</span>
+                                                    </div>
+                                                    <div class="flex items-center space-x-4">
+                                                        <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                                                            <div class="bg-red-500 h-1.5 rounded-full" style="width: {{ round(($count / $controller->total) * 100) }}%"></div>
+                                                        </div>
+                                                        <span class="text-xs text-gray-500 dark:text-gray-400 w-12 text-right">{{ round(($count / $controller->total) * 100) }}%</span>
+                                                        <a href="{{ route('projects.logs.index', ['project' => $project, 'controller' => $controller->controller, 'method' => $method, 'level' => 'error']) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 text-sm font-medium">
+                                                            View →
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">No methods found</p>
+                                            @endforelse
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -104,3 +148,4 @@
     </div>
 </div>
 @endsection
+

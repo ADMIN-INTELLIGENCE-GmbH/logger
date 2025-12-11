@@ -32,46 +32,46 @@
         </div>
     @else
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach($projects as $project)
+            @foreach($projects as $item)
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $project->name }}</h3>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $project->is_active ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300' }}">
-                                {{ $project->is_active ? 'Active' : 'Inactive' }}
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $item->name }}</h3>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->is_active ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300' }}">
+                                {{ $item->is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </div>
                         
                         <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                             <div class="flex justify-between">
                                 <span>Retention:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">{{ $project->retention_days == -1 ? 'Forever' : $project->retention_days . ' days' }}</span>
+                                <span class="font-medium text-gray-900 dark:text-white">{{ $item->retention_days == -1 ? 'Forever' : $item->retention_days . ' days' }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span>Webhook:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">{{ $project->webhook_url ? 'Configured' : 'Not set' }}</span>
+                                <span class="font-medium text-gray-900 dark:text-white">{{ $item->webhook_url ? 'Configured' : 'Not set' }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span>Logs (24h):</span>
-                                <span class="font-medium text-gray-900 dark:text-white">{{ $project->logs_count_24h ?? 0 }}</span>
+                                <span class="font-medium text-gray-900 dark:text-white">{{ $item->logs_count_24h ?? 0 }}</span>
                             </div>
                         </div>
 
                         <!-- Quick Links -->
                         <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <div class="flex flex-wrap gap-2 text-sm">
-                                <a href="{{ route('projects.dashboard', $project) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Dashboard</a>
+                                <a href="{{ route('projects.dashboard', $item) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Dashboard</a>
                                 <span class="text-gray-300 dark:text-gray-600">•</span>
-                                <a href="{{ route('projects.logs.index', $project) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Logs</a>
+                                <a href="{{ route('projects.logs.index', $item) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Logs</a>
                                 <span class="text-gray-300 dark:text-gray-600">•</span>
-                                <a href="{{ route('projects.failing-controllers.index', $project) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Failing</a>
+                                <a href="{{ route('projects.failing-controllers.index', $item) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Failing</a>
                                 <span class="text-gray-300 dark:text-gray-600">•</span>
-                                <a href="{{ route('projects.settings.show', $project) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Settings</a>
+                                <a href="{{ route('projects.settings.show', $item) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">Settings</a>
                             </div>
                         </div>
 
                         <div class="mt-4 flex space-x-3">
-                            <a href="{{ route('projects.dashboard', $project) }}" class="flex-1 inline-flex justify-center items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
+                            <a href="{{ route('projects.dashboard', $item) }}" class="flex-1 inline-flex justify-center items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
                                 View Dashboard
                             </a>
                         </div>
@@ -79,6 +79,7 @@
                 </div>
             @endforeach
         </div>
+        @php $project = null; @endphp
     @endif
 
     <!-- Create Project Modal -->
@@ -115,6 +116,42 @@
                                 <label for="webhook_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL (optional)</label>
                                 <input type="url" name="webhook_url" id="webhook_url" placeholder="https://hooks.slack.com/..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive alerts for errors and critical logs</p>
+                            </div>
+
+                            <!-- Webhook Enabled -->
+                            <div class="flex items-center">
+                                <input type="hidden" name="webhook_enabled" value="0">
+                                <input type="checkbox" name="webhook_enabled" id="webhook_enabled" value="1" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded">
+                                <label for="webhook_enabled" class="ml-2 block text-sm text-gray-900 dark:text-white">Enable webhook notifications</label>
+                            </div>
+
+                            <!-- Webhook Threshold -->
+                            <div>
+                                <label for="webhook_threshold" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notification Threshold</label>
+                                <select name="webhook_threshold" id="webhook_threshold" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                    @foreach(\App\Models\Log::LEVELS as $level)
+                                        <option value="{{ $level }}" {{ $level === 'error' ? 'selected' : '' }}>
+                                            {{ ucfirst($level) }}{{ $level === 'debug' ? ' (all logs)' : ' and above' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Webhook Format -->
+                            <div>
+                                <label for="webhook_format" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook Format</label>
+                                <select name="webhook_format" id="webhook_format" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                    @foreach(App\Models\Project::WEBHOOK_FORMATS as $value => $label)
+                                        <option value="{{ $value }}" {{ $value === 'slack' ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Active Status -->
+                            <div class="flex items-center">
+                                <input type="hidden" name="is_active" value="0">
+                                <input type="checkbox" name="is_active" id="is_active" value="1" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded">
+                                <label for="is_active" class="ml-2 block text-sm text-gray-900 dark:text-white">Project is active</label>
                             </div>
                         </div>
                     </div>

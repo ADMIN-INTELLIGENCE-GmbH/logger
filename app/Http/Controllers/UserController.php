@@ -17,8 +17,9 @@ class UserController extends Controller
     public function index(): View
     {
         $users = User::orderBy('id')->get();
+        $project = null; // Ensure project-specific nav is hidden
 
-        return view('users.index', compact('users'));
+        return view('users.index', compact('users', 'project'));
     }
 
     /**
@@ -26,7 +27,8 @@ class UserController extends Controller
      */
     public function create(): View
     {
-        return view('users.create');
+        $project = null; // Ensure project-specific nav is hidden
+        return view('users.create', compact('project'));
     }
 
     /**
@@ -51,7 +53,8 @@ class UserController extends Controller
      */
     public function edit(User $user): View
     {
-        return view('users.edit', compact('user'));
+        $project = null; // Ensure project-specific nav is hidden
+        return view('users.edit', compact('user', 'project'));
     }
 
     /**

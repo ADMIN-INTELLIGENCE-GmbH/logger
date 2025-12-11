@@ -18,13 +18,14 @@ class ProjectController extends Controller
         $projects = Project::orderBy('name')->get();
 
         // Add 24h log count for each project
-        $projects->each(function ($project) {
-            $project->logs_count_24h = Log::where('project_id', $project->id)
+        $projects->each(function ($item) {
+            $item->logs_count_24h = Log::where('project_id', $item->id)
                 ->where('created_at', '>=', now()->subDay())
                 ->count();
         });
 
-        return view('projects.index', compact('projects'));
+        $project = null; // Ensure project-specific nav is hidden
+        return view('projects.index', compact('projects', 'project'));
     }
 
     /**
@@ -36,13 +37,20 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'retention_days' => 'nullable|integer|in:7,14,30,90,-1',
             'webhook_url' => 'nullable|url|max:500',
+            'webhook_enabled' => 'nullable|boolean',
+            'webhook_threshold' => 'nullable|in:'.implode(',', Log::LEVELS),
+            'webhook_format' => 'nullable|in:'.implode(',', array_keys(Project::WEBHOOK_FORMATS)),
+            'is_active' => 'nullable|boolean',
         ]);
 
         $project = Project::create([
             'name' => $validated['name'],
             'retention_days' => $validated['retention_days'] ?? 30,
             'webhook_url' => $validated['webhook_url'] ?? null,
-            'is_active' => true,
+            'webhook_enabled' => $validated['webhook_enabled'] ?? false,
+            'webhook_threshold' => $validated['webhook_threshold'] ?? 'error',
+            'webhook_format' => $validated['webhook_format'] ?? 'slack',
+            'is_active' => $validated['is_active'] ?? true,
         ]);
 
         return redirect()->route('projects.dashboard', $project)
