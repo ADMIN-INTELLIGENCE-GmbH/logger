@@ -48,10 +48,10 @@ class LogExplorerController extends Controller
             // Search the context trace for this method
             if ($method !== 'unknown') {
                 // For real methods, search in the context trace (JSON has "function": "methodName")
-                $query->whereRaw("context LIKE ?", ['%"function": "'.$method.'"%']);
+                $query->whereRaw('context LIKE ?', ['%"function": "'.$method.'"%']);
             } else {
                 // For unknown, we need logs where context has no function field
-                $query->whereRaw("context NOT LIKE ?", ['%"function"%']);
+                $query->whereRaw('context NOT LIKE ?', ['%"function"%']);
             }
         }
 

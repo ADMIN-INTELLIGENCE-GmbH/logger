@@ -29,7 +29,7 @@ class IngestLogRequest extends FormRequest
             // Check if logs are wrapped in {"logs": [...]} or sent as raw array
             $isWrapped = $this->has('logs');
             $prefix = $isWrapped ? 'logs.*.' : '*.';
-            
+
             return [
                 $isWrapped ? 'logs' : '*' => 'required|array|min:1|max:100',
                 $prefix.'level' => 'required|string|in:'.implode(',', Log::LEVELS),
@@ -83,12 +83,12 @@ class IngestLogRequest extends FormRequest
     {
         // Check if the entire payload is an array (raw JSON array)
         $input = $this->all();
-        
+
         // If the input is a sequential array with numeric keys, it's a batch
         if (is_array($input) && array_keys($input) === range(0, count($input) - 1)) {
             return true;
         }
-        
+
         // Also support wrapped format {"logs": [...]}
         return $this->has('logs') && is_array($this->input('logs'));
     }
@@ -135,6 +135,7 @@ class IngestLogRequest extends FormRequest
         if ($logData !== null) {
             return $logData['controller'] ?? $logData['controller_action'] ?? null;
         }
+
         return $this->input('controller') ?? $this->input('controller_action');
     }
 
@@ -146,6 +147,7 @@ class IngestLogRequest extends FormRequest
         if ($logData !== null) {
             return $logData['method'] ?? $logData['request_method'] ?? null;
         }
+
         return $this->input('method') ?? $this->input('request_method');
     }
 

@@ -18,7 +18,7 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Global Dashboard
     Route::get('/dashboard', [GlobalDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');

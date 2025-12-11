@@ -25,6 +25,7 @@ class ProjectController extends Controller
         });
 
         $project = null; // Ensure project-specific nav is hidden
+
         return view('projects.index', compact('projects', 'project'));
     }
 

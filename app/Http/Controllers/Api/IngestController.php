@@ -126,7 +126,7 @@ class IngestController extends Controller
             'log_ids' => $createdLogs,
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['errors'] = $errors;
         }
 

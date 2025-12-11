@@ -28,6 +28,7 @@ class UserController extends Controller
     public function create(): View
     {
         $project = null; // Ensure project-specific nav is hidden
+
         return view('users.create', compact('project'));
     }
 
@@ -54,6 +55,7 @@ class UserController extends Controller
     public function edit(User $user): View
     {
         $project = null; // Ensure project-specific nav is hidden
+
         return view('users.edit', compact('user', 'project'));
     }
 

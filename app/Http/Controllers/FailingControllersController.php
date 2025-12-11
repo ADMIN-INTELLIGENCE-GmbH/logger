@@ -38,6 +38,7 @@ class FailingControllersController extends Controller
                         }
                     }
                 }
+
                 return 'unknown';
             })->map(function ($methodLogs) {
                 return $methodLogs->count();
@@ -45,7 +46,7 @@ class FailingControllersController extends Controller
                 return $count;
             });
 
-            return (object)[
+            return (object) [
                 'controller' => $controller,
                 'total' => $logs->count(),
                 'methods' => $methods,
