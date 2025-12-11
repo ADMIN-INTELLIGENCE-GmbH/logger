@@ -20,6 +20,11 @@ sast:
 # Test stage - Check PHP syntax, run tests, and check code style
 test_php:
   stage: test
+  image: php:8.2-cli
+  before_script:
+    - apt-get update && apt-get install -y sqlite3 libsqlite3-dev
+    - docker-php-ext-install pdo_sqlite
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
   script:
     # Check if any PHP-related files have changed
     - |
