@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// random comment to trigger php test
+
 // Health check endpoint (no rate limiting)
 Route::get('/health', HealthController::class)->name('api.health');
 
