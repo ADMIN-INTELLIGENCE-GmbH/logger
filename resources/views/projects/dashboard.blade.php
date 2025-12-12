@@ -42,10 +42,174 @@
         </div>
     </div>
 
+    @if($project->server_stats)
+    <!-- Server Status -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Server Status</h3>
+            @if($project->last_server_stats_at)
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                    @if($project->last_server_stats_at->diffInHours() > 24)
+                        Last updated: {{ $project->last_server_stats_at->format('M d, Y H:i') }}
+                    @else
+                        Last updated: {{ $project->last_server_stats_at->diffForHumans() }}
+                    @endif
+                </span>
+            @endif
+        </div>
+        
+        @php
+            $serverStats = $project->server_stats;
+            // Helper function to format bytes
+                $formatBytes = function($bytes) {
+                    if ($bytes < 1024) return $bytes . ' B';
+                    if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
+                    if ($bytes < 1024 * 1024 * 1024) return round($bytes / 1024 / 1024, 1) . ' MB';
+                    return round($bytes / 1024 / 1024 / 1024, 2) . ' GB';
+                };
+
+                // Helper function for usage color
+                $getUsageColor = function($percent) {
+                    if ($percent >= 90) return 'bg-red-600';
+                    if ($percent >= 75) return 'bg-yellow-500';
+                    return 'bg-green-500';
+                };
+                
+                // Application Info Card
+        @endphp
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Application Info -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Application</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Name</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['app_name'] ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Env</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['app_env'] ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Instance</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['instance_id'] ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Uptime</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ isset($serverStats['system']['uptime']) ? gmdate("H:i:s", $serverStats['system']['uptime']) : '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Info -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">System</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">PHP</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['php_version'] ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Laravel</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['laravel_version'] ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">App Memory</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ isset($serverStats['system']['memory_usage']) ? $formatBytes($serverStats['system']['memory_usage']) : '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Peak Memory</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ isset($serverStats['system']['memory_peak']) ? $formatBytes($serverStats['system']['memory_peak']) : '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Queue & Database -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Queue & DB</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Queue Size</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['queue']['size'] ?? 0 }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Connection</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['queue']['connection'] ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">DB Status</span>
+                        <span class="text-sm font-medium {{ ($serverStats['database']['status'] ?? '') === 'connected' ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400' }}">{{ ucfirst($serverStats['database']['status'] ?? '-') }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Latency</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ isset($serverStats['database']['latency_ms']) ? $serverStats['database']['latency_ms'] . 'ms' : '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Storage & Cache -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Storage & Cache</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Cache Driver</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['cache']['driver'] ?? '-' }}</span>
+                    </div>
+                    @if(isset($serverStats['filesize']) && is_array($serverStats['filesize']))
+                        @foreach($serverStats['filesize'] as $file => $size)
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">{{ $file }}</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $formatBytes($size) }}</span>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Usage Bars -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            @if(isset($serverStats['system']['server_memory']))
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Server Memory</h4>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['server_memory']['percent_used'] ?? 0 }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
+                    <div class="{{ $getUsageColor($serverStats['system']['server_memory']['percent_used'] ?? 0) }} h-2.5 rounded-full" style="width: {{ $serverStats['system']['server_memory']['percent_used'] ?? 0 }}%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span>Used: {{ $formatBytes($serverStats['system']['server_memory']['used'] ?? 0) }}</span>
+                    <span>Total: {{ $formatBytes($serverStats['system']['server_memory']['total'] ?? 0) }}</span>
+                </div>
+            </div>
+            @endif
+
+            @if(isset($serverStats['system']['disk_space']))
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Disk Space</h4>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['disk_space']['percent_used'] ?? 0 }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
+                    <div class="{{ $getUsageColor($serverStats['system']['disk_space']['percent_used'] ?? 0) }} h-2.5 rounded-full" style="width: {{ $serverStats['system']['disk_space']['percent_used'] ?? 0 }}%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span>Used: {{ $formatBytes($serverStats['system']['disk_space']['used'] ?? 0) }}</span>
+                    <span>Total: {{ $formatBytes($serverStats['system']['disk_space']['total'] ?? 0) }}</span>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <!-- Time Range & Filter Controls -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-8">
         <form method="GET" action="{{ route('projects.dashboard', $project) }}" class="flex flex-wrap items-center gap-4">
             <!-- Time Range -->
+
             <div class="flex items-center space-x-2">
                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range:</label>
                 <select name="range" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
@@ -128,164 +292,6 @@
             </div>
         </div>
     </div>
-
-    @if($project->server_stats)
-    <!-- Server Status -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Server Status</h3>
-            @if($project->last_server_stats_at)
-                <span class="text-sm text-gray-500 dark:text-gray-400">
-                    @if($project->last_server_stats_at->diffInHours() > 24)
-                        Last updated: {{ $project->last_server_stats_at->format('M d, Y H:i') }}
-                    @else
-                        Last updated: {{ $project->last_server_stats_at->diffForHumans() }}
-                    @endif
-                </span>
-            @endif
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @php
-                $stats = $project->server_stats;
-                $displayCards = [];
-                
-                // Helper function to format bytes
-                $formatBytes = function($bytes) {
-                    if ($bytes < 1024) return $bytes . ' B';
-                    if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
-                    if ($bytes < 1024 * 1024 * 1024) return round($bytes / 1024 / 1024, 1) . ' MB';
-                    return round($bytes / 1024 / 1024 / 1024, 2) . ' GB';
-                };
-                
-                // Application Info Card
-                if (isset($stats['app_name']) || isset($stats['app_env']) || isset($stats['instance_id'])) {
-                    $displayCards[] = [
-                        'title' => 'Application',
-                        'items' => array_filter([
-                            'Name' => $stats['app_name'] ?? null,
-                            'Environment' => $stats['app_env'] ?? null,
-                            'Instance' => $stats['instance_id'] ?? null,
-                        ])
-                    ];
-                }
-                
-                // System Card
-                if (isset($stats['system']) && is_array($stats['system'])) {
-                    $displayCards[] = [
-                        'title' => 'System',
-                        'items' => array_filter([
-                            'PHP' => $stats['system']['php_version'] ?? null,
-                            'Laravel' => $stats['system']['laravel_version'] ?? null,
-                            'Memory (App)' => isset($stats['system']['memory_usage']) ? round($stats['system']['memory_usage'] / 1024 / 1024) . ' MB' : null,
-                            'Peak' => isset($stats['system']['memory_peak']) ? round($stats['system']['memory_peak'] / 1024 / 1024) . ' MB' : null,
-                        ])
-                    ];
-                }
-                
-                // Server Memory Card
-                if (isset($stats['system']['server_memory']) && is_array($stats['system']['server_memory'])) {
-                    $displayCards[] = [
-                        'title' => 'Server Memory',
-                        'items' => array_filter([
-                            'Used' => isset($stats['system']['server_memory']['used']) ? $formatBytes($stats['system']['server_memory']['used']) : null,
-                            'Total' => isset($stats['system']['server_memory']['total']) ? $formatBytes($stats['system']['server_memory']['total']) : null,
-                            'Usage' => isset($stats['system']['server_memory']['percent_used']) ? round($stats['system']['server_memory']['percent_used']) . '%' : null,
-                        ])
-                    ];
-                }
-                
-                // Queue Card
-                if (isset($stats['queue']) && is_array($stats['queue'])) {
-                    $displayCards[] = [
-                        'title' => 'Queue',
-                        'items' => array_filter([
-                            'Jobs' => $stats['queue']['size'] ?? null,
-                            'Connection' => $stats['queue']['connection'] ?? null,
-                        ])
-                    ];
-                }
-                
-                // Database Card
-                if (isset($stats['database']) && is_array($stats['database'])) {
-                    $displayCards[] = [
-                        'title' => 'Database',
-                        'items' => array_filter([
-                            'Status' => $stats['database']['status'] ?? null,
-                            'Latency' => isset($stats['database']['latency_ms']) ? $stats['database']['latency_ms'] . ' ms' : null,
-                        ])
-                    ];
-                }
-                
-                // Limit to 4 cards
-                $displayCards = array_slice($displayCards, 0, 4);
-            @endphp
-            
-            @foreach($displayCards as $card)
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                    <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">{{ $card['title'] }}</h4>
-                    <div class="space-y-2">
-                        @foreach($card['items'] as $label => $value)
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-600 dark:text-gray-400">{{ $label }}:</span>
-                                <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $value }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endforeach
-        </div>
-        
-        @if(isset($stats['system']['server_memory']) && is_array($stats['system']['server_memory']))
-        <!-- Server Memory Section -->
-        <div class="mt-6">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-4">Server Memory</h4>
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                @php
-                    $memoryData = $stats['system']['server_memory'];
-                @endphp
-                <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-sm font-medium text-gray-900 dark:text-white">Memory Usage</h5>
-                    <span class="text-xs font-semibold {{ $memoryData['percent_used'] > 80 ? 'text-red-600 dark:text-red-400' : ($memoryData['percent_used'] > 60 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400') }}">
-                        {{ round($memoryData['percent_used']) }}%
-                    </span>
-                </div>
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                    <div class="h-full rounded-full {{ $memoryData['percent_used'] > 80 ? 'bg-red-500' : ($memoryData['percent_used'] > 60 ? 'bg-yellow-500' : 'bg-green-500') }}" style="width: {{ min($memoryData['percent_used'], 100) }}%"></div>
-                </div>
-                <div class="mt-2 text-xs text-gray-600 dark:text-gray-400 flex justify-between">
-                    <span>Used: {{ $formatBytes($memoryData['used'] ?? 0) }}</span>
-                    <span>Total: {{ $formatBytes($memoryData['total'] ?? 0) }}</span>
-                </div>
-            </div>
-        </div>
-        @endif
-        
-        @if(isset($stats['system']['disk_space']) && is_array($stats['system']['disk_space']) && isset($stats['system']['disk_space']['percent_used']))
-        <!-- Disk Space Section -->
-        <div class="mt-6">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-4">Disk Space</h4>
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                @php
-                    $diskData = $stats['system']['disk_space'];
-                @endphp
-                <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-sm font-medium text-gray-900 dark:text-white">Server Disk</h5>
-                    <span class="text-xs font-semibold {{ $diskData['percent_used'] > 80 ? 'text-red-600 dark:text-red-400' : ($diskData['percent_used'] > 60 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400') }}">
-                        {{ round($diskData['percent_used']) }}%
-                    </span>
-                </div>
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                    <div class="h-full rounded-full {{ $diskData['percent_used'] > 80 ? 'bg-red-500' : ($diskData['percent_used'] > 60 ? 'bg-yellow-500' : 'bg-green-500') }}" style="width: {{ min($diskData['percent_used'], 100) }}%"></div>
-                </div>
-                <div class="mt-2 text-xs text-gray-600 dark:text-gray-400 flex justify-between">
-                    <span>Used: {{ $formatBytes($diskData['used'] ?? 0) }}</span>
-                    <span>Total: {{ $formatBytes($diskData['total'] ?? 0) }}</span>
-                </div>
-            </div>
-        </div>
-        @endif
-    </div>
-    @endif
 
     <!-- Chart -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">

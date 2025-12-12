@@ -66,3 +66,7 @@
 .dark .ai-analysis-content li::marker {
     color: #9ca3af;
 }
+
+[x-cloak] { 
+    display: none !important; 
+}

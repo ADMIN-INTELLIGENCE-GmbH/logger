@@ -33,11 +33,12 @@ class GlobalDashboardController extends Controller
 
                 return [
                     'project' => $project,
+                    'dashboard_url' => route('projects.dashboard', $project),
                     'total_logs_24h' => $totalLogs,
                     'error_logs_24h' => $errorLogs,
                     'error_rate' => $totalLogs > 0 ? round(($errorLogs / $totalLogs) * 100, 1) : 0,
                 ];
-            });
+            })->values();
 
         // Overall stats
         $totalProjects = Project::where('is_active', true)->count();

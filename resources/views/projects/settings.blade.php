@@ -168,6 +168,227 @@
             </div>
 
             <!-- Webhook Delivery History -->
+            <!-- .env Configurator -->
+            <div x-data="envConfigurator({ endpoint: '{{ url('/api/ingest') }}', key: '{{ $project->magic_key }}' })" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">.env Configurator</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Generate configuration for your .env file.</p>
+                </div>
+                <div class="p-6">
+                    <!-- Step 1: Select Features -->
+                    <div x-show="step === 1" class="space-y-4">
+                        <h4 class="text-md font-medium text-gray-900 dark:text-white">Select Features</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <template x-for="feature in features" :key="feature.id">
+                                <div class="relative flex items-start p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" 
+                                     :class="feature.selected ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-300 dark:border-gray-600'"
+                                     @click="feature.selected = !feature.selected">
+                                    <div class="min-w-0 flex-1 text-sm">
+                                        <label :for="'feature-' + feature.id" class="font-medium text-gray-700 dark:text-gray-300 select-none cursor-pointer" x-text="feature.name"></label>
+                                    </div>
+                                    <div class="ml-3 flex items-center h-5">
+                                        <input :id="'feature-' + feature.id" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" x-model="feature.selected">
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="pt-4 flex justify-end">
+                            <button @click="nextStep()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                                Next: Configure
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Configure Options -->
+                    <div x-show="step === 2" class="space-y-6">
+                        <h4 class="text-md font-medium text-gray-900 dark:text-white">Configure Options</h4>
+                        <template x-for="feature in features.filter(f => f.selected)" :key="feature.id">
+                            <div class="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0 last:pb-0">
+                                <h5 class="text-sm font-bold text-gray-900 dark:text-white mb-4" x-text="feature.name"></h5>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <template x-for="field in fields[feature.id]" :key="field.key">
+                                        <div class="col-span-1">
+                                            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase" x-text="field.label"></label>
+                                            
+                                            <template x-if="field.type === 'select'">
+                                                <select x-model="configs[feature.id][field.key]" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                                    <template x-for="option in field.options" :key="option">
+                                                        <option :value="option" x-text="option"></option>
+                                                    </template>
+                                                </select>
+                                            </template>
+                                            
+                                            <template x-if="field.type !== 'select'">
+                                                <input :type="field.type" x-model="configs[feature.id][field.key]" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                            </template>
+
+                                            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500" x-text="field.description"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                        <div class="pt-4 flex justify-between">
+                            <button @click="prevStep()" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-600">
+                                Back
+                            </button>
+                            <button @click="nextStep()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                                Generate .env
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Result -->
+                    <div x-show="step === 3" class="space-y-4">
+                        <h4 class="text-md font-medium text-gray-900 dark:text-white">Generated Configuration</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">You can copy this and paste it directly into your .env file.</p>
+                        <div class="relative group" x-data="{ copied: false }">
+                            <div class="relative bg-gray-900 dark:bg-gray-950 rounded-md border border-gray-300 dark:border-gray-600 overflow-auto max-h-[500px]">
+                                <pre class="text-gray-300 font-mono text-sm p-4 whitespace-pre-wrap break-words" x-text="generatedEnv"></pre>
+                            </div>
+                            <button
+                                @click="navigator.clipboard.writeText(generatedEnv); copied = true; setTimeout(() => copied = false, 2000)"
+                                class="absolute top-2 right-2 p-1.5 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                :class="{ 'text-green-600 dark:text-green-400': copied }"
+                                title="Copy to clipboard"
+                            >
+                                <svg x-show="!copied" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                <svg x-show="copied" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="pt-4 flex justify-start">
+                            <button @click="step = 1" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-600">
+                                Start Over
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function envConfigurator(defaults = {}) {
+                    return {
+                        step: 1,
+                        features: [
+                            { id: 'log_shipper', name: 'Core Configuration', selected: true },
+                            { id: 'queue', name: 'Queue Settings', selected: false },
+                            { id: 'batch', name: 'Batch Shipping', selected: false },
+                            { id: 'status', name: 'Status Monitoring', selected: false },
+                        ],
+                        fields: {
+                            log_shipper: [
+                                { key: 'enabled', label: 'Enabled', type: 'select', options: ['true', 'false'], description: 'Enable or disable the log shipper.' },
+                                { key: 'endpoint', label: 'Endpoint', type: 'text', description: 'The URL where logs will be sent.' },
+                                { key: 'key', label: 'API Key', type: 'text', description: 'The magic key that identifies this project.' },
+                                { key: 'fallback', label: 'Fallback Channel', type: 'text', description: 'Local channel to write to if shipping fails (e.g., "daily", "single"). Set to "null" to disable.' }
+                            ],
+                            queue: [
+                                { key: 'connection', label: 'Queue Connection', type: 'text', description: 'The queue connection to use (e.g., "redis", "database", "sync").' },
+                                { key: 'name', label: 'Queue Name', type: 'text', description: 'The specific queue name to dispatch jobs to.' }
+                            ],
+                            batch: [
+                                { key: 'enabled', label: 'Batch Enabled', type: 'select', options: ['true', 'false'], description: 'Buffer logs and ship them in batches.' },
+                                { key: 'driver', label: 'Batch Driver', type: 'select', options: ['redis', 'cache'], description: 'Storage driver for buffering logs.' },
+                                { key: 'size', label: 'Batch Size', type: 'number', description: 'Number of logs to ship at once.' },
+                                { key: 'interval', label: 'Batch Interval', type: 'number', description: 'Minutes between batch runs.' }
+                            ],
+                            status: [
+                                { key: 'enabled', label: 'Status Enabled', type: 'select', options: ['true', 'false'], description: 'Enable automatic status pushing.' },
+                                { key: 'endpoint', label: 'Status Endpoint', type: 'text', description: 'The endpoint to send status reports to.' },
+                                { key: 'interval', label: 'Status Interval', type: 'number', description: 'Minutes between status reports.' }
+                            ]
+                        },
+                        configs: {
+                            log_shipper: {
+                                enabled: 'true',
+                                endpoint: defaults.endpoint || '',
+                                key: defaults.key || '',
+                                fallback: 'null'
+                            },
+                            queue: {
+                                connection: 'default',
+                                name: 'default'
+                            },
+                            batch: {
+                                enabled: 'false',
+                                driver: 'redis',
+                                size: '100',
+                                interval: '1'
+                            },
+                            status: {
+                                enabled: 'false',
+                                endpoint: '',
+                                interval: '5'
+                            }
+                        },
+                        generatedEnv: '',
+                        
+                        nextStep() {
+                            if (this.step === 1) {
+                                if (this.features.filter(f => f.selected).length === 0) {
+                                    alert('Please select at least one feature.');
+                                    return;
+                                }
+                                this.step = 2;
+                            } else if (this.step === 2) {
+                                this.generateEnv();
+                                this.step = 3;
+                            }
+                        },
+                        
+                        prevStep() {
+                            this.step--;
+                        },
+                        
+                        generateEnv() {
+                            let output = '';
+                            this.features.filter(f => f.selected).forEach(feature => {
+                                output += `### ${feature.name}\n`;
+                                const config = this.configs[feature.id];
+                                for (const [key, value] of Object.entries(config)) {
+                                    const envKey = this.getEnvKey(feature.id, key);
+                                    output += `${envKey}=${value}\n`;
+                                }
+                                output += '\n';
+                            });
+                            this.generatedEnv = output;
+                        },
+                        
+                        getEnvKey(featureId, key) {
+                            const map = {
+                                log_shipper: {
+                                    enabled: 'LOG_SHIPPER_ENABLED',
+                                    endpoint: 'LOG_SHIPPER_ENDPOINT',
+                                    key: 'LOG_SHIPPER_KEY',
+                                    fallback: 'LOG_SHIPPER_FALLBACK'
+                                },
+                                queue: {
+                                    connection: 'LOG_SHIPPER_QUEUE',
+                                    name: 'LOG_SHIPPER_QUEUE_NAME'
+                                },
+                                batch: {
+                                    enabled: 'LOG_SHIPPER_BATCH_ENABLED',
+                                    driver: 'LOG_SHIPPER_BATCH_DRIVER',
+                                    size: 'LOG_SHIPPER_BATCH_SIZE',
+                                    interval: 'LOG_SHIPPER_BATCH_INTERVAL'
+                                },
+                                status: {
+                                    enabled: 'LOG_SHIPPER_STATUS_ENABLED',
+                                    endpoint: 'LOG_SHIPPER_STATUS_ENDPOINT',
+                                    interval: 'LOG_SHIPPER_STATUS_INTERVAL'
+                                }
+                            };
+                            return map[featureId][key] || key.toUpperCase();
+                        }
+                    }
+                }
+            </script>
+
+            <!-- Webhook Delivery History -->
             @if($webhookDeliveries->count() > 0)
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -311,6 +532,21 @@
                     This application is designed to work with the <strong>Laravel Log Shipper</strong> package. Install it in your Laravel application to automatically ship logs here.
                 </p>
 
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-400 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-indigo-700 dark:text-indigo-300">
+                                Need a custom configuration? Use the <a href="#" @click.prevent="document.querySelector('[x-data^=\'envConfigurator\']').scrollIntoView({behavior: 'smooth'})" class="font-medium underline hover:text-indigo-600 dark:hover:text-indigo-200">.env Configurator</a> on the left to generate a complete configuration for your project.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Install via Composer:</p>
                 <div class="relative group mb-4">
                     <code class="block bg-gray-100 dark:bg-gray-900 p-3 pr-10 rounded-md text-sm text-gray-800 dark:text-gray-200">composer require adminintelligence/laravel-log-shipper</code>
@@ -324,28 +560,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                         <svg x-show="copiedComposer" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </button>
-                </div>
-
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Add to your <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">.env</code>:</p>
-                <div class="relative group mb-4">
-                    <div class="bg-gray-100 dark:bg-gray-900 p-3 pr-10 rounded-md text-sm text-gray-800 dark:text-gray-200 font-mono overflow-x-auto">
-                        <pre class="whitespace-pre">LOG_SHIPPER_ENABLED=true
-LOG_SHIPPER_ENDPOINT={{ url('/api/ingest') }}
-LOG_SHIPPER_KEY={{ $project->magic_key }}</pre>
-                    </div>
-                    <button
-                        @click="navigator.clipboard.writeText(`LOG_SHIPPER_ENABLED=true\nLOG_SHIPPER_ENDPOINT={{ url('/api/ingest') }}\nLOG_SHIPPER_KEY={{ $project->magic_key }}`); copiedEnv = true; setTimeout(() => copiedEnv = false, 2000)"
-                        class="absolute top-2 right-2 p-1.5 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                        :class="{ 'text-green-600 dark:text-green-400': copiedEnv }"
-                        title="Copy to clipboard"
-                    >
-                        <svg x-show="!copiedEnv" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <svg x-show="copiedEnv" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                     </button>

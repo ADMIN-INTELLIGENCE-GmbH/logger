@@ -107,6 +107,23 @@ Once created, you can log in to the dashboard at `/login` using the admin creden
 4. Configure the project name, retention policy, and optional webhook URL
 5. Copy the generated project key
 
+### Using the .env Configurator
+
+Each project includes an interactive **.env Configurator** tool to help you generate the complete configuration needed for the Laravel Log Shipper package. This configurator:
+
+- **Guides you through setup steps** for different configuration categories:
+  - **Core Configuration**: `LOG_SHIPPER_ENABLED`, `LOG_SHIPPER_ENDPOINT`, `LOG_SHIPPER_KEY`, `LOG_SHIPPER_FALLBACK`
+  - **Queue Settings**: `LOG_SHIPPER_QUEUE`, `LOG_SHIPPER_QUEUE_NAME`
+  - **Batch Shipping**: `LOG_SHIPPER_BATCH_ENABLED`, `LOG_SHIPPER_BATCH_DRIVER`, `LOG_SHIPPER_BATCH_SIZE`, `LOG_SHIPPER_BATCH_INTERVAL`
+  - **Status Monitoring**: `LOG_SHIPPER_STATUS_ENABLED`, `LOG_SHIPPER_STATUS_ENDPOINT`, `LOG_SHIPPER_STATUS_INTERVAL`
+
+- **Provides helpful descriptions** for each setting to explain what it does and what values it accepts
+- **Offers dropdown menus** for boolean and driver selection fields to make configuration easier
+- **Pre-fills values** like the endpoint and project key automatically
+- **Generates ready-to-copy output** that you can paste directly into your `.env` file
+
+To access it, go to your project's settings page and scroll to the ".env Configurator" section.
+
 ### Log Retention
 
 Each project can have its own retention policy. The `app:prune-logs` command removes logs older than the configured retention period. Schedule it in your crontab:
