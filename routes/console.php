@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Schedule log pruning daily at midnight
 Schedule::command('app:prune-logs')->daily()->at('00:00');
+
+// Process queued jobs every minute
+Schedule::command('queue:work --stop-when-empty')->everyMinute();

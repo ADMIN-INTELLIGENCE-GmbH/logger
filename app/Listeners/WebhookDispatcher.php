@@ -221,17 +221,18 @@ class WebhookDispatcher implements ShouldQueue
      */
     protected function formatTestSlackPayload(Project $project): array
     {
+        $projectUrl = $this->getProjectUrl($project);
+
         return [
-            'text' => "🧪 Test webhook from Logger - {$project->name}",
+            'text' => "Test webhook from Logger - {$project->name}",
             'username' => 'Logger',
-            'icon_emoji' => ':test_tube:',
             'attachments' => [
                 [
                     'color' => '#17a2b8',
                     'title' => 'Test Webhook',
                     'text' => 'This is a test message to verify your webhook configuration is working correctly.',
                     'fields' => [
-                        ['title' => 'Project', 'value' => $project->name, 'short' => true],
+                        ['title' => 'Project', 'value' => "<{$projectUrl}|{$project->name}>", 'short' => true],
                         ['title' => 'Timestamp', 'value' => now()->toIso8601String(), 'short' => true],
                     ],
                     'ts' => now()->timestamp,
@@ -245,17 +246,18 @@ class WebhookDispatcher implements ShouldQueue
      */
     protected function formatTestMattermostPayload(Project $project): array
     {
+        $projectUrl = $this->getProjectUrl($project);
+
         return [
-            'text' => "🧪 **Test webhook from Logger** - {$project->name}",
+            'text' => "**Test webhook from Logger** - {$project->name}",
             'username' => 'Logger',
-            'icon_emoji' => ':test_tube:',
             'attachments' => [
                 [
                     'color' => '#17a2b8',
                     'title' => 'Test Webhook',
                     'text' => 'This is a test message to verify your webhook configuration is working correctly.',
                     'fields' => [
-                        ['title' => 'Project', 'value' => $project->name, 'short' => true],
+                        ['title' => 'Project', 'value' => "[{$project->name}]({$projectUrl})", 'short' => true],
                         ['title' => 'Timestamp', 'value' => now()->toIso8601String(), 'short' => true],
                     ],
                 ],
@@ -268,12 +270,15 @@ class WebhookDispatcher implements ShouldQueue
      */
     protected function formatTestDiscordPayload(Project $project): array
     {
+        $projectUrl = $this->getProjectUrl($project);
+
         return [
             'username' => 'Logger',
             'embeds' => [
                 [
-                    'title' => '🧪 Test Webhook',
+                    'title' => 'Test Webhook',
                     'description' => 'This is a test message to verify your webhook configuration is working correctly.',
+                    'url' => $projectUrl,
                     'color' => 1549464,
                     'fields' => [
                         ['name' => 'Project', 'value' => $project->name, 'inline' => true],
@@ -290,14 +295,16 @@ class WebhookDispatcher implements ShouldQueue
      */
     protected function formatTestTeamsPayload(Project $project): array
     {
+        $projectUrl = $this->getProjectUrl($project);
+
         return [
             '@type' => 'MessageCard',
             '@context' => 'http://schema.org/extensions',
             'themeColor' => '17a2b8',
-            'summary' => "🧪 Test webhook from Logger - {$project->name}",
+            'summary' => "Test webhook from Logger - {$project->name}",
             'sections' => [
                 [
-                    'activityTitle' => '🧪 Test Webhook',
+                    'activityTitle' => 'Test Webhook',
                     'activitySubtitle' => $project->name,
                     'facts' => [
                         ['name' => 'Message', 'value' => 'This is a test message to verify your webhook configuration is working correctly.'],
@@ -305,6 +312,15 @@ class WebhookDispatcher implements ShouldQueue
                         ['name' => 'Timestamp', 'value' => now()->toIso8601String()],
                     ],
                     'markdown' => true,
+                ],
+            ],
+            'potentialAction' => [
+                [
+                    '@type' => 'OpenUri',
+                    'name' => 'View Project',
+                    'targets' => [
+                        ['os' => 'default', 'uri' => $projectUrl],
+                    ],
                 ],
             ],
         ];
@@ -315,12 +331,15 @@ class WebhookDispatcher implements ShouldQueue
      */
     protected function formatTestGenericPayload(Project $project): array
     {
+        $projectUrl = $this->getProjectUrl($project);
+
         return [
             'event' => 'webhook.test',
             'timestamp' => now()->toIso8601String(),
             'project' => [
                 'id' => $project->id,
                 'name' => $project->name,
+                'url' => $projectUrl,
             ],
             'message' => 'This is a test message to verify your webhook configuration is working correctly.',
         ];
@@ -371,13 +390,12 @@ class WebhookDispatcher implements ShouldQueue
     protected function formatSlackPayload(Log $log): array
     {
         $project = $log->project;
-        $levelEmoji = $this->getLevelEmoji($log->level);
         $levelColor = $this->getLevelColor($log->level);
+        $projectUrl = $this->getProjectUrl($project);
 
         return [
-            'text' => "{$levelEmoji} [{$project->name}] {$log->level}: {$log->message}",
+            'text' => "[{$project->name}] {$log->level}: {$log->message}",
             'username' => 'Logger',
-            'icon_emoji' => ':warning:',
             'attachments' => [
                 [
                     'color' => $levelColor,
@@ -386,7 +404,7 @@ class WebhookDispatcher implements ShouldQueue
                     'fields' => array_values(array_filter([
                         [
                             'title' => 'Project',
-                            'value' => $project->name,
+                            'value' => "<{$projectUrl}|{$project->name}>",
                             'short' => true,
                         ],
                         [
@@ -428,13 +446,12 @@ class WebhookDispatcher implements ShouldQueue
     protected function formatMattermostPayload(Log $log): array
     {
         $project = $log->project;
-        $levelEmoji = $this->getLevelEmoji($log->level);
         $levelColor = $this->getLevelColor($log->level);
+        $projectUrl = $this->getProjectUrl($project);
 
         return [
-            'text' => "{$levelEmoji} **[{$project->name}]** {$log->level}: {$log->message}",
+            'text' => "**[{$project->name}]** {$log->level}: {$log->message}",
             'username' => 'Logger',
-            'icon_emoji' => ':warning:',
             'attachments' => [
                 [
                     'color' => $levelColor,
@@ -443,7 +460,7 @@ class WebhookDispatcher implements ShouldQueue
                     'fields' => array_values(array_filter([
                         [
                             'title' => 'Project',
-                            'value' => $project->name,
+                            'value' => "[{$project->name}]({$projectUrl})",
                             'short' => true,
                         ],
                         [
@@ -473,7 +490,7 @@ class WebhookDispatcher implements ShouldQueue
     protected function formatDiscordPayload(Log $log): array
     {
         $project = $log->project;
-        $levelEmoji = $this->getLevelEmoji($log->level);
+        $projectUrl = $this->getProjectUrl($project);
 
         return [
             'username' => 'Logger',
@@ -481,8 +498,9 @@ class WebhookDispatcher implements ShouldQueue
             'content' => null,
             'embeds' => [
                 [
-                    'title' => "{$levelEmoji} Log Entry - {$log->level}",
+                    'title' => "Log Entry - {$log->level}",
                     'description' => $log->message,
+                    'url' => $projectUrl,
                     'color' => $this->getLevelColorDecimal($log->level),
                     'fields' => array_values(array_filter([
                         [
@@ -532,18 +550,18 @@ class WebhookDispatcher implements ShouldQueue
     protected function formatTeamsPayload(Log $log): array
     {
         $project = $log->project;
-        $levelEmoji = $this->getLevelEmoji($log->level);
         $levelColor = $this->getLevelColor($log->level);
+        $projectUrl = $this->getProjectUrl($project);
 
         // Teams uses Adaptive Cards via the webhook connector
         return [
             '@type' => 'MessageCard',
             '@context' => 'http://schema.org/extensions',
             'themeColor' => ltrim($levelColor, '#'),
-            'summary' => "{$levelEmoji} [{$project->name}] {$log->level}: {$log->message}",
+            'summary' => "[{$project->name}] {$log->level}: {$log->message}",
             'sections' => [
                 [
-                    'activityTitle' => "{$levelEmoji} Log Entry - ".strtoupper($log->level),
+                    'activityTitle' => 'Log Entry - '.strtoupper($log->level),
                     'activitySubtitle' => $project->name,
                     'facts' => array_values(array_filter([
                         [
@@ -578,6 +596,15 @@ class WebhookDispatcher implements ShouldQueue
                     'markdown' => true,
                 ],
             ],
+            'potentialAction' => [
+                [
+                    '@type' => 'OpenUri',
+                    'name' => 'View Project',
+                    'targets' => [
+                        ['os' => 'default', 'uri' => $projectUrl],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -588,6 +615,7 @@ class WebhookDispatcher implements ShouldQueue
     protected function formatGenericPayload(Log $log): array
     {
         $project = $log->project;
+        $projectUrl = $this->getProjectUrl($project);
 
         return [
             'event' => 'log.created',
@@ -595,6 +623,7 @@ class WebhookDispatcher implements ShouldQueue
             'project' => [
                 'id' => $project->id,
                 'name' => $project->name,
+                'url' => $projectUrl,
             ],
             'log' => [
                 'id' => $log->id,
@@ -616,18 +645,11 @@ class WebhookDispatcher implements ShouldQueue
     }
 
     /**
-     * Get emoji for log level.
+     * Get the project URL for the webhook.
      */
-    protected function getLevelEmoji(string $level): string
+    protected function getProjectUrl(Project $project): string
     {
-        return match ($level) {
-            'debug' => '🔍',
-            'info' => 'ℹ️',
-            'warning' => '⚠️',
-            'error' => '🔴',
-            'critical' => '🚨',
-            default => '📝',
-        };
+        return route('projects.logs.index', ['project' => $project->id]);
     }
 
     /**
