@@ -169,7 +169,7 @@
 
             <!-- Webhook Delivery History -->
             <!-- .env Configurator -->
-            <div x-data="envConfigurator({ endpoint: '{{ url('/api/ingest') }}', statsEndpoint: '{{ url('/api/stats') }}' })" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div x-data="envConfigurator({ endpoint: '{{ url('/api/ingest') }}', statsEndpoint: '{{ url('/api/stats') }}', key: '{{ $project->magic_key }}' })" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">.env Configurator</h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Generate configuration for your .env file.</p>
@@ -512,17 +512,86 @@
                 </dl>
             </div>
 
+            <!-- API Key -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" x-data="{ showKey: false, copiedKey: false }">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">API Key</h3>
+                    <button type="button" @click="showKey = !showKey" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
+                        <span x-show="!showKey">Show key</span>
+                        <span x-show="showKey">Hide key</span>
+                    </button>
+                </div>
+                <div class="relative group">
+                    <div class="relative bg-gray-100 dark:bg-gray-900 rounded-md overflow-auto max-h-24">
+                        <code x-show="showKey" class="block p-3 pr-10 text-sm text-gray-800 dark:text-gray-200 font-mono break-all">{{ $project->magic_key }}</code>
+                        <code x-show="!showKey" class="block p-3 pr-10 text-sm text-gray-500 dark:text-gray-400 break-all">••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••</code>
+                    </div>
+                    <button
+                        @click="navigator.clipboard.writeText('{{ $project->magic_key }}'); copiedKey = true; setTimeout(() => copiedKey = false, 2000)"
+                        class="absolute top-2 right-2 p-1.5 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        :class="{ 'text-green-600 dark:text-green-400': copiedKey }"
+                        title="Copy to clipboard"
+                    >
+                        <svg x-show="!copiedKey" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <svg x-show="copiedKey" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Use this key in the <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">X-Project-Key</code> header when sending logs.
+                </p>
+                <div class="mt-3">
+                    <button @click="showRegenerateConfirm = true" type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Regenerate Key
+                    </button>
+                </div>
+            </div>
+
             <!-- Integration Guide -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" x-data="{ copiedEndpoint: false, copiedHeader: false }">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Integration</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Send logs to:</p>
-                <code class="block bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-sm text-gray-800 dark:text-gray-200 break-all">
-                    POST {{ url('/api/ingest') }}
-                </code>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-4 mb-2">With header:</p>
-                <code class="block bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-sm text-gray-800 dark:text-gray-200">
-                    X-Project-Key: [your-key]
-                </code>
+                <div class="relative group mb-6">
+                    <code class="block bg-gray-100 dark:bg-gray-900 p-3 pr-10 rounded-md text-sm text-gray-800 dark:text-gray-200 break-all">POST {{ url('/api/ingest') }}</code>
+                    <button
+                        @click="navigator.clipboard.writeText('{{ url('/api/ingest') }}'); copiedEndpoint = true; setTimeout(() => copiedEndpoint = false, 2000)"
+                        class="absolute top-2 right-2 p-1.5 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        :class="{ 'text-green-600 dark:text-green-400': copiedEndpoint }"
+                        title="Copy to clipboard"
+                    >
+                        <svg x-show="!copiedEndpoint" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <svg x-show="copiedEndpoint" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">With header:</p>
+                <div class="relative group">
+                    <div class="relative bg-gray-100 dark:bg-gray-900 rounded-md overflow-auto max-h-24">
+                        <code class="block p-3 pr-10 text-sm text-gray-800 dark:text-gray-200 break-all">X-Project-Key: {{ $project->magic_key }}</code>
+                    </div>
+                    <button
+                        @click="navigator.clipboard.writeText('X-Project-Key: {{ $project->magic_key }}'); copiedHeader = true; setTimeout(() => copiedHeader = false, 2000)"
+                        class="absolute top-2 right-2 p-1.5 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        :class="{ 'text-green-600 dark:text-green-400': copiedHeader }"
+                        title="Copy to clipboard"
+                    >
+                        <svg x-show="!copiedHeader" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <svg x-show="copiedHeader" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Laravel Log Shipper -->
