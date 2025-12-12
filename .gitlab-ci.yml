@@ -53,8 +53,23 @@ test_php:
     - (test -f .env.example && cp .env.example .env) || (echo "No .env.example found, cannot proceed with artisan commands" && exit 1)
     - php artisan key:generate --ansi || (echo "Failed to generate key" && exit 1)
     # Create a dummy Vite manifest to prevent test failures when views are rendered
-    - mkdir -p public/build
-    - echo '{}' > public/build/manifest.json
+    - mkdir -p public/build/assets
+    - |
+      cat > public/build/manifest.json << 'EOF'
+      {
+        "resources/css/app.css": {
+          "file": "assets/app.css",
+          "src": "resources/css/app.css",
+          "isEntry": true
+        },
+        "resources/js/app.js": {
+          "file": "assets/app.js",
+          "src": "resources/js/app.js",
+          "isEntry": true
+        }
+      }
+      EOF
+    - touch public/build/assets/app.css public/build/assets/app.js
     # Run PHPUnit tests
     - php artisan test --ansi || (echo "Tests failed" && exit 1)
     # Cache config and routes
