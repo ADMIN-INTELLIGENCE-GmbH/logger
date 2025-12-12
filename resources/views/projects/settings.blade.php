@@ -169,7 +169,7 @@
 
             <!-- Webhook Delivery History -->
             <!-- .env Configurator -->
-            <div x-data="envConfigurator({ endpoint: '{{ url('/api/ingest') }}', key: '{{ $project->magic_key }}' })" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div x-data="envConfigurator({ endpoint: '{{ url('/api/ingest') }}', statsEndpoint: '{{ url('/api/stats') }}' })" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">.env Configurator</h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Generate configuration for your .env file.</p>
@@ -321,7 +321,7 @@
                             },
                             status: {
                                 enabled: 'false',
-                                endpoint: '',
+                                endpoint: defaults.statsEndpoint || '',
                                 interval: '5'
                             }
                         },
