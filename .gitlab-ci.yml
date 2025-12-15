@@ -89,7 +89,7 @@ build_frontend:
   script:
     # Check if any frontend-related files have changed
     - |
-      if ! git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json)$|^resources/|^package'; then
+      if ! git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json|php)$|^resources/|^package'; then
         echo "No frontend files changed, skipping frontend build"
         exit 0
       fi
@@ -137,7 +137,7 @@ deploy_development:
       fi
     - |
       # Only upload pre-built assets if frontend files changed
-      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json)$|^resources/|^package'; then
+      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json|php)$|^resources/|^package'; then
         echo "Frontend files changed, uploading pre-built assets from CI build"
         scp -r public/build/ website@"$SERVER_IP_DEV":"$TARGET_FOLDER_DEV/public/"
       else
@@ -186,7 +186,7 @@ deploy_staging:
       fi
     - |
       # Only upload pre-built assets if frontend files changed
-      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json)$|^resources/|^package'; then
+      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json|php)$|^resources/|^package'; then
         echo "Frontend files changed, uploading pre-built assets from CI build"
         scp -r public/build/ website@"$SERVER_IP_DEV":"$TARGET_FOLDER_STAGING/public/"
       else
@@ -235,7 +235,7 @@ deploy_production:
       fi
     - |
       # Only upload pre-built assets if frontend files changed
-      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json)$|^resources/|^package'; then
+      if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json|php)$|^resources/|^package'; then
         echo "Frontend files changed, uploading pre-built assets from CI build"
         scp -r public/build/ website@"$SERVER_IP":"$TARGET_FOLDER/public/"
       else
