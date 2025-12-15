@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Listeners\WebhookDispatcher;
 use App\Models\Project;
+use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,8 @@ class ProjectSettingsController extends Controller
      */
     public function show(Project $project): View
     {
+        $project->load('tags');
+        
         $webhookDeliveries = $project->webhookDeliveries()
             ->orderBy('created_at', 'desc')
             ->limit(20)
@@ -50,9 +53,23 @@ class ProjectSettingsController extends Controller
                 Rule::in(array_keys(Project::WEBHOOK_FORMATS)),
             ],
             'is_active' => 'sometimes|boolean',
+            'tags' => 'sometimes|nullable|json',
         ]);
 
         $project->update($validated);
+
+        // Handle tags
+        if ($request->has('tags')) {
+            $tagNames = json_decode($request->input('tags'), true) ?? [];
+            $tagIds = [];
+            
+            foreach ($tagNames as $tagName) {
+                $tag = Tag::firstOrCreate(['name' => trim($tagName)]);
+                $tagIds[] = $tag->id;
+            }
+            
+            $project->tags()->sync($tagIds);
+        }
 
         return redirect()->route('projects.settings.show', $project)
             ->with('success', 'Project settings updated successfully.');

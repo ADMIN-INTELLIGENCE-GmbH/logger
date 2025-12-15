@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\IngestController;
 use App\Http\Controllers\Api\StatsController;
+use App\Http\Controllers\Api\TagController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,3 +29,8 @@ Route::post('/ingest', IngestController::class)
 Route::post('/stats', StatsController::class)
     ->middleware(['throttle:60,1', 'rate.headers:60,1'])
     ->name('api.stats');
+
+// Tag search endpoint (for autocomplete)
+Route::get('/tags/search', [TagController::class, 'search'])
+    ->middleware('auth')
+    ->name('api.tags.search');

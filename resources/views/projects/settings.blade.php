@@ -47,6 +47,71 @@
                         @enderror
                     </div>
 
+                    <!-- Tags -->
+                    <div x-data="tagManager({{ json_encode($project->tags->pluck('name')) }})">
+                        <label for="tag_input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
+                        
+                        <!-- Tag Input with Autocomplete -->
+                        <div class="relative mt-2">
+                            <input 
+                                type="text" 
+                                id="tag_input"
+                                x-model="tagInput"
+                                @input="fetchSuggestions"
+                                @keydown.enter.prevent="addTag"
+                                @keydown.escape="showSuggestions = false"
+                                @focus="showSuggestions = true"
+                                placeholder="Type to add or search tags..."
+                                class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                            
+                            <!-- Suggestions Dropdown -->
+                            <div x-show="showSuggestions && (suggestions.length > 0 || tagInput.length > 0)" 
+                                 x-cloak
+                                 @click.away="showSuggestions = false"
+                                 class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                                <template x-if="suggestions.length > 0">
+                                    <div>
+                                        <template x-for="suggestion in suggestions" :key="suggestion">
+                                            <div 
+                                                @click="selectSuggestion(suggestion)"
+                                                class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                                                <span class="block truncate text-gray-900 dark:text-white" x-text="suggestion"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                                <template x-if="suggestions.length === 0 && tagInput.length > 0">
+                                    <div 
+                                        @click="addTag"
+                                        class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-green-50 dark:hover:bg-green-900/20">
+                                        <span class="block text-gray-600 dark:text-gray-300">
+                                            Create new tag: <span class="font-medium text-green-600 dark:text-green-400" x-text="tagInput"></span>
+                                        </span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Selected Tags -->
+                        <div x-show="selectedTags.length > 0" class="mt-2 flex flex-wrap gap-2">
+                            <template x-for="(tag, index) in selectedTags" :key="index">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                                    <span x-text="tag"></span>
+                                    <button type="button" @click="removeTag(index)" class="ml-1.5 inline-flex items-center justify-center w-4 h-4 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100">
+                                        <i class="mdi mdi-close text-sm"></i>
+                                    </button>
+                                </span>
+                            </template>
+                        </div>
+
+                        <!-- Hidden input to submit tags -->
+                        <input type="hidden" name="tags" :value="JSON.stringify(selectedTags)">
+                        
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Add tags like "production", "staging", "local", or "high-priority". Press Enter to add.
+                        </p>
+                    </div>
+
                     <!-- Webhook URL -->
                     <div>
                         <label for="webhook_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL</label>
@@ -798,4 +863,67 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('tagManager', (initialTags = []) => ({
+        selectedTags: initialTags,
+        tagInput: '',
+        suggestions: [],
+        showSuggestions: false,
+        debounceTimer: null,
+
+        async fetchSuggestions() {
+            clearTimeout(this.debounceTimer);
+            
+            if (this.tagInput.length === 0) {
+                this.suggestions = [];
+                this.showSuggestions = false;
+                return;
+            }
+
+            this.debounceTimer = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/tags/search?query=${encodeURIComponent(this.tagInput)}`);
+                    const data = await response.json();
+                    
+                    // Filter out already selected tags
+                    this.suggestions = data.tags.filter(tag => 
+                        !this.selectedTags.includes(tag) && 
+                        tag.toLowerCase().includes(this.tagInput.toLowerCase())
+                    );
+                    this.showSuggestions = true;
+                } catch (error) {
+                    console.error('Error fetching tag suggestions:', error);
+                    this.suggestions = [];
+                }
+            }, 300);
+        },
+
+        addTag() {
+            const tag = this.tagInput.trim();
+            if (tag && !this.selectedTags.includes(tag)) {
+                this.selectedTags.push(tag);
+                this.tagInput = '';
+                this.suggestions = [];
+                this.showSuggestions = false;
+            }
+        },
+
+        selectSuggestion(tag) {
+            if (!this.selectedTags.includes(tag)) {
+                this.selectedTags.push(tag);
+                this.tagInput = '';
+                this.suggestions = [];
+                this.showSuggestions = false;
+            }
+        },
+
+        removeTag(index) {
+            this.selectedTags.splice(index, 1);
+        }
+    }));
+});
+</script>
+
 @endsection

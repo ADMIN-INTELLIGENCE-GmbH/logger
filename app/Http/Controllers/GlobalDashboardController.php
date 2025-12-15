@@ -15,6 +15,7 @@ class GlobalDashboardController extends Controller
     public function index(Request $request): View
     {
         $projects = Project::where('is_active', true)
+            ->with('tags')
             ->orderBy('name')
             ->get()
             ->map(function ($project) {
@@ -37,6 +38,7 @@ class GlobalDashboardController extends Controller
                     'total_logs_24h' => $totalLogs,
                     'error_logs_24h' => $errorLogs,
                     'error_rate' => $totalLogs > 0 ? round(($errorLogs / $totalLogs) * 100, 1) : 0,
+                    'tags' => $project->tags->pluck('name')->toArray(),
                 ];
             })->values();
 

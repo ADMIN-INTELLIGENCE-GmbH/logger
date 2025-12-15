@@ -16,8 +16,15 @@
         "issues": "https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/issues",
         "source": "https://github.com/ADMIN-INTELLIGENCE-GmbH/logger"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/Users/billinger/Projects/laravel-log-shipper"
+        }
+    ],
     "require": {
         "php": "^8.2",
+        "adminintelligence/laravel-log-shipper": "@dev",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1"
     },

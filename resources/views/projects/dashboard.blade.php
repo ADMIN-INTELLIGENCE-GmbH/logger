@@ -26,13 +26,8 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Use this key in the X-Project-Key header</p>
                 </div>
                 <button @click="showMagicKey = !showMagicKey" class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <svg x-show="!showMagicKey" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <svg x-show="showMagicKey" x-cloak class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
+                    <i x-show="!showMagicKey" class="mdi mdi-eye mr-2"></i>
+                    <i x-show="showMagicKey" x-cloak class="mdi mdi-eye-off mr-2"></i>
                     <span x-text="showMagicKey ? 'Hide' : 'Show'"></span>
                 </button>
             </div>
@@ -78,7 +73,7 @@
                 // Application Info Card
         @endphp
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
             <!-- Application Info -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Application</h4>
@@ -93,18 +88,14 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-sm text-gray-600 dark:text-gray-400">Instance</span>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['instance_id'] ?? '-' }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Uptime</span>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ isset($serverStats['system']['uptime']) ? gmdate("H:i:s", $serverStats['system']['uptime']) : '-' }}</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white text-xs truncate" title="{{ $serverStats['instance_id'] ?? '-' }}">{{ $serverStats['instance_id'] ?? '-' }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- System Info -->
+            <!-- System Versions -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">System</h4>
+                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">System Versions</h4>
                 <div class="space-y-2">
                     <div class="flex justify-between">
                         <span class="text-sm text-gray-600 dark:text-gray-400">PHP</span>
@@ -115,6 +106,21 @@
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['laravel_version'] ?? '-' }}</span>
                     </div>
                     <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Node.js</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['node_version'] ?? '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">npm</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['npm_version'] ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Info -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Memory & CPU</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
                         <span class="text-sm text-gray-600 dark:text-gray-400">App Memory</span>
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ isset($serverStats['system']['memory_usage']) ? $formatBytes($serverStats['system']['memory_usage']) : '-' }}</span>
                     </div>
@@ -122,6 +128,24 @@
                         <span class="text-sm text-gray-600 dark:text-gray-400">Peak Memory</span>
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ isset($serverStats['system']['memory_peak']) ? $formatBytes($serverStats['system']['memory_peak']) : '-' }}</span>
                     </div>
+                    @if(isset($serverStats['system']['server_memory']))
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Server Memory</span>
+                        <span class="text-sm font-medium {{ ($serverStats['system']['server_memory']['percent_used'] ?? 0) > 80 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white' }}">{{ round($serverStats['system']['server_memory']['percent_used'] ?? 0, 1) }}%</span>
+                    </div>
+                    @endif
+                    @if(isset($serverStats['system']['cpu_usage']))
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">CPU Usage</span>
+                        <span class="text-sm font-medium {{ ($serverStats['system']['cpu_usage'] ?? 0) > 80 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white' }}">{{ round($serverStats['system']['cpu_usage'] ?? 0, 1) }}%</span>
+                    </div>
+                    @endif
+                    @if(isset($serverStats['system']['uptime']))
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Uptime</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ gmdate("H:i:s", $serverStats['system']['uptime']) }}</span>
+                    </div>
+                    @endif
                 </div>
             </div>
 
@@ -148,33 +172,82 @@
                 </div>
             </div>
 
-            <!-- Storage & Cache -->
+            <!-- Package Security -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Storage & Cache</h4>
+                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Security & Updates</h4>
                 <div class="space-y-2">
+                    @if(isset($serverStats['system']['composer_outdated']))
                     <div class="flex justify-between">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Cache Driver</span>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['cache']['driver'] ?? '-' }}</span>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Composer Outdated</span>
+                        <span class="text-sm font-medium {{ $serverStats['system']['composer_outdated'] > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-white' }}">{{ $serverStats['system']['composer_outdated'] }}</span>
                     </div>
+                    @endif
+                    @if(isset($serverStats['system']['npm_outdated']))
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">npm Outdated</span>
+                        <span class="text-sm font-medium {{ $serverStats['system']['npm_outdated'] > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-white' }}">{{ $serverStats['system']['npm_outdated'] }}</span>
+                    </div>
+                    @endif
+                    @if(isset($serverStats['system']['composer_audit']))
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Composer Vulnerabilities</span>
+                        <span class="text-sm font-medium {{ $serverStats['system']['composer_audit'] > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">{{ $serverStats['system']['composer_audit'] }}</span>
+                    </div>
+                    @endif
+                    @if(isset($serverStats['system']['npm_audit']))
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">npm Vulnerabilities</span>
+                        <span class="text-sm font-medium {{ $serverStats['system']['npm_audit'] > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">{{ $serverStats['system']['npm_audit'] }}</span>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- File & Folder Sizes -->
+            @if((isset($serverStats['filesize']) && is_array($serverStats['filesize'])) || (isset($serverStats['foldersize']) && is_array($serverStats['foldersize'])))
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">File & Folder Sizes</h4>
+                <div class="space-y-2">
                     @if(isset($serverStats['filesize']) && is_array($serverStats['filesize']))
                         @foreach($serverStats['filesize'] as $file => $size)
                             <div class="flex justify-between">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">{{ $file }}</span>
+                                <span class="text-sm text-gray-600 dark:text-gray-400"><i class="mdi mdi-file-document mr-1"></i>{{ $file }}</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $formatBytes($size) }}</span>
+                            </div>
+                        @endforeach
+                    @endif
+                    @if(isset($serverStats['foldersize']) && is_array($serverStats['foldersize']))
+                        @foreach($serverStats['foldersize'] as $folder => $size)
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600 dark:text-gray-400"><i class="mdi mdi-folder mr-1"></i>{{ $folder }}</span>
                                 <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $formatBytes($size) }}</span>
                             </div>
                         @endforeach
                     @endif
                 </div>
             </div>
+            @endif
         </div>
 
         <!-- Resource Usage Bars -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @if(isset($serverStats['system']['cpu_usage']))
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">CPU Usage</h4>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ round($serverStats['system']['cpu_usage'] ?? 0, 1) }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-2">
+                    <div class="{{ $getUsageColor($serverStats['system']['cpu_usage'] ?? 0) }} h-2.5 rounded-full" style="width: {{ min($serverStats['system']['cpu_usage'] ?? 0, 100) }}%"></div>
+                </div>
+            </div>
+            @endif
+            
             @if(isset($serverStats['system']['server_memory']))
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex items-center justify-between mb-2">
                     <h4 class="text-sm font-medium text-gray-900 dark:text-white">Server Memory</h4>
-                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['server_memory']['percent_used'] ?? 0 }}%</span>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ round($serverStats['system']['server_memory']['percent_used'] ?? 0, 1) }}%</span>
                 </div>
                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
                     <div class="{{ $getUsageColor($serverStats['system']['server_memory']['percent_used'] ?? 0) }} h-2.5 rounded-full" style="width: {{ $serverStats['system']['server_memory']['percent_used'] ?? 0 }}%"></div>
@@ -190,7 +263,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex items-center justify-between mb-2">
                     <h4 class="text-sm font-medium text-gray-900 dark:text-white">Disk Space</h4>
-                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $serverStats['system']['disk_space']['percent_used'] ?? 0 }}%</span>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ round($serverStats['system']['disk_space']['percent_used'] ?? 0, 1) }}%</span>
                 </div>
                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
                     <div class="{{ $getUsageColor($serverStats['system']['disk_space']['percent_used'] ?? 0) }} h-2.5 rounded-full" style="width: {{ $serverStats['system']['disk_space']['percent_used'] ?? 0 }}%"></div>
@@ -251,9 +324,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                    <i class="mdi mdi-file-document-multiple text-2xl text-blue-600 dark:text-blue-400"></i>
                 </div>
                 <div class="ml-4">
                     <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Logs ({{ $stats['range'] }})</h3>
@@ -266,9 +337,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg">
-                    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <i class="mdi mdi-alert-circle text-2xl text-red-600 dark:text-red-400"></i>
                 </div>
                 <div class="ml-4">
                     <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Errors ({{ $stats['range'] }})</h3>
@@ -281,9 +350,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0 p-3 {{ $stats['error_rate'] > 10 ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900' }} rounded-lg">
-                    <svg class="w-6 h-6 {{ $stats['error_rate'] > 10 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
+                    <i class="mdi mdi-chart-bar text-2xl {{ $stats['error_rate'] > 10 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}"></i>
                 </div>
                 <div class="ml-4">
                     <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Error Rate</h3>

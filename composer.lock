@@ -4,8 +4,94 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d8a6dd4cc5274aa85c706c60b775a276",
+    "content-hash": "382fc919db9425194cc8357e619bd4df",
     "packages": [
+        {
+            "name": "adminintelligence/laravel-log-shipper",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "/Users/billinger/Projects/laravel-log-shipper",
+                "reference": "67b429949ad58614e169246e707a46e077e05a9a"
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^7.0",
+                "illuminate/http": "^10.0|^11.0|^12.0",
+                "illuminate/queue": "^10.0|^11.0|^12.0",
+                "illuminate/support": "^10.0|^11.0|^12.0",
+                "monolog/monolog": "^3.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "orchestra/testbench": "^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^10.0|^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "AdminIntelligence\\LogShipper\\LogShipperServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "AdminIntelligence\\LogShipper\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "AdminIntelligence\\LogShipper\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "vendor/bin/phpunit"
+                ],
+                "test-coverage": [
+                    "vendor/bin/phpunit --coverage-html coverage"
+                ],
+                "lint": [
+                    "vendor/bin/pint"
+                ],
+                "lint-check": [
+                    "vendor/bin/pint --test"
+                ],
+                "preflight": [
+                    "@lint-check",
+                    "@test"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julian Billinger",
+                    "email": "julian.billinger@admin-intelligence.com"
+                }
+            ],
+            "description": "Ships your Laravel logs to a central server. Because local problems deserve global visibility.",
+            "homepage": "https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper",
+            "keywords": [
+                "centralized-logging",
+                "laravel",
+                "log-shipper",
+                "logging",
+                "monolog"
+            ],
+            "support": {
+                "issues": "https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper/issues",
+                "source": "https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper",
+                "homepage": "https://admin-intelligence.de",
+                "email": "support@admin-intelligence.de"
+            },
+            "transport-options": {
+                "relative": false
+            }
+        },
         {
             "name": "brick/math",
             "version": "0.14.1",
@@ -8429,7 +8515,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "adminintelligence/laravel-log-shipper": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
