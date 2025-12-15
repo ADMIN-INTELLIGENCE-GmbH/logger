@@ -153,6 +153,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | IP Address Obfuscation
+    |--------------------------------------------------------------------------
+    |
+    | Obfuscate IP addresses in logs for privacy protection.
+    |
+    */
+    'ip_obfuscation' => [
+        'enabled' => env('LOG_SHIPPER_IP_OBFUSCATION_ENABLED', false),
+        
+        // 'mask' - Mask last octets (e.g., 192.168.1.100 becomes 192.168.1.0)
+        // 'hash' - One-way hash for privacy while maintaining consistency
+        'method' => env('LOG_SHIPPER_IP_OBFUSCATION_METHOD', 'mask'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Status Push Configuration
     |--------------------------------------------------------------------------
     |
@@ -177,6 +193,12 @@ return [
             'cache' => true,
             'filesize' => true,
             'foldersize' => true,
+            // Optional: Node.js and npm versions (requires node/npm installed)
+            'node_npm' => true,
+            // Optional: Check for outdated dependencies (can be slow, ~10-30s)
+            'dependency_checks' => true,
+            // Optional: Security audit checks (can be slow, ~10-30s)
+            'security_audits' => true,
         ],
 
         'monitored_disk_path' => env('LOG_SHIPPER_DISK_PATH', '/'),
@@ -186,9 +208,9 @@ return [
         ],
 
         'monitored_folders' => [
-            storage_path('app'),
+            storage_path('app/uploads'),
             storage_path('framework/cache'),
-            '/Users/billinger/Downloads'
+            '/Users/billinger/Sites'
         ],
     ],
 ];

@@ -6,6 +6,7 @@ use App\Models\Log;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class GlobalDashboardController extends Controller
 {
@@ -39,6 +40,8 @@ class GlobalDashboardController extends Controller
                     'error_logs_24h' => $errorLogs,
                     'error_rate' => $totalLogs > 0 ? round(($errorLogs / $totalLogs) * 100, 1) : 0,
                     'tags' => $project->tags->pluck('name')->toArray(),
+                    'log_shipper_version' => $project->log_shipper_version,
+                    'app_debug' => $project->app_debug,
                 ];
             })->values();
 
@@ -57,7 +60,29 @@ class GlobalDashboardController extends Controller
         ];
 
         $project = null; // Ensure project-specific nav is hidden
+        
+        // Get user's hidden metrics (defaults to empty array)
+        $hiddenMetrics = $request->user()->dashboard_preferences['hidden_metrics'] ?? [];
 
-        return view('dashboard', compact('projects', 'overallStats', 'project'));
+        return view('dashboard', compact('projects', 'overallStats', 'project', 'hiddenMetrics'));
+    }
+    
+    /**
+     * Update user's dashboard preferences.
+     */
+    public function updatePreferences(Request $request): JsonResponse
+    {
+        $request->validate([
+            'hidden_metrics' => 'required|array',
+            'hidden_metrics.*' => 'string',
+        ]);
+        
+        $user = $request->user();
+        $user->dashboard_preferences = [
+            'hidden_metrics' => $request->hidden_metrics,
+        ];
+        $user->save();
+        
+        return response()->json(['success' => true]);
     }
 }

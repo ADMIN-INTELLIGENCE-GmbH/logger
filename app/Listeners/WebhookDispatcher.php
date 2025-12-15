@@ -7,9 +7,9 @@ use App\Models\Log;
 use App\Models\Project;
 use App\Models\WebhookDelivery;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log as LaravelLog;
+use Illuminate\Support\Facades\RateLimiter;
 
 class WebhookDispatcher implements ShouldQueue
 {
@@ -22,6 +22,11 @@ class WebhookDispatcher implements ShouldQueue
      * Rate limit window in seconds.
      */
     protected int $rateLimitWindow = 60;
+
+    /**
+     * Connection timeout in seconds.
+     */
+    protected int $timeout = 10;
 
     /**
      * Create the event listener.
@@ -59,6 +64,16 @@ class WebhookDispatcher implements ShouldQueue
             return;
         }
 
+        // Validate URL for SSRF protection
+        if (! $this->isUrlSafe($project->webhook_url)) {
+            LaravelLog::critical('Blocked potential SSRF webhook attempt', [
+                'project_id' => $project->id,
+                'url' => $project->webhook_url,
+            ]);
+
+            return;
+        }
+
         // Send webhook notification
         $this->sendWebhook($project, $log);
     }
@@ -68,20 +83,108 @@ class WebhookDispatcher implements ShouldQueue
      */
     protected function isRateLimited(Project $project): bool
     {
-        $cacheKey = "webhook_rate_limit:{$project->id}";
-        $count = Cache::get($cacheKey, 0);
+        $key = "webhook_limit:{$project->id}";
 
-        if ($count >= $this->rateLimit) {
+        if (RateLimiter::tooManyAttempts($key, $this->rateLimit)) {
             return true;
         }
 
-        Cache::put($cacheKey, $count + 1, $this->rateLimitWindow);
+        RateLimiter::hit($key, $this->rateLimitWindow);
 
         return false;
     }
 
     /**
-     * Send the webhook notification.
+     * Validate that the URL is safe to request (initial SSRF protection).
+     */
+    protected function isUrlSafe(string $url): bool
+    {
+        $parsed = parse_url($url);
+        $host = $parsed['host'] ?? null;
+        $scheme = $parsed['scheme'] ?? null;
+
+        // Only allow HTTP and HTTPS
+        if (! $host || ! in_array($scheme, ['http', 'https'])) {
+            return false;
+        }
+
+        // Resolve hostname to IPs
+        // gethostbynamel returns an array of IPv4 addresses or false
+        $ips = gethostbynamel($host);
+
+        if (! $ips) {
+            // If we can't resolve it, it might be an internal DNS name or invalid.
+            // Safer to block.
+            return false;
+        }
+
+        foreach ($ips as $ip) {
+            // Check for private/reserved IPs
+            // FILTER_FLAG_NO_PRIV_RANGE: Fails for 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+            // FILTER_FLAG_NO_RES_RANGE: Fails for 0.0.0.0/8, 169.254.0.0/16, 127.0.0.0/8, etc.
+            if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Resolve URL to IP and reconstruct safe URL.
+     * This prevents DNS rebinding attacks by doing DNS resolution once and using the resolved IP.
+     * The original Host header is preserved to allow virtual hosting.
+     *
+     * @return string|null The resolved URL with IP address, or null if validation fails
+     */
+    protected function resolveAndValidateUrl(string $url): ?string
+    {
+        $parsed = parse_url($url);
+        $host = $parsed['host'] ?? null;
+        $scheme = $parsed['scheme'] ?? null;
+        $port = $parsed['port'];
+        $path = $parsed['path'] ?? '/';
+        $query = $parsed['query'] ?? null;
+
+        // Only allow HTTP and HTTPS
+        if (! $host || ! in_array($scheme, ['http', 'https'])) {
+            return null;
+        }
+
+        // Resolve hostname to IPs (do this once)
+        $ips = gethostbynamel($host);
+
+        if (! $ips || empty($ips)) {
+            return null;
+        }
+
+        // Use first resolved IP
+        $ip = $ips[0];
+
+        // Validate IP is not private/reserved
+        if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return null;
+        }
+
+        // Reconstruct URL using resolved IP instead of hostname
+        // This ensures we connect to the validated IP, preventing DNS rebinding
+        $safeUrl = $scheme . '://' . $ip;
+
+        if ($port) {
+            $safeUrl .= ':' . $port;
+        }
+
+        $safeUrl .= $path;
+
+        if ($query) {
+            $safeUrl .= '?' . $query;
+        }
+
+        return $safeUrl;
+    }
+
+    /**
+     * Send the webhook notification with SSRF protection (prevent DNS rebinding).
      */
     protected function sendWebhook(Project $project, Log $log, string $eventType = 'log'): void
     {
@@ -99,16 +202,31 @@ class WebhookDispatcher implements ShouldQueue
         ]);
 
         try {
+            // Resolve and validate URL to prevent DNS rebinding attacks (TOCTOU)
+            $resolvedUrl = $this->resolveAndValidateUrl($url);
+            if (! $resolvedUrl) {
+                LaravelLog::critical('Blocked SSRF attempt after DNS resolution', [
+                    'project_id' => $project->id,
+                    'url' => $url,
+                ]);
+                $delivery->update([
+                    'error_message' => 'URL failed SSRF validation after DNS resolution',
+                    'success' => false,
+                    'delivered_at' => now(),
+                ]);
+                return;
+            }
+
             $headers = $this->buildHeaders($project, $payload);
 
-            $response = Http::timeout(10)
+            $response = Http::timeout($this->timeout)
                 ->withHeaders($headers)
                 ->retry(3, 100, function ($exception, $request) use ($delivery) {
                     $delivery->increment('attempt');
 
                     return true;
                 })
-                ->post($url, $payload);
+                ->post($resolvedUrl, $payload);
 
             $delivery->update([
                 'status_code' => $response->status(),
@@ -159,7 +277,7 @@ class WebhookDispatcher implements ShouldQueue
     }
 
     /**
-     * Send a test webhook.
+     * Send a test webhook with SSRF protection.
      */
     public static function sendTestWebhook(Project $project): WebhookDelivery
     {
@@ -178,11 +296,26 @@ class WebhookDispatcher implements ShouldQueue
         ]);
 
         try {
+            // Resolve and validate URL to prevent DNS rebinding attacks (TOCTOU)
+            $resolvedUrl = $instance->resolveAndValidateUrl($url);
+            if (! $resolvedUrl) {
+                LaravelLog::critical('Blocked SSRF attempt on test webhook after DNS resolution', [
+                    'project_id' => $project->id,
+                    'url' => $url,
+                ]);
+                $delivery->update([
+                    'error_message' => 'URL failed SSRF validation after DNS resolution',
+                    'success' => false,
+                    'delivered_at' => now(),
+                ]);
+                return $delivery->fresh();
+            }
+
             $headers = $instance->buildHeaders($project, $payload);
 
             $response = Http::timeout(10)
                 ->withHeaders($headers)
-                ->post($url, $payload);
+                ->post($resolvedUrl, $payload);
 
             $delivery->update([
                 'status_code' => $response->status(),

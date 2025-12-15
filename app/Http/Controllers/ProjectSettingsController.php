@@ -60,6 +60,9 @@ class ProjectSettingsController extends Controller
 
         // Handle tags
         if ($request->has('tags')) {
+            // Get the currently attached tags before syncing
+            $previousTagIds = $project->tags()->select('tags.id')->pluck('tags.id')->toArray();
+            
             $tagNames = json_decode($request->input('tags'), true) ?? [];
             $tagIds = [];
             
@@ -69,6 +72,18 @@ class ProjectSettingsController extends Controller
             }
             
             $project->tags()->sync($tagIds);
+            
+            // Clean up orphaned tags (tags that are no longer used by any project)
+            $removedTagIds = array_diff($previousTagIds, $tagIds);
+            if (! empty($removedTagIds)) {
+                Tag::whereIn('id', $removedTagIds)
+                    ->get()
+                    ->each(function ($tag) {
+                        if (! $tag->isInUse()) {
+                            $tag->delete();
+                        }
+                    });
+            }
         }
 
         return redirect()->route('projects.settings.show', $project)

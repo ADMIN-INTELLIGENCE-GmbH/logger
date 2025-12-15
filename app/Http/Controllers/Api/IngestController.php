@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\IngestLogRequest;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class IngestController extends Controller
 {
@@ -86,34 +87,43 @@ class IngestController extends Controller
         $createdLogs = [];
         $errors = [];
 
-        foreach ($logs as $index => $logData) {
-            try {
-                $log = $project->logs()->create([
-                    'level' => $logData['level'],
-                    'channel' => $logData['channel'] ?? null,
-                    'message' => $logData['message'],
-                    'context' => $request->getTruncatedContext($logData),
-                    'extra' => $request->getTruncatedExtra($logData),
-                    'controller' => $request->getLogController($logData),
-                    'route_name' => $logData['route_name'] ?? null,
-                    'method' => $request->getHttpMethod($logData),
-                    'request_url' => $logData['request_url'] ?? null,
-                    'user_id' => $logData['user_id'] ?? null,
-                    'ip_address' => $logData['ip_address'] ?? $request->ip(),
-                    'user_agent' => $logData['user_agent'] ?? $request->userAgent(),
-                    'app_env' => $logData['app_env'] ?? null,
-                    'app_debug' => $logData['app_debug'] ?? null,
-                    'referrer' => $logData['referrer'] ?? null,
-                    'logged_at' => $request->getLogDatetime($logData),
-                ]);
+        DB::beginTransaction();
 
-                $createdLogs[] = $log->id;
-            } catch (\Exception $e) {
-                $errors[] = [
-                    'index' => $index,
-                    'error' => $e->getMessage(),
-                ];
+        try {
+            foreach ($logs as $index => $logData) {
+                try {
+                    $log = $project->logs()->create([
+                        'level' => $logData['level'],
+                        'channel' => $logData['channel'] ?? null,
+                        'message' => $logData['message'],
+                        'context' => $request->getTruncatedContext($logData),
+                        'extra' => $request->getTruncatedExtra($logData),
+                        'controller' => $request->getLogController($logData),
+                        'route_name' => $logData['route_name'] ?? null,
+                        'method' => $request->getHttpMethod($logData),
+                        'request_url' => $logData['request_url'] ?? null,
+                        'user_id' => $logData['user_id'] ?? null,
+                        'ip_address' => $logData['ip_address'] ?? $request->ip(),
+                        'user_agent' => $logData['user_agent'] ?? $request->userAgent(),
+                        'app_env' => $logData['app_env'] ?? null,
+                        'app_debug' => $logData['app_debug'] ?? null,
+                        'referrer' => $logData['referrer'] ?? null,
+                        'logged_at' => $request->getLogDatetime($logData),
+                    ]);
+
+                    $createdLogs[] = $log->id;
+                } catch (\Exception $e) {
+                    $errors[] = [
+                        'index' => $index,
+                        'error' => $e->getMessage(),
+                    ];
+                }
             }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
 
         // The LogCreated event is automatically fired via model events for each log

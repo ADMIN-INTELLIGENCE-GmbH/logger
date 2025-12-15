@@ -32,5 +32,5 @@ Route::post('/stats', StatsController::class)
 
 // Tag search endpoint (for autocomplete)
 Route::get('/tags/search', [TagController::class, 'search'])
-    ->middleware('auth')
+    ->middleware(['web', 'auth'])
     ->name('api.tags.search');

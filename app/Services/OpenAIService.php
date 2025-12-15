@@ -31,8 +31,11 @@ class OpenAIService
 
     /**
      * Analyze a log entry using OpenAI.
+     * Can accept either a Log model (for backward compatibility) or an array of selected data.
+     *
+     * @param Log|array $logData Either a Log model or an array of log data
      */
-    public function analyzeLog(Log $log): array
+    public function analyzeLog($logData): array
     {
         if (! $this->isConfigured()) {
             return [
@@ -41,7 +44,30 @@ class OpenAIService
             ];
         }
 
-        $prompt = $this->buildPrompt($log);
+        // Convert Log model to array if needed
+        if ($logData instanceof Log) {
+            $logArray = [
+                'level' => $logData->level,
+                'message' => $logData->message,
+                'channel' => $logData->channel,
+                'controller' => $logData->controller,
+                'route_name' => $logData->route_name,
+                'method' => $logData->method,
+                'request_url' => $logData->request_url,
+                'user_id' => $logData->user_id,
+                'ip_address' => $logData->ip_address,
+                'user_agent' => $logData->user_agent,
+                'app_env' => $logData->app_env,
+                'app_debug' => $logData->app_debug,
+                'referrer' => $logData->referrer,
+                'context' => $logData->context,
+                'extra' => $logData->extra,
+            ];
+        } else {
+            $logArray = $logData;
+        }
+
+        $prompt = $this->buildPrompt($logArray);
 
         try {
             $headers = [
@@ -112,74 +138,79 @@ class OpenAIService
     }
 
     /**
-     * Build the prompt for log analysis.
+     * Build the prompt for log analysis with redaction.
+     * Accepts either a Log model or an array of log data.
+     *
+     * @param Log|array $logData
      */
-    protected function buildPrompt(Log $log): string
+    protected function buildPrompt($logData): string
     {
-        $prompt = "Laravel log - give me a TL;DR:\n";
-        $prompt .= "- **What**: One-line explanation\n";
-        $prompt .= "- **Why**: Likely cause (1-2 sentences)\n";
-        $prompt .= "- **Fix**: Quick solution (code snippet if needed)\n\n";
-        $prompt .= 'Log: '.strtoupper($log->level)."\n";
-        $prompt .= 'Message: '.$log->message."\n";
+        // Extract values from either model or array
+        $level = $logData instanceof Log ? $logData->level : ($logData['level'] ?? 'unknown');
+        $message = $logData instanceof Log ? $logData->message : ($logData['message'] ?? '');
+        $channel = $logData instanceof Log ? $logData->channel : ($logData['channel'] ?? null);
+        $controller = $logData instanceof Log ? $logData->controller : ($logData['controller'] ?? null);
+        $route_name = $logData instanceof Log ? $logData->route_name : ($logData['route_name'] ?? null);
+        $method = $logData instanceof Log ? $logData->method : ($logData['method'] ?? null);
+        $request_url = $logData instanceof Log ? $logData->request_url : ($logData['request_url'] ?? null);
+        $user_id = $logData instanceof Log ? $logData->user_id : ($logData['user_id'] ?? null);
+        $ip_address = $logData instanceof Log ? $logData->ip_address : ($logData['ip_address'] ?? null);
+        $user_agent = $logData instanceof Log ? $logData->user_agent : ($logData['user_agent'] ?? null);
+        $app_env = $logData instanceof Log ? $logData->app_env : ($logData['app_env'] ?? null);
+        $app_debug = $logData instanceof Log ? $logData->app_debug : ($logData['app_debug'] ?? null);
+        $referrer = $logData instanceof Log ? $logData->referrer : ($logData['referrer'] ?? null);
+        $context = $logData instanceof Log ? $logData->context : ($logData['context'] ?? null);
+        $extra = $logData instanceof Log ? $logData->extra : ($logData['extra'] ?? null);
 
-        if ($log->channel) {
-            $prompt .= 'Channel: '.$log->channel."\n";
+        $lines = [
+            "Laravel log - give me a TL;DR:",
+            "- **What**: One-line explanation",
+            "- **Why**: Likely cause (1-2 sentences)",
+            "- **Fix**: Quick solution (code snippet if needed)",
+            "",
+            'Log: '.strtoupper($level),
+            'Message: '.$message,
+        ];
+
+        $fields = [
+            'Channel' => $channel,
+            'Controller' => $controller,
+            'Route' => $route_name,
+            'Method' => $method,
+            'Request URL' => $request_url,
+            'User ID' => $user_id,
+            'IP Address' => $ip_address,
+            'User Agent' => $user_agent,
+            'Referrer' => $referrer,
+        ];
+
+        foreach ($fields as $label => $value) {
+            if ($value) {
+                $lines[] = "$label: $value";
+            }
         }
 
-        if ($log->controller) {
-            $prompt .= 'Controller: '.$log->controller."\n";
+        if ($app_env) {
+            $lines[] = 'Environment: '.$app_env.($app_debug ? ' (debug mode)' : '');
         }
 
-        if ($log->route_name) {
-            $prompt .= 'Route: '.$log->route_name."\n";
-        }
-
-        if ($log->method) {
-            $prompt .= 'Method: '.$log->method."\n";
-        }
-
-        if ($log->request_url) {
-            $prompt .= 'Request URL: '.$log->request_url."\n";
-        }
-
-        if ($log->user_id) {
-            $prompt .= 'User ID: '.$log->user_id."\n";
-        }
-
-        if ($log->ip_address) {
-            $prompt .= 'IP Address: '.$log->ip_address."\n";
-        }
-
-        if ($log->user_agent) {
-            $prompt .= 'User Agent: '.$log->user_agent."\n";
-        }
-
-        if ($log->app_env) {
-            $prompt .= 'Environment: '.$log->app_env.($log->app_debug ? ' (debug mode)' : '')."\n";
-        }
-
-        if ($log->referrer) {
-            $prompt .= 'Referrer: '.$log->referrer."\n";
-        }
-
-        if ($log->context) {
-            $contextJson = json_encode($log->context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if ($context) {
+            $contextJson = json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             // Limit context size for concise responses
             if (strlen($contextJson) > 4000) {
                 $contextJson = substr($contextJson, 0, 4000)."\n... (truncated)";
             }
-            $prompt .= "Context:\n".$contextJson."\n";
+            $lines[] = "Context:\n".$contextJson;
         }
 
-        if ($log->extra && ! empty($log->extra)) {
-            $extraJson = json_encode($log->extra, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if ($extra && ! empty($extra)) {
+            $extraJson = json_encode($extra, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             if (strlen($extraJson) > 1000) {
                 $extraJson = substr($extraJson, 0, 1000)."\n... (truncated)";
             }
-            $prompt .= "Extra (Monolog data):\n".$extraJson."\n";
+            $lines[] = "Extra (Monolog data):\n".$extraJson;
         }
 
-        return $prompt;
+        return implode("\n", $lines);
     }
 }

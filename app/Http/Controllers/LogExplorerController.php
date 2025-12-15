@@ -106,8 +106,10 @@ class LogExplorerController extends Controller
 
     /**
      * Analyze a log entry using OpenAI.
+     * The fields to include are selected by the user on the frontend,
+     * but the actual data is built on the backend to prevent injection.
      */
-    public function analyze(Project $project, Log $log, OpenAIService $openAIService): JsonResponse
+    public function analyze(Request $request, Project $project, Log $log, OpenAIService $openAIService): JsonResponse
     {
         // Ensure the log belongs to the project
         if ($log->project_id !== $project->id) {
@@ -117,7 +119,59 @@ class LogExplorerController extends Controller
             ], 404);
         }
 
-        $result = $openAIService->analyzeLog($log);
+        // Get selected fields from request (user-selected, but server builds the data)
+        $selectedFields = $request->input('fields', []);
+        
+        // Validate fields are booleans
+        $selectedFields = array_map(fn ($value) => (bool) $value, $selectedFields);
+
+        // Build the data to send to OpenAI based on selected fields
+        $logData = [
+            'level' => $log->level,
+            'message' => $log->message,
+        ];
+
+        // Add optional fields only if selected
+        if ($selectedFields['channel'] ?? false) {
+            $logData['channel'] = $log->channel;
+        }
+        if ($selectedFields['controller'] ?? false) {
+            $logData['controller'] = $log->controller;
+        }
+        if ($selectedFields['route'] ?? false) {
+            $logData['route_name'] = $log->route_name;
+        }
+        if ($selectedFields['method'] ?? false) {
+            $logData['method'] = $log->method;
+        }
+        if ($selectedFields['environment'] ?? false) {
+            $logData['app_env'] = $log->app_env;
+            $logData['app_debug'] = $log->app_debug;
+        }
+        if ($selectedFields['context'] ?? false) {
+            $logData['context'] = $log->context;
+        }
+        if ($selectedFields['extra'] ?? false) {
+            $logData['extra'] = $log->extra;
+        }
+        if ($selectedFields['request_url'] ?? false) {
+            $logData['request_url'] = $log->request_url;
+        }
+        if ($selectedFields['user_id'] ?? false) {
+            $logData['user_id'] = $log->user_id;
+        }
+        if ($selectedFields['ip_address'] ?? false) {
+            $logData['ip_address'] = $log->ip_address;
+        }
+        if ($selectedFields['user_agent'] ?? false) {
+            $logData['user_agent'] = $log->user_agent;
+        }
+        if ($selectedFields['referrer'] ?? false) {
+            $logData['referrer'] = $log->referrer;
+        }
+
+        // Send the built data to OpenAI
+        $result = $openAIService->analyzeLog($logData);
 
         if (! $result['success']) {
             return response()->json([

@@ -14,9 +14,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
         <div class="flex items-center">
             <div class="flex-shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg">
-                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+                <i class="mdi mdi-alert-circle-outline text-2xl text-red-600 dark:text-red-400"></i>
             </div>
             <div class="ml-4">
                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Errors</h3>
@@ -34,9 +32,7 @@
 
         @if($failingControllers->isEmpty())
             <div class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                <svg class="mx-auto h-12 w-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <i class="mdi mdi-check-circle-outline text-5xl text-green-400"></i>
                 <p class="mt-4 text-lg font-medium text-green-600 dark:text-green-400">No errors found!</p>
                 <p class="mt-2">All controllers are running smoothly.</p>
             </div>
@@ -73,12 +69,8 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
                                         <button @click="expandedRows['{{ $uniqueId }}'] = !expandedRows['{{ $uniqueId }}']" class="mr-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none">
-                                            <svg x-show="!expandedRows['{{ $uniqueId }}']" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                            </svg>
-                                            <svg x-show="expandedRows['{{ $uniqueId }}']" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                            </svg>
+                                            <i x-show="!expandedRows['{{ $uniqueId }}']" class="mdi mdi-chevron-right"></i>
+                                            <i x-show="expandedRows['{{ $uniqueId }}']" class="mdi mdi-chevron-down"></i>
                                         </button>
                                         <div>
                                             <div class="text-sm font-medium text-gray-900 dark:text-white">{{ class_basename($controller->controller) }}</div>
@@ -99,9 +91,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <!-- Placeholder for trend indicator -->
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                    </svg>
+                                    <i class="mdi mdi-trending-up text-xl text-gray-400"></i>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <a href="{{ route('projects.logs.index', ['project' => $project, 'controller' => $controller->controller, 'level' => 'error']) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">

@@ -58,9 +58,12 @@
                                 id="tag_input"
                                 x-model="tagInput"
                                 @input="fetchSuggestions"
-                                @keydown.enter.prevent="addTag"
+                                @keydown.enter.prevent="selectHighlighted"
+                                @keydown.down.prevent="navigateSuggestions('down')"
+                                @keydown.up.prevent="navigateSuggestions('up')"
                                 @keydown.escape="showSuggestions = false"
                                 @focus="showSuggestions = true"
+                                autocomplete="off"
                                 placeholder="Type to add or search tags..."
                                 class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                             
@@ -71,10 +74,14 @@
                                  class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
                                 <template x-if="suggestions.length > 0">
                                     <div>
-                                        <template x-for="suggestion in suggestions" :key="suggestion">
+                                        <template x-for="(suggestion, index) in suggestions" :key="suggestion">
                                             <div 
                                                 @click="selectSuggestion(suggestion)"
-                                                class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                                                :class="{
+                                                    'bg-indigo-100 dark:bg-indigo-900/40': index === highlightedIndex,
+                                                    'hover:bg-indigo-50 dark:hover:bg-indigo-900/20': index !== highlightedIndex
+                                                }"
+                                                class="cursor-pointer select-none relative py-2 pl-3 pr-9">
                                                 <span class="block truncate text-gray-900 dark:text-white" x-text="suggestion"></span>
                                             </div>
                                         </template>
@@ -219,9 +226,7 @@
                             <form action="{{ route('projects.test-webhook', $project) }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit" class="inline-flex items-center px-3 py-2 border border-indigo-300 dark:border-indigo-600 text-sm font-medium rounded-md text-indigo-700 dark:text-indigo-400 bg-white dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                    </svg>
+                                    <i class="mdi mdi-send mr-2"></i>
                                     Send Test Webhook
                                 </button>
                             </form>
@@ -317,12 +322,8 @@
                                 :class="{ 'text-green-600 dark:text-green-400': copied }"
                                 title="Copy to clipboard"
                             >
-                                <svg x-show="!copied" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                                <svg x-show="copied" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
+                                <i x-show="!copied" class="mdi mdi-content-copy"></i>
+                                <i x-show="copied" x-cloak class="mdi mdi-check"></i>
                             </button>
                         </div>
                         <div class="pt-4 flex justify-start">
@@ -597,12 +598,8 @@
                         :class="{ 'text-green-600 dark:text-green-400': copiedKey }"
                         title="Copy to clipboard"
                     >
-                        <svg x-show="!copiedKey" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <svg x-show="copiedKey" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
+                        <i x-show="!copiedKey" class="mdi mdi-content-copy"></i>
+                        <i x-show="copiedKey" x-cloak class="mdi mdi-check"></i>
                     </button>
                 </div>
                 <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -610,9 +607,7 @@
                 </p>
                 <div class="mt-3">
                     <button @click="showRegenerateConfirm = true" type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
+                        <i class="mdi mdi-refresh mr-2"></i>
                         Regenerate Key
                     </button>
                 </div>
@@ -630,12 +625,8 @@
                         :class="{ 'text-green-600 dark:text-green-400': copiedEndpoint }"
                         title="Copy to clipboard"
                     >
-                        <svg x-show="!copiedEndpoint" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <svg x-show="copiedEndpoint" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
+                        <i x-show="!copiedEndpoint" class="mdi mdi-content-copy"></i>
+                        <i x-show="copiedEndpoint" x-cloak class="mdi mdi-check"></i>
                     </button>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">With header:</p>
@@ -649,12 +640,8 @@
                         :class="{ 'text-green-600 dark:text-green-400': copiedHeader }"
                         title="Copy to clipboard"
                     >
-                        <svg x-show="!copiedHeader" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <svg x-show="copiedHeader" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
+                        <i x-show="!copiedHeader" class="mdi mdi-content-copy"></i>
+                        <i x-show="copiedHeader" x-cloak class="mdi mdi-check"></i>
                     </button>
                 </div>
             </div>
@@ -669,9 +656,7 @@
                 <div class="bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-400 p-4 mb-6">
                     <div class="flex">
                         <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                            </svg>
+                            <i class="mdi mdi-information-outline text-xl text-indigo-400"></i>
                         </div>
                         <div class="ml-3">
                             <p class="text-sm text-indigo-700 dark:text-indigo-300">
@@ -690,23 +675,15 @@
                         :class="{ 'text-green-600 dark:text-green-400': copiedComposer }"
                         title="Copy to clipboard"
                     >
-                        <svg x-show="!copiedComposer" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <svg x-show="copiedComposer" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
+                        <i x-show="!copiedComposer" class="mdi mdi-content-copy"></i>
+                        <i x-show="copiedComposer" x-cloak class="mdi mdi-check"></i>
                     </button>
                 </div>
 
                 <a href="https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
-                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
-                    </svg>
+                    <i class="mdi mdi-github text-base mr-1.5"></i>
                     View documentation on GitHub
-                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
+                    <i class="mdi mdi-open-in-new text-xs ml-1"></i>
                 </a>
             </div>
         </div>
@@ -721,9 +698,7 @@
                 <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
+                            <i class="mdi mdi-alert text-2xl text-orange-600 dark:text-orange-400"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Regenerate Magic Key</h3>
@@ -757,9 +732,7 @@
                 <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                            </svg>
+                            <i class="mdi mdi-key text-2xl text-indigo-600 dark:text-indigo-400"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ $project->webhook_secret ? 'Regenerate' : 'Generate' }} Webhook Secret</h3>
@@ -799,9 +772,7 @@
                 <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                            <i class="mdi mdi-delete text-2xl text-red-600 dark:text-red-400"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Delete Project</h3>
@@ -836,9 +807,7 @@
                 <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                            <i class="mdi mdi-delete-sweep text-2xl text-red-600 dark:text-red-400"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Truncate All Logs</h3>
@@ -872,6 +841,7 @@ document.addEventListener('alpine:init', () => {
         suggestions: [],
         showSuggestions: false,
         debounceTimer: null,
+        highlightedIndex: -1,
 
         async fetchSuggestions() {
             clearTimeout(this.debounceTimer);
@@ -884,7 +854,18 @@ document.addEventListener('alpine:init', () => {
 
             this.debounceTimer = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/api/tags/search?query=${encodeURIComponent(this.tagInput)}`);
+                    const response = await fetch(`/api/tags/search?query=${encodeURIComponent(this.tagInput)}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
                     const data = await response.json();
                     
                     // Filter out already selected tags
@@ -892,6 +873,7 @@ document.addEventListener('alpine:init', () => {
                         !this.selectedTags.includes(tag) && 
                         tag.toLowerCase().includes(this.tagInput.toLowerCase())
                     );
+                    this.highlightedIndex = -1;
                     this.showSuggestions = true;
                 } catch (error) {
                     console.error('Error fetching tag suggestions:', error);
@@ -907,6 +889,27 @@ document.addEventListener('alpine:init', () => {
                 this.tagInput = '';
                 this.suggestions = [];
                 this.showSuggestions = false;
+                this.highlightedIndex = -1;
+            }
+        },
+
+        navigateSuggestions(direction) {
+            if (this.suggestions.length === 0) return;
+            
+            if (direction === 'down') {
+                this.highlightedIndex = (this.highlightedIndex + 1) % this.suggestions.length;
+            } else if (direction === 'up') {
+                this.highlightedIndex = this.highlightedIndex <= 0 
+                    ? this.suggestions.length - 1 
+                    : this.highlightedIndex - 1;
+            }
+        },
+
+        selectHighlighted() {
+            if (this.highlightedIndex >= 0 && this.highlightedIndex < this.suggestions.length) {
+                this.selectSuggestion(this.suggestions[this.highlightedIndex]);
+            } else {
+                this.addTag();
             }
         },
 
@@ -916,6 +919,7 @@ document.addEventListener('alpine:init', () => {
                 this.tagInput = '';
                 this.suggestions = [];
                 this.showSuggestions = false;
+                this.highlightedIndex = -1;
             }
         },
 

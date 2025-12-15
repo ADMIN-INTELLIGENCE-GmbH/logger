@@ -7,13 +7,33 @@
     selectedLog: null,
     showModal: false,
     showDeleteConfirm: false,
+    showLLMDialog: false,
     llmAnalysis: null,
     llmLoading: false,
     llmError: null,
+    llmFields: {
+        channel: true,
+        controller: true,
+        route: true,
+        method: true,
+        environment: true,
+        context: true,
+        extra: false,
+        request_url: true,
+        user_id: false,
+        ip_address: false,
+        user_agent: false,
+        referrer: false
+    },
     openLog(log) {
         this.selectedLog = log;
         this.showModal = true;
         this.showDeleteConfirm = false;
+        this.llmAnalysis = null;
+        this.llmError = null;
+    },
+    openLLMDialog() {
+        this.showLLMDialog = true;
         this.llmAnalysis = null;
         this.llmError = null;
     },
@@ -43,6 +63,7 @@
     async askLLM() {
         if (!this.selectedLog) return;
         
+        this.showLLMDialog = false;
         this.llmLoading = true;
         this.llmError = null;
         this.llmAnalysis = null;
@@ -54,7 +75,10 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    fields: this.llmFields
+                })
             });
             
             const data = await response.json();
@@ -86,9 +110,9 @@
                 <select name="level" id="level" class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                     <option value="">All Levels</option>
                     @foreach(\App\Models\Log::LEVELS as $level)
-                        <option value="{{ $level }}" {{ request('level') === $level ? 'selected' : '' }}>
-                            {{ ucfirst($level) }}
-                        </option>
+                    <option value="{{ $level }}" {{ request('level') === $level ? 'selected' : '' }}>
+                        {{ ucfirst($level) }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -123,9 +147,7 @@
                     Clear Filters
                 </a>
                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <i class="mdi mdi-magnify mr-2"></i>
                     Search
                 </button>
             </div>
@@ -153,44 +175,42 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($logs as $log)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" @click="openLog({{ $log->toJson() }})">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {{ ($log->logged_at ?? $log->created_at)->format('M d, H:i:s') }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" @click="openLog({{ $log->toJson() }})">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {{ ($log->logged_at ?? $log->created_at)->format('M d, H:i:s') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     @if($log->level === 'critical') bg-red-900 text-white
                                     @elseif($log->level === 'error') bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200
                                     @elseif($log->level === 'info') bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200
                                     @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300
                                     @endif">
-                                    {{ ucfirst($log->level) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md truncate">
-                                {{ Str::limit($log->message, 80) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {{ $log->controller ? class_basename($log->controller) : '-' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {{ $log->user_id ?? '-' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
-                                    View
-                                </button>
-                            </td>
-                        </tr>
+                                {{ ucfirst($log->level) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md truncate">
+                            {{ Str::limit($log->message, 80) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {{ $log->controller ? class_basename($log->controller) : '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {{ $log->user_id ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+                                View
+                            </button>
+                        </td>
+                    </tr>
                     @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <p class="mt-4">No logs found matching your criteria.</p>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <i class="mdi mdi-text-box-search-outline text-5xl text-gray-400 dark:text-gray-500"></i>
+                            <p class="mt-4">No logs found matching your criteria.</p>
+                        </td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -198,9 +218,9 @@
 
         <!-- Pagination -->
         @if($logs->hasPages())
-            <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-t border-gray-200 dark:border-gray-600">
-                {{ $logs->withQueryString()->links() }}
-            </div>
+        <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-t border-gray-200 dark:border-gray-600">
+            {{ $logs->withQueryString()->links() }}
+        </div>
         @endif
     </div>
 
@@ -216,12 +236,10 @@
                     <div class="flex justify-between items-start mb-4">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white">Log Details</h3>
                         <button @click="showModal = false" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <i class="mdi mdi-close text-2xl"></i>
                         </button>
                     </div>
-                    
+
                     <template x-if="selectedLog">
                         <div class="space-y-4">
                             <!-- Log Info Grid -->
@@ -323,9 +341,7 @@
                             <div x-show="llmError" class="mt-4">
                                 <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
                                     <div class="flex">
-                                        <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
+                                        <i class="mdi mdi-alert-circle text-xl text-red-400"></i>
                                         <p class="ml-3 text-sm text-red-700 dark:text-red-300" x-text="llmError"></p>
                                     </div>
                                 </div>
@@ -333,9 +349,7 @@
 
                             <div x-show="llmAnalysis" class="mt-4">
                                 <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                    </svg>
+                                    <i class="mdi mdi-robot mr-2 text-xl text-indigo-500"></i>
                                     AI Analysis
                                 </h4>
                                 <div class="ai-analysis-content bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md p-4 prose prose-sm max-w-none overflow-x-auto" x-html="marked.parse(llmAnalysis)"></div>
@@ -344,15 +358,11 @@
                     </template>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse sm:gap-3">
-                    <button 
-                        type="button" 
-                        @click="askLLM()" 
-                        :disabled="llmLoading"
-                        class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
+                    <button
+                        type="button"
+                        @click="openLLMDialog()"
+                        class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="mdi mdi-robot mr-2"></i>
                         <span x-show="!llmLoading">Ask LLM</span>
                         <span x-show="llmLoading">Analyzing...</span>
                     </button>
@@ -362,36 +372,168 @@
                     <!-- Delete Button -->
                     <div class="sm:flex-1"></div>
                     <template x-if="!showDeleteConfirm">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             @click="showDeleteConfirm = true"
-                            class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-red-300 dark:border-red-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm"
-                        >
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                            class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-red-300 dark:border-red-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm">
+                            <i class="mdi mdi-trash-can mr-2"></i>
                             Delete
                         </button>
                     </template>
                     <template x-if="showDeleteConfirm">
                         <div class="mt-3 sm:mt-0 flex items-center gap-2">
                             <span class="text-sm text-red-600 dark:text-red-400">Are you sure?</span>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 @click="deleteLog()"
-                                class="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                            >
+                                class="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                                 Yes, Delete
                             </button>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 @click="showDeleteConfirm = false"
-                                class="inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-3 py-1.5 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            >
+                                class="inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-3 py-1.5 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                                 Cancel
                             </button>
                         </div>
                     </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LLM Privacy Dialog -->
+    <div x-show="showLLMDialog" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="showLLMDialog" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showLLMDialog = false"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="showLLMDialog" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Select Data to Send to AI</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Choose which fields to include in the AI analysis. Privacy-sensitive fields are unchecked by default.</p>
+                        </div>
+                        <button @click="showLLMDialog = false" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                            <i class="mdi mdi-close text-2xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Always Included -->
+                    <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+                        <h4 class="text-sm font-medium text-blue-900 dark:text-blue-300 mb-3">Always Included</h4>
+                        <div class="space-y-2 text-sm text-blue-800 dark:text-blue-400">
+                            <p>• <strong>Log Level</strong> - The severity level (debug, info, warning, error, etc.)</p>
+                            <p>• <strong>Log Message</strong> - The main error or log message</p>
+                        </div>
+                    </div>
+
+                    <!-- Optional Fields -->
+                    <div class="space-y-3 mb-6">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Optional Fields</h4>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" x-model="llmFields.channel" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Channel</span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" x-model="llmFields.controller" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Controller</span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" x-model="llmFields.route" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Route Name</span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" x-model="llmFields.method" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">HTTP Method (GET, POST, etc.)</span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" x-model="llmFields.environment" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Environment (production, staging, etc.)</span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" x-model="llmFields.context" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Context Data (Stack trace, debugging info)</span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" x-model="llmFields.extra" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Extra Monolog Data</span>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" x-model="llmFields.request_url" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Request URL</span>
+                        </label>
+
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">⚠️ Privacy-Sensitive (Unchecked by Default)</p>
+
+                            <label class="flex items-center space-x-3 cursor-pointer opacity-75">
+                                <input type="checkbox" x-model="llmFields.user_id" class="w-4 h-4 text-red-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-red-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">User ID</span>
+                            </label>
+
+                            <label class="flex items-center space-x-3 cursor-pointer opacity-75">
+                                <input type="checkbox" x-model="llmFields.ip_address" class="w-4 h-4 text-red-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-red-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">IP Address</span>
+                            </label>
+
+                            <label class="flex items-center space-x-3 cursor-pointer opacity-75">
+                                <input type="checkbox" x-model="llmFields.user_agent" class="w-4 h-4 text-red-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-red-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">User Agent</span>
+                            </label>
+
+                            <label class="flex items-center space-x-3 cursor-pointer opacity-75">
+                                <input type="checkbox" x-model="llmFields.referrer" class="w-4 h-4 text-red-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-red-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">Referrer</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Preview of what will be sent -->
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-md p-4 mb-6">
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data Structure to be Sent</h4>
+                        <pre class="text-xs text-gray-600 dark:text-gray-400 overflow-x-auto"><code>{
+  "level": "error",
+  "message": "...",
+  <span x-show="llmFields.channel">"channel": "...",</span>
+  <span x-show="llmFields.controller">"controller": "...",</span>
+  <span x-show="llmFields.route">"route_name": "...",</span>
+  <span x-show="llmFields.method">"method": "...",</span>
+  <span x-show="llmFields.environment">"app_env": "...",</span>
+  <span x-show="llmFields.context">"context": {...},</span>
+  <span x-show="llmFields.extra">"extra": {...},</span>
+  <span x-show="llmFields.request_url">"request_url": "...",</span>
+  <span x-show="llmFields.user_id">"user_id": "...",</span>
+  <span x-show="llmFields.ip_address">"ip_address": "...",</span>
+  <span x-show="llmFields.user_agent">"user_agent": "...",</span>
+  <span x-show="llmFields.referrer">"referrer": "...",</span>
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse sm:gap-3">
+                    <button
+                        type="button"
+                        @click="askLLM()"
+                        :disabled="llmLoading"
+                        class="w-full inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="mdi mdi-robot mr-2"></i>
+                        <span x-show="!llmLoading">Send to AI</span>
+                        <span x-show="llmLoading">Analyzing...</span>
+                    </button>
+                    <button type="button" @click="showLLMDialog = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>
