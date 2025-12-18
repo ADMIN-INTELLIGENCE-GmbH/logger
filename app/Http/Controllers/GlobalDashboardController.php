@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Log;
 use App\Models\Project;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Http\JsonResponse;
 
 class GlobalDashboardController extends Controller
 {
@@ -60,13 +60,13 @@ class GlobalDashboardController extends Controller
         ];
 
         $project = null; // Ensure project-specific nav is hidden
-        
+
         // Get user's hidden metrics (defaults to empty array)
         $hiddenMetrics = $request->user()->dashboard_preferences['hidden_metrics'] ?? [];
 
         return view('dashboard', compact('projects', 'overallStats', 'project', 'hiddenMetrics'));
     }
-    
+
     /**
      * Update user's dashboard preferences.
      */
@@ -76,13 +76,13 @@ class GlobalDashboardController extends Controller
             'hidden_metrics' => 'required|array',
             'hidden_metrics.*' => 'string',
         ]);
-        
+
         $user = $request->user();
         $user->dashboard_preferences = [
             'hidden_metrics' => $request->hidden_metrics,
         ];
         $user->save();
-        
+
         return response()->json(['success' => true]);
     }
 }

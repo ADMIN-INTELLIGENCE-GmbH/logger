@@ -180,16 +180,16 @@ class WebhookDispatcher implements ShouldQueue
 
         // Reconstruct URL using resolved IP instead of hostname
         // This ensures we connect to the validated IP, preventing DNS rebinding
-        $safeUrl = $scheme . '://' . $ip;
+        $safeUrl = $scheme.'://'.$ip;
 
         if ($port) {
-            $safeUrl .= ':' . $port;
+            $safeUrl .= ':'.$port;
         }
 
         $safeUrl .= $path;
 
         if ($query) {
-            $safeUrl .= '?' . $query;
+            $safeUrl .= '?'.$query;
         }
 
         return $safeUrl;
@@ -226,6 +226,7 @@ class WebhookDispatcher implements ShouldQueue
                     'success' => false,
                     'delivered_at' => now(),
                 ]);
+
                 return;
             }
 
@@ -320,6 +321,7 @@ class WebhookDispatcher implements ShouldQueue
                     'success' => false,
                     'delivered_at' => now(),
                 ]);
+
                 return $delivery->fresh();
             }
 
