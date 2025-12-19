@@ -93,6 +93,64 @@
         } finally {
             this.llmLoading = false;
         }
+    },
+    async copyToClipboard(event) {
+        if (!this.selectedLog) return;
+        
+        const log = this.selectedLog;
+        let text = '=== LOG DETAILS ===\n\n';
+        
+        text += 'Level: ' + log.level.toUpperCase() + '\n';
+        text += 'Logged At: ' + (log.logged_at || log.created_at) + '\n';
+        if (log.logged_at && log.created_at !== log.logged_at) {
+            text += 'Received At: ' + log.created_at + '\n';
+        }
+        text += 'Channel: ' + (log.channel || '-') + '\n';
+        text += 'Environment: ' + (log.app_env || '-');
+        if (log.app_debug) text += ' (debug)';
+        text += '\n';
+        text += 'Route: ' + (log.route_name || '-') + '\n';
+        text += 'Method: ' + (log.method || '-') + '\n';
+        text += 'User ID: ' + (log.user_id || '-') + '\n';
+        text += 'IP Address: ' + (log.ip_address || '-') + '\n';
+        
+        if (log.controller) {
+            text += '\nController:\n' + log.controller + '\n';
+        }
+        
+        if (log.user_agent) {
+            text += '\nUser Agent:\n' + log.user_agent + '\n';
+        }
+        
+        if (log.request_url) {
+            text += '\nRequest URL:\n' + log.request_url + '\n';
+        }
+        
+        if (log.referrer) {
+            text += '\nReferrer:\n' + log.referrer + '\n';
+        }
+        
+        text += '\n=== MESSAGE ===\n' + log.message + '\n';
+        
+        if (log.context) {
+            text += '\n=== CONTEXT ===\n' + JSON.stringify(log.context, null, 2) + '\n';
+        }
+        
+        if (log.extra && Object.keys(log.extra).length > 0) {
+            text += '\n=== EXTRA (Monolog Data) ===\n' + JSON.stringify(log.extra, null, 2) + '\n';
+        }
+        
+        try {
+            await navigator.clipboard.writeText(text);
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.textContent = '✓ Copied!';
+            setTimeout(function() {
+                btn.innerHTML = originalText;
+            }, 2000);
+        } catch (error) {
+            alert('Failed to copy to clipboard');
+        }
     }
 }">
     <!-- Header -->
@@ -352,7 +410,7 @@
                                     <i class="mdi mdi-robot mr-2 text-xl text-indigo-500"></i>
                                     AI Analysis
                                 </h4>
-                                <div class="ai-analysis-content bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md p-4 prose prose-sm max-w-none overflow-x-auto" x-html="marked.parse(llmAnalysis)"></div>
+                                <div class="ai-analysis-content bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md p-4 prose prose-sm max-w-none overflow-x-auto" x-html="llmAnalysis ? marked.parse(llmAnalysis) : ''"></div>
                             </div>
                         </div>
                     </template>
@@ -365,6 +423,13 @@
                         <i class="mdi mdi-robot mr-2"></i>
                         <span x-show="!llmLoading">Ask LLM</span>
                         <span x-show="llmLoading">Analyzing...</span>
+                    </button>
+                    <button
+                        type="button"
+                        @click="copyToClipboard($event)"
+                        class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        <i class="mdi mdi-content-copy mr-2"></i>
+                        Copy to Clipboard
                     </button>
                     <button type="button" @click="showModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
                         Close
