@@ -36,7 +36,16 @@ class IngestController extends Controller
             ], 401);
         }
 
-        // 2. Check if this is a batch request or single log
+        // 2. Security: Check Origin against Allowed Domains
+        $origin = $request->header('Origin');
+        if (! $project->isOriginAllowed($origin)) {
+            return response()->json([
+                'error' => 'Forbidden',
+                'message' => 'Origin not allowed',
+            ], 403);
+        }
+
+        // 3. Check if this is a batch request or single log
         if ($request->isBatchRequest()) {
             return $this->handleBatchIngest($request, $project);
         }

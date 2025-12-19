@@ -27,6 +27,7 @@ class Project extends Model
     protected $fillable = [
         'name',
         'magic_key',
+        'allowed_domains',
         'retention_days',
         'webhook_url',
         'webhook_enabled',
@@ -44,6 +45,7 @@ class Project extends Model
         'retention_days' => 'integer',
         'server_stats' => 'array',
         'last_server_stats_at' => 'datetime',
+        'allowed_domains' => 'array',
     ];
 
     protected $hidden = [
@@ -92,6 +94,42 @@ class Project extends Model
         return static::where('magic_key', $key)
             ->where('is_active', true)
             ->first();
+    }
+
+    /**
+     * Check if the given origin is allowed.
+     */
+    public function isOriginAllowed(?string $origin): bool
+    {
+        // If no domains are configured, allow all
+        if (empty($this->allowed_domains)) {
+            return true;
+        }
+
+        // If origin is missing but domains are restricted, block it
+        if (empty($origin)) {
+            return false;
+        }
+
+        // Normalize origin (remove protocol)
+        $host = parse_url($origin, PHP_URL_HOST) ?? $origin;
+
+        foreach ($this->allowed_domains as $domain) {
+            // Exact match
+            if ($domain === $host) {
+                return true;
+            }
+
+            // Wildcard match (e.g. *.example.com)
+            if (str_starts_with($domain, '*.')) {
+                $suffix = substr($domain, 2);
+                if (str_ends_with($host, $suffix)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

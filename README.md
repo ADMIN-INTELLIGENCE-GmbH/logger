@@ -124,6 +124,16 @@ Each project includes an interactive **.env Configurator** tool to help you gene
 
 To access it, go to your project's settings page and scroll to the ".env Configurator" section.
 
+### Allowed Domains (CORS)
+
+To prevent unauthorized use of your project key from browser-based applications, you can configure **Allowed Domains**.
+
+1. Go to Project Settings.
+2. Enter allowed domains (one per line).
+3. Supports wildcards (e.g., `*.example.com`).
+
+When configured, the API will reject requests with an `Origin` header that does not match the allowed list. If the list is empty, all origins are allowed.
+
 ### Log Retention
 
 Each project can have its own retention policy. The `app:prune-logs` command removes logs older than the configured retention period. Schedule it in your crontab:

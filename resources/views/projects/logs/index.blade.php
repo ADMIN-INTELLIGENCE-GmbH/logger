@@ -238,14 +238,21 @@
                             {{ ($log->logged_at ?? $log->created_at)->format('M d, H:i:s') }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    @if($log->level === 'critical') bg-red-900 text-white
-                                    @elseif($log->level === 'error') bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200
-                                    @elseif($log->level === 'info') bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200
-                                    @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300
-                                    @endif">
-                                {{ ucfirst($log->level) }}
-                            </span>
+                            <div class="flex items-center space-x-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        @if($log->level === 'critical') bg-red-900 text-white
+                                        @elseif($log->level === 'error') bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200
+                                        @elseif($log->level === 'info') bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200
+                                        @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300
+                                        @endif">
+                                    {{ ucfirst($log->level) }}
+                                </span>
+                                @if($log->channel === 'javascript')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                        JS
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md truncate">
                             {{ Str::limit($log->message, 80) }}
@@ -373,6 +380,31 @@
                             <div>
                                 <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Message</h4>
                                 <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-md text-sm text-gray-900 dark:text-white" x-text="selectedLog.message"></div>
+                            </div>
+
+                            <!-- JS Stack Trace -->
+                            <div x-show="selectedLog.channel === 'javascript' && selectedLog.context && (selectedLog.context.frames || selectedLog.context.stack)">
+                                <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Stack Trace</h4>
+                                <div class="bg-gray-800 dark:bg-gray-900 p-4 rounded-md text-sm overflow-x-auto max-h-96 font-mono">
+                                    <template x-if="selectedLog.context.frames">
+                                        <div class="space-y-1">
+                                            <template x-for="(frame, index) in selectedLog.context.frames" :key="index">
+                                                <div class="text-gray-300">
+                                                    <span class="text-blue-400" x-text="frame.functionName || 'unknown'"></span>
+                                                    <span class="text-gray-500"> at </span>
+                                                    <span class="text-green-400" x-text="frame.fileName"></span>
+                                                    <span class="text-gray-500">:</span>
+                                                    <span class="text-yellow-400" x-text="frame.lineNumber"></span>
+                                                    <span class="text-gray-500">:</span>
+                                                    <span class="text-yellow-400" x-text="frame.columnNumber"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="!selectedLog.context.frames && selectedLog.context.stack">
+                                        <pre class="text-gray-300 whitespace-pre-wrap" x-text="selectedLog.context.stack"></pre>
+                                    </template>
+                                </div>
                             </div>
 
                             <!-- Context -->

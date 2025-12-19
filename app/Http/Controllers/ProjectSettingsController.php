@@ -54,7 +54,16 @@ class ProjectSettingsController extends Controller
             ],
             'is_active' => 'sometimes|boolean',
             'tags' => 'sometimes|nullable|json',
+            'allowed_domains' => 'sometimes|nullable|string',
         ]);
+
+        // Process allowed_domains from textarea (newline separated) to array
+        if ($request->has('allowed_domains')) {
+            $domains = array_filter(
+                array_map('trim', explode("\n", $request->input('allowed_domains', '')))
+            );
+            $validated['allowed_domains'] = ! empty($domains) ? array_values($domains) : null;
+        }
 
         $project->update($validated);
 

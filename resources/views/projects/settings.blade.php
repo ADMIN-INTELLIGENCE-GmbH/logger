@@ -47,6 +47,20 @@
                         @enderror
                     </div>
 
+                    <!-- Allowed Domains -->
+                    <div>
+                        <label for="allowed_domains" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Allowed Domains (CORS & Origin)</label>
+                        <div class="mt-1">
+                            <textarea name="allowed_domains" id="allowed_domains" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2" placeholder="example.com&#10;*.example.org">{{ $project->allowed_domains ? implode("\n", $project->allowed_domains) : '' }}</textarea>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Enter one domain per line. Use <code>*.domain.com</code> for wildcards. Leave empty to allow all domains (not recommended for public sites).
+                        </p>
+                        @error('allowed_domains')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Tags -->
                     <div x-data="tagManager({{ json_encode($project->tags->pluck('name')) }})">
                         <label for="tag_input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
