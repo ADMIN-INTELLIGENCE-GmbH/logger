@@ -121,7 +121,7 @@ class LogExplorerController extends Controller
 
         // Get selected fields from request (user-selected, but server builds the data)
         $selectedFields = $request->input('fields', []);
-        
+
         // Validate fields are booleans
         $selectedFields = array_map(fn ($value) => (bool) $value, $selectedFields);
 

@@ -33,7 +33,7 @@ class OpenAIService
      * Analyze a log entry using OpenAI.
      * Can accept either a Log model (for backward compatibility) or an array of selected data.
      *
-     * @param Log|array $logData Either a Log model or an array of log data
+     * @param  Log|array  $logData  Either a Log model or an array of log data
      */
     public function analyzeLog($logData): array
     {
@@ -141,7 +141,7 @@ class OpenAIService
      * Build the prompt for log analysis with redaction.
      * Accepts either a Log model or an array of log data.
      *
-     * @param Log|array $logData
+     * @param  Log|array  $logData
      */
     protected function buildPrompt($logData): string
     {
@@ -163,11 +163,11 @@ class OpenAIService
         $extra = $logData instanceof Log ? $logData->extra : ($logData['extra'] ?? null);
 
         $lines = [
-            "Laravel log - give me a TL;DR:",
-            "- **What**: One-line explanation",
-            "- **Why**: Likely cause (1-2 sentences)",
-            "- **Fix**: Quick solution (code snippet if needed)",
-            "",
+            'Laravel log - give me a TL;DR:',
+            '- **What**: One-line explanation',
+            '- **Why**: Likely cause (1-2 sentences)',
+            '- **Fix**: Quick solution (code snippet if needed)',
+            '',
             'Log: '.strtoupper($level),
             'Message: '.$message,
         ];

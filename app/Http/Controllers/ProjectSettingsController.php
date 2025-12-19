@@ -18,7 +18,7 @@ class ProjectSettingsController extends Controller
     public function show(Project $project): View
     {
         $project->load('tags');
-        
+
         $webhookDeliveries = $project->webhookDeliveries()
             ->orderBy('created_at', 'desc')
             ->limit(20)
@@ -62,17 +62,17 @@ class ProjectSettingsController extends Controller
         if ($request->has('tags')) {
             // Get the currently attached tags before syncing
             $previousTagIds = $project->tags()->select('tags.id')->pluck('tags.id')->toArray();
-            
+
             $tagNames = json_decode($request->input('tags'), true) ?? [];
             $tagIds = [];
-            
+
             foreach ($tagNames as $tagName) {
                 $tag = Tag::firstOrCreate(['name' => trim($tagName)]);
                 $tagIds[] = $tag->id;
             }
-            
+
             $project->tags()->sync($tagIds);
-            
+
             // Clean up orphaned tags (tags that are no longer used by any project)
             $removedTagIds = array_diff($previousTagIds, $tagIds);
             if (! empty($removedTagIds)) {
