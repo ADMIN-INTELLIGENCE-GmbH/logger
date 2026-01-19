@@ -6,9 +6,9 @@ use App\Models\Log;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\DailyDigestService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use Carbon\Carbon;
 
 class DailyDigestServiceTest extends TestCase
 {
@@ -25,7 +25,7 @@ class DailyDigestServiceTest extends TestCase
         $user = User::factory()->create([
             'daily_digest_settings' => [],
         ]);
-        $service = new DailyDigestService();
+        $service = new DailyDigestService;
 
         $data = $service->gatherData($user);
 
@@ -39,7 +39,7 @@ class DailyDigestServiceTest extends TestCase
         $user = User::factory()->create([
             'daily_digest_settings' => ['logs' => true],
         ]);
-        
+
         // Ensure settings are persisted correctly
         $this->assertTrue($user->daily_digest_settings['logs']);
 
@@ -47,7 +47,7 @@ class DailyDigestServiceTest extends TestCase
         Log::factory()->count(3)->create(['project_id' => $project->id, 'level' => 'error']);
         Log::factory()->count(2)->create(['project_id' => $project->id, 'level' => 'info']);
 
-        $service = new DailyDigestService();
+        $service = new DailyDigestService;
         $data = $service->gatherData($user);
 
         $this->assertCount(1, $data['logs_summary']);
@@ -61,18 +61,18 @@ class DailyDigestServiceTest extends TestCase
         $user = User::factory()->create([
             'daily_digest_settings' => ['memory_usage' => true],
         ]);
-        
+
         // Normal project
         Project::factory()->create([
-            'server_stats' => ['system' => ['server_memory' => ['percent_used' => 50]]]
-        ]);
-        
-        // High memory project
-        $highMemProject = Project::factory()->create([
-            'server_stats' => ['system' => ['server_memory' => ['percent_used' => 85.5]]]
+            'server_stats' => ['system' => ['server_memory' => ['percent_used' => 50]]],
         ]);
 
-        $service = new DailyDigestService();
+        // High memory project
+        $highMemProject = Project::factory()->create([
+            'server_stats' => ['system' => ['server_memory' => ['percent_used' => 85.5]]],
+        ]);
+
+        $service = new DailyDigestService;
         $data = $service->gatherData($user);
 
         $this->assertCount(1, $data['memory_alerts']);
@@ -85,18 +85,18 @@ class DailyDigestServiceTest extends TestCase
         $user = User::factory()->create([
             'daily_digest_settings' => ['filesize' => true],
         ]);
-        
+
         // Normal project
         Project::factory()->create([
-            'server_stats' => ['system' => ['disk_space' => ['percent_used' => 40]]]
-        ]);
-        
-        // High storage project
-        $highStorageProject = Project::factory()->create([
-            'server_stats' => ['system' => ['disk_space' => ['percent_used' => 90.2]]]
+            'server_stats' => ['system' => ['disk_space' => ['percent_used' => 40]]],
         ]);
 
-        $service = new DailyDigestService();
+        // High storage project
+        $highStorageProject = Project::factory()->create([
+            'server_stats' => ['system' => ['disk_space' => ['percent_used' => 90.2]]],
+        ]);
+
+        $service = new DailyDigestService;
         $data = $service->gatherData($user);
 
         $this->assertCount(1, $data['storage_alerts']);

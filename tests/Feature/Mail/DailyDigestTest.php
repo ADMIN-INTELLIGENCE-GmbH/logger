@@ -17,13 +17,13 @@ class DailyDigestTest extends TestCase
                 [
                     'id' => 'uuid-1',
                     'name' => 'Project Alpha',
-                    'counts' => ['error' => 5, 'info' => 10]
-                ]
+                    'counts' => ['error' => 5, 'info' => 10],
+                ],
             ],
             'memory_alerts' => [
-                ['project_id' => 'uuid-2', 'project' => 'Project Beta', 'usage' => 95.5]
+                ['project_id' => 'uuid-2', 'project' => 'Project Beta', 'usage' => 95.5],
             ],
-            'storage_alerts' => []
+            'storage_alerts' => [],
         ];
 
         $mailable = new DailyDigest($data);
@@ -31,7 +31,7 @@ class DailyDigestTest extends TestCase
         $mailable->assertSeeInHtml('Project Alpha');
         $mailable->assertSeeInHtml('Project Beta');
         $mailable->assertSeeInHtml('95.5');
-        // assertSeeInOrderInHtml is not available in Mailable assertions usually, 
+        // assertSeeInOrderInHtml is not available in Mailable assertions usually,
         // using assertSeeInHtml for specific values instead.
         $mailable->assertSeeInHtml('Error');
         $mailable->assertSeeInHtml('5');

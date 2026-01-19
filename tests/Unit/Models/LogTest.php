@@ -242,4 +242,3 @@ class LogTest extends TestCase
         $this->assertNull($logEmpty->user_id);
     }
 }
-

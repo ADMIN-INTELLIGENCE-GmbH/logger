@@ -5,11 +5,11 @@ namespace Tests\Feature\Console;
 use App\Mail\DailyDigest;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Artisan;
-use Tests\TestCase;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
 class SendDailyDigestsTest extends TestCase
 {
@@ -38,7 +38,7 @@ class SendDailyDigestsTest extends TestCase
         // Should send to UTC user (it's 9 AM for them)
         // Should NOT send to Tokyo user (it's 6 PM for them)
         Carbon::setTestNow(Carbon::createFromTime(9, 0, 0, 'UTC'));
-        
+
         // Debug
         // dump(User::all()->toArray());
 
@@ -47,10 +47,10 @@ class SendDailyDigestsTest extends TestCase
         dump('UTC User Email:', $utcUser->email);
         $queued = Mail::queued(DailyDigest::class);
         $sent = Mail::sent(DailyDigest::class);
-        dump("Queued count: " . $queued->count());
-        dump("Sent count: " . $sent->count());
-        foreach($queued as $mail) {
-             dump("Queued Mail To: ", $mail->to);
+        dump('Queued count: '.$queued->count());
+        dump('Sent count: '.$sent->count());
+        foreach ($queued as $mail) {
+            dump('Queued Mail To: ', $mail->to);
         }
 
         Mail::assertSent(DailyDigest::class, function ($mail) use ($utcUser) {
@@ -73,7 +73,7 @@ class SendDailyDigestsTest extends TestCase
         ]);
 
         Carbon::setTestNow(Carbon::createFromTime(9, 0, 0, 'UTC'));
-        
+
         Artisan::call('app:send-daily-digests');
 
         Mail::assertNothingSent();
@@ -92,7 +92,7 @@ class SendDailyDigestsTest extends TestCase
 
         // Should default to UTC
         Carbon::setTestNow(Carbon::createFromTime(9, 0, 0, 'UTC'));
-        
+
         Artisan::call('app:send-daily-digests');
 
         Mail::assertSent(DailyDigest::class, function ($mail) use ($user) {

@@ -70,18 +70,18 @@ class SendDailyDigests extends Command
                 ->where('timezone', $timezone)
                 ->where('daily_digest_at', $localTime)
                 ->get();
-            
+
             dump("Found {$users->count()} users in {$timezone} scheduled for {$localTime}");
             if ($users->isNotEmpty()) {
-                dump("User IDs: " . $users->pluck('id')->join(', '));
+                dump('User IDs: '.$users->pluck('id')->join(', '));
             }
 
             foreach ($users as $user) {
-                dump("Sending to (Wait): " . $user->email);
+                dump('Sending to (Wait): '.$user->email);
                 try {
                     $data = $digestService->gatherData($user, $projects, $logStats);
                     Mail::to($user)->send(new DailyDigest($data));
-                    dump("Sent to: " . $user->email);
+                    dump('Sent to: '.$user->email);
                 } catch (\Exception $e) {
                     $this->error("Failed to send digest to {$user->email}: ".$e->getMessage());
                 }
