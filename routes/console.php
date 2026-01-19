@@ -13,3 +13,6 @@ Schedule::command('app:prune-logs')->daily()->at('00:00');
 
 // Process queued jobs every minute
 Schedule::command('queue:work --stop-when-empty')->everyMinute();
+
+// Send daily digests
+Schedule::command('app:send-daily-digests')->everyMinute();

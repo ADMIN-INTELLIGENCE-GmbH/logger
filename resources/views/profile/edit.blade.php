@@ -60,6 +60,21 @@
                         @endif
                     </div>
 
+                    <div>
+                        <label for="timezone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Timezone</label>
+                        <select name="timezone" id="timezone" required
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @foreach(DateTimeZone::listIdentifiers() as $timezone)
+                                <option value="{{ $timezone }}" {{ old('timezone', $user->timezone) == $timezone ? 'selected' : '' }}>
+                                    {{ $timezone }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('timezone')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <div class="flex items-center gap-4">
                         <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Save Changes
@@ -113,6 +128,77 @@
                             Update Password
                         </button>
                         @if (session('status') === 'password-updated')
+                            <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)" class="text-sm text-green-600 dark:text-green-400">Saved.</p>
+                        @endif
+                    </div>
+                </form>
+            </div>
+
+            <!-- Daily Digest -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Daily Digest</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure your daily email summary preferences.</p>
+                </div>
+                <form method="POST" action="{{ route('profile.digest.update') }}" class="p-6 space-y-4" x-data="{ enabled: {{ $user->daily_digest_enabled ? 'true' : 'false' }} }">
+                    @csrf
+                    @method('patch')
+
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="daily_digest_enabled" name="daily_digest_enabled" type="checkbox" value="1" {{ $user->daily_digest_enabled ? 'checked' : '' }} @change="enabled = $event.target.checked" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="daily_digest_enabled" class="font-medium text-gray-700 dark:text-gray-300">Enable Daily Digest</label>
+                            <p class="text-gray-500 dark:text-gray-400">Receive a daily summary of your logs and metrics.</p>
+                        </div>
+                    </div>
+
+                    <div x-show="enabled" x-collapse class="space-y-4">
+                         <div>
+                            <label for="daily_digest_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Time of Day</label>
+                            <input type="time" name="daily_digest_at" id="daily_digest_at" value="{{ old('daily_digest_at', \Carbon\Carbon::parse($user->daily_digest_at)->format('H:i')) }}"
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+
+                        <fieldset>
+                            <legend class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Include in Digest</legend>
+                            <div class="space-y-2">
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="digest_logs" name="daily_digest_settings[logs]" type="checkbox" value="1" {{ ($user->daily_digest_settings['logs'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="digest_logs" class="font-medium text-gray-700 dark:text-gray-300">Recent Logs</label>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start">
+                                     <div class="flex items-center h-5">
+                                        <input id="digest_memory" name="daily_digest_settings[memory_usage]" type="checkbox" value="1" {{ ($user->daily_digest_settings['memory_usage'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="digest_memory" class="font-medium text-gray-700 dark:text-gray-300">High Memory Usage alerts</label>
+                                    </div>
+                                </div>
+
+                                 <div class="flex items-start">
+                                     <div class="flex items-center h-5">
+                                        <input id="digest_filesize" name="daily_digest_settings[filesize]" type="checkbox" value="1" {{ ($user->daily_digest_settings['filesize'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="digest_filesize" class="font-medium text-gray-700 dark:text-gray-300">Filesize / Storage alerts</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Save Preferences
+                        </button>
+                        @if (session('status') === 'digest-updated')
                             <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)" class="text-sm text-green-600 dark:text-green-400">Saved.</p>
                         @endif
                     </div>

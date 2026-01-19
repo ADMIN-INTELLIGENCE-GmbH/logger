@@ -77,6 +77,21 @@ class Log extends Model
     ];
 
     /**
+     * Get the user ID.
+     * Fallback to context user_id if column is null (useful for JS logs).
+     */
+    public function getUserIdAttribute($value)
+    {
+        if ($value) {
+            return $value;
+        }
+
+        $context = $this->context;
+
+        return is_array($context) ? ($context['user_id'] ?? null) : null;
+    }
+
+    /**
      * Get the project that owns the log.
      */
     public function project(): BelongsTo

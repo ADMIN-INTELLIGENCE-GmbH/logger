@@ -29,7 +29,11 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'timezone',
         'dashboard_preferences',
+        'daily_digest_enabled',
+        'daily_digest_at',
+        'daily_digest_settings',
     ];
 
     /**
@@ -53,6 +57,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'dashboard_preferences' => 'array',
+            'daily_digest_enabled' => 'boolean',
+            'daily_digest_settings' => 'array',
         ];
     }
 

@@ -209,4 +209,37 @@ class LogTest extends TestCase
 
         $this->assertEquals(2, Log::createdBetween(now()->subDays(3), now())->count());
     }
+
+    public function test_user_id_accessor_falls_back_to_context(): void
+    {
+        $project = Project::factory()->create();
+
+        // Case 1: user_id provided in column
+        $logWithColumn = Log::factory()->create([
+            'project_id' => $project->id,
+            'user_id' => '123',
+            'context' => ['user_id' => '456'], // Should be ignored in favor of column
+        ]);
+
+        $this->assertEquals('123', $logWithColumn->user_id);
+
+        // Case 2: user_id missing in column, present in context
+        $logWithContext = Log::factory()->create([
+            'project_id' => $project->id,
+            'user_id' => null,
+            'context' => ['user_id' => '456'],
+        ]);
+
+        $this->assertEquals('456', $logWithContext->user_id);
+
+        // Case 3: user_id missing in both
+        $logEmpty = Log::factory()->create([
+            'project_id' => $project->id,
+            'user_id' => null,
+            'context' => ['foo' => 'bar'],
+        ]);
+
+        $this->assertNull($logEmpty->user_id);
+    }
 }
+

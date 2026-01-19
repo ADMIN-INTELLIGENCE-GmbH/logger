@@ -124,6 +124,28 @@ Each project includes an interactive **.env Configurator** tool to help you gene
 
 To access it, go to your project's settings page and scroll to the ".env Configurator" section.
 
+### Environment Configuration Reference
+
+The following environment variables can be configured in your application to control the behavior of the Log Shipper:
+
+| Category | Variable | Description | Default |
+|----------|----------|-------------|---------|
+| **Core** | `LOG_SHIPPER_ENABLED` | Enable or disable the log shipper | `true` |
+| | `LOG_SHIPPER_ENDPOINT` | The URL where logs will be sent | (required) |
+| | `LOG_SHIPPER_KEY` | The magic key that identifies this project | (required) |
+| | `LOG_SHIPPER_FALLBACK` | Local channel to write to if shipping fails | `null` |
+| **Queue** | `LOG_SHIPPER_QUEUE` | Queue connection to use | `default` |
+| | `LOG_SHIPPER_QUEUE_NAME` | Queue name to dispatch jobs to | `default` |
+| **Batch** | `LOG_SHIPPER_BATCH_ENABLED` | Buffer logs and ship them in batches | `false` |
+| | `LOG_SHIPPER_BATCH_DRIVER` | Storage driver for buffering logs (`redis` or `cache`) | `redis` |
+| | `LOG_SHIPPER_BATCH_SIZE` | Number of logs to ship at once | `100` |
+| | `LOG_SHIPPER_BATCH_INTERVAL` | Minutes between batch runs | `1` |
+| **Status** | `LOG_SHIPPER_STATUS_ENABLED` | Enable automatic status pushing | `false` |
+| | `LOG_SHIPPER_STATUS_ENDPOINT` | The endpoint to send status reports to | (same as ingest) |
+| | `LOG_SHIPPER_STATUS_INTERVAL` | Minutes between status reports | `5` |
+| **Privacy** | `LOG_SHIPPER_IP_OBFUSCATION_ENABLED` | Obfuscate IP addresses in logs | `false` |
+| | `LOG_SHIPPER_IP_OBFUSCATION_METHOD` | Method to use (`mask` or `hash`) | `mask` |
+
 ### Allowed Domains (CORS)
 
 To prevent unauthorized use of your project key from browser-based applications, you can configure **Allowed Domains**.

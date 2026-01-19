@@ -41,6 +41,31 @@ class ProfileController extends Controller
     }
 
     /**
+     * Update the user's daily digest settings.
+     */
+    public function updateDigest(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'daily_digest_at' => ['required_if:daily_digest_enabled,true', 'date_format:H:i'],
+            'daily_digest_settings' => ['nullable', 'array'],
+        ]);
+
+        $user = $request->user();
+
+        $user->daily_digest_enabled = $request->boolean('daily_digest_enabled');
+
+        if ($user->daily_digest_enabled) {
+            $user->daily_digest_at = $request->input('daily_digest_at');
+        }
+
+        $user->daily_digest_settings = $request->input('daily_digest_settings', []);
+
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'digest-updated');
+    }
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse

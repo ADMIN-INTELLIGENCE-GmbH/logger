@@ -394,13 +394,13 @@
                                 name: 'default'
                             },
                             batch: {
-                                enabled: 'false',
+                                enabled: 'true',
                                 driver: 'redis',
                                 size: '100',
                                 interval: '1'
                             },
                             status: {
-                                enabled: 'false',
+                                enabled: 'true',
                                 endpoint: defaults.statsEndpoint || '',
                                 interval: '5'
                             }
