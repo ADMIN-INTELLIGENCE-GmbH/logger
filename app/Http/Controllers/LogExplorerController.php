@@ -207,4 +207,26 @@ class LogExplorerController extends Controller
             'message' => 'Log entry deleted',
         ]);
     }
+
+    /**
+     * Delete multiple log entries at once.
+     */
+    public function bulkDestroy(Request $request, Project $project): JsonResponse
+    {
+        $validated = $request->validate([
+            'log_ids' => 'required|array|min:1',
+            'log_ids.*' => 'required|integer',
+        ]);
+
+        // Delete only logs that belong to this project
+        $deletedCount = Log::where('project_id', $project->id)
+            ->whereIn('id', $validated['log_ids'])
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Deleted {$deletedCount} log ".($deletedCount === 1 ? 'entry' : 'entries'),
+            'deleted_count' => $deletedCount,
+        ]);
+    }
 }

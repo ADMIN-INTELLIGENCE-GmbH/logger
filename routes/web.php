@@ -29,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projects/{project}/logs/{log}', [LogExplorerController::class, 'show'])->name('projects.logs.show');
     Route::post('/projects/{project}/logs/{log}/analyze', [LogExplorerController::class, 'analyze'])->name('projects.logs.analyze');
     Route::delete('/projects/{project}/logs/{log}', [LogExplorerController::class, 'destroy'])->name('projects.logs.destroy');
+    Route::post('/projects/{project}/logs/bulk-delete', [LogExplorerController::class, 'bulkDestroy'])->name('projects.logs.bulk-destroy');
 
     // Failing Controllers
     Route::get('/projects/{project}/failing-controllers', [FailingControllersController::class, 'index'])->name('projects.failing-controllers.index');

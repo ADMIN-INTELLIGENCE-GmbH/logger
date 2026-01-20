@@ -19,7 +19,7 @@ Logger provides a simple HTTP API for ingesting logs from any application, a web
 
 - **Log Ingestion API**: RESTful endpoint for receiving logs from any application
 - **Multi-Project Support**: Manage logs from multiple applications with isolated project keys
-- **Log Explorer**: Search, filter, and browse logs with pagination
+- **Log Explorer**: Search, filter, and browse logs with pagination and bulk delete functionality
 - **Failing Controllers Report**: Identify error hotspots by controller
 - **Retention Policies**: Configurable per-project log retention (7, 14, 30, 90 days, or infinite)
 - **Webhook Notifications**: Slack/Discord/Mattermost/Teams-compatible alerts for errors and critical events

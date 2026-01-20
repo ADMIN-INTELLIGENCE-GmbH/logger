@@ -11,6 +11,9 @@
     llmAnalysis: null,
     llmLoading: false,
     llmError: null,
+    selectedLogs: [],
+    showBulkDeleteConfirm: false,
+    bulkDeleting: false,
     llmFields: {
         channel: true,
         controller: true,
@@ -24,6 +27,59 @@
         ip_address: false,
         user_agent: false,
         referrer: false
+    },
+    get allLogsSelected() {
+        const logIds = {{ $logs->pluck('id')->toJson() }};
+        return logIds.length > 0 && logIds.every(id => this.selectedLogs.includes(id));
+    },
+    toggleAllLogs() {
+        const logIds = {{ $logs->pluck('id')->toJson() }};
+        if (this.allLogsSelected) {
+            this.selectedLogs = this.selectedLogs.filter(id => !logIds.includes(id));
+        } else {
+            logIds.forEach(id => {
+                if (!this.selectedLogs.includes(id)) {
+                    this.selectedLogs.push(id);
+                }
+            });
+        }
+    },
+    toggleLogSelection(logId) {
+        const index = this.selectedLogs.indexOf(logId);
+        if (index === -1) {
+            this.selectedLogs.push(logId);
+        } else {
+            this.selectedLogs.splice(index, 1);
+        }
+    },
+    async bulkDelete() {
+        if (this.selectedLogs.length === 0) return;
+        
+        this.bulkDeleting = true;
+        
+        try {
+            const response = await fetch('/projects/{{ $project->id }}/logs/bulk-delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    log_ids: this.selectedLogs
+                })
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to delete logs');
+                this.bulkDeleting = false;
+            }
+        } catch (error) {
+            alert('Failed to connect to the server');
+            this.bulkDeleting = false;
+        }
     },
     openLog(log) {
         this.selectedLog = log;
@@ -212,6 +268,40 @@
         </form>
     </div>
 
+    <!-- Bulk Actions Bar -->
+    <div x-show="selectedLogs.length > 0" x-cloak class="mb-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <span class="text-sm font-medium text-gray-900 dark:text-white">
+                    <span x-text="selectedLogs.length"></span> log<span x-show="selectedLogs.length !== 1">s</span> selected
+                </span>
+                <button @click="selectedLogs = []" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
+                    Clear selection
+                </button>
+            </div>
+            <div class="flex items-center space-x-3">
+                <template x-if="!showBulkDeleteConfirm">
+                    <button @click="showBulkDeleteConfirm = true" class="inline-flex items-center px-4 py-2 border border-red-300 dark:border-red-600 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20">
+                        <i class="mdi mdi-trash-can mr-2"></i>
+                        Delete Selected
+                    </button>
+                </template>
+                <template x-if="showBulkDeleteConfirm">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-red-600 dark:text-red-400 font-medium">Are you sure?</span>
+                        <button @click="bulkDelete()" :disabled="bulkDeleting" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!bulkDeleting">Yes, Delete</span>
+                            <span x-show="bulkDeleting">Deleting...</span>
+                        </button>
+                        <button @click="showBulkDeleteConfirm = false" :disabled="bulkDeleting" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Cancel
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
     <!-- Results Count -->
     <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
         Showing {{ $logs->firstItem() ?? 0 }} to {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} logs
@@ -223,6 +313,9 @@
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
+                        <th class="px-6 py-3 text-left">
+                            <input type="checkbox" :checked="allLogsSelected" @change="toggleAllLogs()" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                        </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Timestamp</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Level</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message</th>
@@ -233,11 +326,14 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($logs as $log)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" @click="openLog({{ $log->toJson() }})">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td class="px-6 py-4 whitespace-nowrap" @click.stop>
+                            <input type="checkbox" :checked="selectedLogs.includes({{ $log->id }})" @change="toggleLogSelection({{ $log->id }})" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 cursor-pointer" @click="openLog({{ $log->toJson() }})">
                             {{ ($log->logged_at ?? $log->created_at)->format('M d, H:i:s') }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-6 py-4 whitespace-nowrap cursor-pointer" @click="openLog({{ $log->toJson() }})">
                             <div class="flex items-center space-x-2">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                         @if($log->level === 'critical') bg-red-900 text-white
@@ -254,13 +350,13 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md truncate">
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md truncate cursor-pointer" @click="openLog({{ $log->toJson() }})">
                             {{ Str::limit($log->message, 80) }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 cursor-pointer" @click="openLog({{ $log->toJson() }})">
                             {{ $log->controller ? class_basename($log->controller) : '-' }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 cursor-pointer" @click="openLog({{ $log->toJson() }})">
                             {{ $log->user_id ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -271,7 +367,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                             <i class="mdi mdi-text-box-search-outline text-5xl text-gray-400 dark:text-gray-500"></i>
                             <p class="mt-4">No logs found matching your criteria.</p>
                         </td>

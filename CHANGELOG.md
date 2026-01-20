@@ -8,6 +8,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Daily Digest Feature**: Scheduled email summaries of project logs with user preferences
+  - User profile settings for daily digest configuration (enable/disable, time preference)
+  - Timezone support for users to receive digests at their preferred local time
+  - `SendDailyDigests` command to send daily email summaries based on user preferences
+  - `DailyDigestService` to gather and format data for digest emails
+  - Test command `SendTestDigest` for testing digest functionality
+  - Comprehensive tests for daily digest functionality
+- **Tag Management System**: Organize projects with tags
+  - Tag model and database support with many-to-many project relationships
+  - Autocomplete functionality for tag input
+  - Tag search API endpoint
+- **CORS Configuration**: Per-project allowed domains configuration for cross-origin requests
+  - Configurable whitelist of domains that can send logs to each project
+  - Enhanced security for API access control
+- **Server Status Monitoring**: Real-time server metrics and statistics
+  - Global dashboard with aggregated statistics across all projects
+  - Per-project server statistics (CPU, memory, disk usage)
+  - Server stats API endpoint (`POST /api/stats`) for projects to report their status
+  - Application info, system info, queue & database status display
+  - Storage & cache usage visualization with progress bars
+- **Environment Configurator**: Step-by-step .env file generator in project settings
+  - Interactive configuration options based on selected features
+  - Copy to clipboard functionality for generated .env content
+  - API key display and copy functionality
+- **Log Management Enhancements**:
+  - Copy to clipboard functionality for log details
+  - Individual log deletion capability
+  - Bulk truncate logs feature (delete all logs for a project)
+  - Dashboard preferences for users (customizable dashboard widgets)
+- **Webhook Enhancements**:
+  - Webhook format selection (Slack, Discord, Mattermost, Microsoft Teams, Generic JSON)
+  - Webhook delivery tracking with WebhookDelivery model
+  - Webhook secret regeneration functionality
+  - Test webhook delivery capability
+  - Enhanced webhook notification formatting for different platforms
+- **UI/UX Improvements**:
+  - Material Design Icons integration for better aesthetics
+  - Favicon support
+  - Enhanced project dashboard with memory and CPU usage metrics
+  - Improved navigation and layout consistency
+  - Server resource usage bars for memory and disk space
+- **Developer Experience**:
+  - Log shipper configuration support
+  - GitLab CI/CD pipeline with Node.js setup and asset build steps
+  - Issue templates for bug reports and feature requests
+  - Interactive API documentation (`docs/index.html`)
+  - Laravel badge in README
 - Full-text search support for log messages (MySQL and PostgreSQL)
 - OpenAPI 3.0 specification for the API (`openapi.yaml`)
 - API rate limit response headers (`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`)
@@ -16,9 +63,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Webhook threshold now supports all 8 PSR-3 log levels (debug, info, notice, warning, error, critical, alert, emergency)
+- Request signature hashing upgraded to SHA-256 for improved security
+- Enhanced IngestLogRequest validation with support for server statistics
+- Log column sizes adjusted for user agent and referrer fields
+- Improved OpenAI service with better error handling and response formatting
+- Enhanced webhook dispatcher with support for multiple notification formats
 
 ### Fixed
 - Webhook threshold validation was missing notice, warning, alert, and emergency levels
+- URL safety checks enhanced for better testability in non-production environments
+- Whitespace and formatting cleaned up across multiple controllers and configuration files
+- Vite manifest handling in CI/CD to prevent test failures
+- Composer dependency cleanup (removed unused laravel-log-shipper)
+- Test redirects updated to point to dashboard
+- PHP version and dependencies updated in CI/CD test stage
 
 ## [1.0.0] - 2024-12-09
 
