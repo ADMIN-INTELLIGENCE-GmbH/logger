@@ -563,51 +563,124 @@ class WebhookDispatcher implements ShouldQueue
         $project = $log->project;
         $levelColor = $this->getLevelColor($log->level);
         $projectUrl = $this->getProjectUrl($project);
+        $levelIcon = $this->getLevelIcon($log->level);
+
+        // Build the main message with emoji
+        $messageText = "{$levelIcon} *{$log->message}*";
+
+        // Build fields array
+        $fields = [
+            [
+                'title' => 'Project',
+                'value' => "<{$projectUrl}|{$project->name}>",
+                'short' => true,
+            ],
+            [
+                'title' => 'Level',
+                'value' => strtoupper($log->level),
+                'short' => true,
+            ],
+        ];
+
+        // Add optional fields
+        if ($log->controller) {
+            $fields[] = ['title' => 'Controller', 'value' => $log->controller, 'short' => true];
+        }
+
+        if ($log->route_name) {
+            $fields[] = ['title' => 'Route', 'value' => $log->route_name, 'short' => true];
+        }
+
+        if ($log->method && $log->request_url) {
+            $fields[] = ['title' => 'Request', 'value' => "`{$log->method} {$log->request_url}`", 'short' => false];
+        }
+
+        if ($log->user_id) {
+            $fields[] = ['title' => 'User ID', 'value' => (string) $log->user_id, 'short' => true];
+        }
+
+        if ($log->ip_address) {
+            $fields[] = ['title' => 'IP Address', 'value' => $log->ip_address, 'short' => true];
+        }
+
+        // Add formatted context if present
+        if (! empty($log->context) && is_array($log->context)) {
+            $contextText = $this->formatContextForSlack($log->context);
+            if ($contextText) {
+                $fields[] = ['title' => 'Context', 'value' => $contextText, 'short' => false];
+            }
+        }
+
+        // Add formatted extra data if present
+        if (! empty($log->extra) && is_array($log->extra)) {
+            $extraText = $this->formatContextForSlack($log->extra);
+            if ($extraText) {
+                $fields[] = ['title' => 'Additional Info', 'value' => $extraText, 'short' => false];
+            }
+        }
 
         return [
-            'text' => "[{$project->name}] {$log->level}: {$log->message}",
             'username' => 'Logger',
             'attachments' => [
                 [
                     'color' => $levelColor,
-                    'title' => "Log Entry - {$log->level}",
-                    'text' => $log->message,
-                    'fields' => array_values(array_filter([
-                        [
-                            'title' => 'Project',
-                            'value' => "<{$projectUrl}|{$project->name}>",
-                            'short' => true,
-                        ],
-                        [
-                            'title' => 'Level',
-                            'value' => strtoupper($log->level),
-                            'short' => true,
-                        ],
-                        $log->controller ? [
-                            'title' => 'Controller',
-                            'value' => $log->controller,
-                            'short' => true,
-                        ] : null,
-                        $log->route_name ? [
-                            'title' => 'Route',
-                            'value' => $log->route_name,
-                            'short' => true,
-                        ] : null,
-                        $log->user_id ? [
-                            'title' => 'User ID',
-                            'value' => $log->user_id,
-                            'short' => true,
-                        ] : null,
-                        $log->ip_address ? [
-                            'title' => 'IP Address',
-                            'value' => $log->ip_address,
-                            'short' => true,
-                        ] : null,
-                    ])),
+                    'text' => $messageText,
+                    'fields' => $fields,
+                    'footer' => 'Logger • '.ucfirst($log->channel ?? 'app'),
                     'ts' => $log->created_at->timestamp,
                 ],
             ],
         ];
+    }
+
+    /**
+     * Format context/extra data for Slack display.
+     */
+    protected function formatContextForSlack(array $data, int $maxDepth = 2, int $currentDepth = 0): string
+    {
+        if ($currentDepth >= $maxDepth) {
+            return '```' . json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '```';
+        }
+
+        $lines = [];
+        $important = ['message', 'exception', 'error', 'stack', 'trace', 'file', 'line', 'code'];
+
+        foreach ($data as $key => $value) {
+            // Skip null values and empty arrays
+            if ($value === null || (is_array($value) && empty($value))) {
+                continue;
+            }
+
+            // Format the value based on type
+            if (is_bool($value)) {
+                $formatted = $value ? 'true' : 'false';
+            } elseif (is_string($value)) {
+                // Truncate very long strings
+                if (strlen($value) > 500) {
+                    $formatted = substr($value, 0, 500) . '...';
+                } else {
+                    $formatted = $value;
+                }
+                // Check if it looks like JSON and format it
+                if (str_starts_with(trim($value), '{') || str_starts_with(trim($value), '[')) {
+                    $decoded = json_decode($value, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $formatted = '```' . json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '```';
+                    }
+                }
+            } elseif (is_array($value)) {
+                // For nested arrays, format recursively
+                $formatted = $this->formatContextForSlack($value, $maxDepth, $currentDepth + 1);
+            } else {
+                $formatted = (string) $value;
+            }
+
+            // Add importance marker for key fields
+            $keyDisplay = in_array(strtolower($key), $important) ? "*{$key}*" : $key;
+            $lines[] = "• {$keyDisplay}: {$formatted}";
+        }
+
+        return implode("\n", array_slice($lines, 0, 10)); // Limit to 10 items
     }
 
     /**
@@ -619,40 +692,140 @@ class WebhookDispatcher implements ShouldQueue
         $project = $log->project;
         $levelColor = $this->getLevelColor($log->level);
         $projectUrl = $this->getProjectUrl($project);
+        $levelIcon = $this->getLevelIcon($log->level);
+
+        // Build the main message with emoji and formatting
+        $messageText = "{$levelIcon} **{$log->message}**";
+
+        // Build fields array
+        $fields = [
+            [
+                'title' => 'Project',
+                'value' => "[{$project->name}]({$projectUrl})",
+                'short' => true,
+            ],
+            [
+                'title' => 'Level',
+                'value' => strtoupper($log->level),
+                'short' => true,
+            ],
+        ];
+
+        // Add optional fields
+        if ($log->controller) {
+            $fields[] = ['title' => 'Controller', 'value' => $log->controller, 'short' => true];
+        }
+
+        if ($log->route_name) {
+            $fields[] = ['title' => 'Route', 'value' => $log->route_name, 'short' => true];
+        }
+
+        if ($log->method && $log->request_url) {
+            $fields[] = ['title' => 'Request', 'value' => "`{$log->method} {$log->request_url}`", 'short' => false];
+        }
+
+        if ($log->user_id) {
+            $fields[] = ['title' => 'User ID', 'value' => (string) $log->user_id, 'short' => true];
+        }
+
+        if ($log->ip_address) {
+            $fields[] = ['title' => 'IP Address', 'value' => $log->ip_address, 'short' => true];
+        }
+
+        // Add formatted context if present
+        if (! empty($log->context) && is_array($log->context)) {
+            $contextText = $this->formatContextForMattermost($log->context);
+            if ($contextText) {
+                $fields[] = ['title' => 'Context', 'value' => $contextText, 'short' => false];
+            }
+        }
+
+        // Add formatted extra data if present
+        if (! empty($log->extra) && is_array($log->extra)) {
+            $extraText = $this->formatContextForMattermost($log->extra);
+            if ($extraText) {
+                $fields[] = ['title' => 'Additional Info', 'value' => $extraText, 'short' => false];
+            }
+        }
 
         return [
-            'text' => "**[{$project->name}]** {$log->level}: {$log->message}",
             'username' => 'Logger',
             'attachments' => [
                 [
                     'color' => $levelColor,
-                    'title' => "Log Entry - {$log->level}",
-                    'text' => $log->message,
-                    'fields' => array_values(array_filter([
-                        [
-                            'title' => 'Project',
-                            'value' => "[{$project->name}]({$projectUrl})",
-                            'short' => true,
-                        ],
-                        [
-                            'title' => 'Level',
-                            'value' => strtoupper($log->level),
-                            'short' => true,
-                        ],
-                        $log->controller ? [
-                            'title' => 'Controller',
-                            'value' => $log->controller,
-                            'short' => true,
-                        ] : null,
-                        $log->user_id ? [
-                            'title' => 'User ID',
-                            'value' => $log->user_id,
-                            'short' => true,
-                        ] : null,
-                    ])),
+                    'text' => $messageText,
+                    'fields' => $fields,
+                    'footer' => 'Logger • '.ucfirst($log->channel ?? 'app'),
+                    'footer_icon' => 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+                    'ts' => $log->created_at->timestamp,
                 ],
             ],
         ];
+    }
+
+    /**
+     * Format context/extra data for Mattermost display.
+     */
+    protected function formatContextForMattermost(array $data, int $maxDepth = 2, int $currentDepth = 0): string
+    {
+        if ($currentDepth >= $maxDepth) {
+            return '```' . json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '```';
+        }
+
+        $lines = [];
+        $important = ['message', 'exception', 'error', 'stack', 'trace', 'file', 'line', 'code'];
+
+        foreach ($data as $key => $value) {
+            // Skip null values and empty arrays
+            if ($value === null || (is_array($value) && empty($value))) {
+                continue;
+            }
+
+            // Format the value based on type
+            if (is_bool($value)) {
+                $formatted = $value ? 'true' : 'false';
+            } elseif (is_string($value)) {
+                // Truncate very long strings
+                if (strlen($value) > 500) {
+                    $formatted = substr($value, 0, 500) . '...';
+                } else {
+                    $formatted = $value;
+                }
+                // Check if it looks like JSON and format it
+                if (str_starts_with(trim($value), '{') || str_starts_with(trim($value), '[')) {
+                    $decoded = json_decode($value, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $formatted = '```json\n' . json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '\n```';
+                    }
+                }
+            } elseif (is_array($value)) {
+                // For nested arrays, format recursively
+                $formatted = $this->formatContextForMattermost($value, $maxDepth, $currentDepth + 1);
+            } else {
+                $formatted = (string) $value;
+            }
+
+            // Add importance marker for key fields
+            $keyDisplay = in_array(strtolower($key), $important) ? "**{$key}**" : $key;
+            $lines[] = "- {$keyDisplay}: {$formatted}";
+        }
+
+        return implode("\n", array_slice($lines, 0, 10)); // Limit to 10 items
+    }
+
+    /**
+     * Get emoji icon for log level.
+     */
+    protected function getLevelIcon(string $level): string
+    {
+        return match ($level) {
+            'debug' => '🐛',
+            'info' => 'ℹ️',
+            'warning' => '⚠️',
+            'error' => '❌',
+            'critical' => '🔥',
+            default => '📝',
+        };
     }
 
     /**
