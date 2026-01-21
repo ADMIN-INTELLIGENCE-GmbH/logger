@@ -232,14 +232,26 @@ class WebhookDispatcher implements ShouldQueue
 
             $headers = $this->buildHeaders($project, $payload);
 
+            // Parse original URL to get host and port
+            $parsedOriginal = parse_url($url);
+            $host = $parsedOriginal['host'];
+            $scheme = $parsedOriginal['scheme'];
+            $port = $parsedOriginal['port'] ?? ($scheme === 'https' ? 443 : 80);
+
+            // Extract resolved IP from the safe URL
+            $resolvedIp = parse_url($resolvedUrl, PHP_URL_HOST);
+
             $response = Http::timeout($this->timeout)
                 ->withHeaders($headers)
+                ->withOptions([
+                    'resolve' => ["{$host}:{$port}:{$resolvedIp}"],
+                ])
                 ->retry(3, 100, function ($exception, $request) use ($delivery) {
                     $delivery->increment('attempt');
 
                     return true;
                 })
-                ->post($resolvedUrl, $payload);
+                ->post($url, $payload);
 
             $delivery->update([
                 'status_code' => $response->status(),
@@ -327,9 +339,21 @@ class WebhookDispatcher implements ShouldQueue
 
             $headers = $instance->buildHeaders($project, $payload);
 
+            // Parse original URL to get host and port
+            $parsedOriginal = parse_url($url);
+            $host = $parsedOriginal['host'];
+            $scheme = $parsedOriginal['scheme'];
+            $port = $parsedOriginal['port'] ?? ($scheme === 'https' ? 443 : 80);
+
+            // Extract resolved IP from the safe URL
+            $resolvedIp = parse_url($resolvedUrl, PHP_URL_HOST);
+
             $response = Http::timeout(10)
                 ->withHeaders($headers)
-                ->post($resolvedUrl, $payload);
+                ->withOptions([
+                    'resolve' => ["{$host}:{$port}:{$resolvedIp}"],
+                ])
+                ->post($url, $payload);
 
             $delivery->update([
                 'status_code' => $response->status(),

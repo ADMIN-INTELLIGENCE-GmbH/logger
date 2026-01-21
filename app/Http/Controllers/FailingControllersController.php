@@ -6,6 +6,7 @@ use App\Models\Log;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class FailingControllersController extends Controller
@@ -22,18 +23,33 @@ class FailingControllersController extends Controller
             ->select('id', 'controller', 'context')
             ->get();
 
-        // Group by controller class
-        $grouped = $logs->groupBy('controller');
+        // Group by controller class (strip method if present)
+        $grouped = $logs->groupBy(function ($log) {
+            return Str::before($log->controller, '@');
+        });
 
         // Convert to collection with totals and method breakdown
-        $failingControllers = $grouped->map(function ($logs, $controller) {
-            // Extract methods from context traces
-            $methods = $logs->groupBy(function ($log) {
-                // Context is already an array due to model casting
+        $failingControllers = $grouped->map(function ($logs, $controllerClass) {
+            // Group by method
+            $methods = $logs->groupBy(function ($log) use ($controllerClass) {
+                // If controller field has @method, use it
+                if (Str::contains($log->controller, '@')) {
+                    return Str::afterLast($log->controller, '@');
+                }
+
+                // Fallback: Extract from trace
                 $context = $log->context;
                 if (is_array($context) && isset($context['trace']) && is_array($context['trace'])) {
+                    // Try to find the specific method for this controller in the stack trace
                     foreach ($context['trace'] as $frame) {
-                        if (isset($frame['function'])) {
+                        if (isset($frame['class']) && $frame['class'] === $controllerClass && isset($frame['function'])) {
+                            return $frame['function'];
+                        }
+                    }
+
+                    // Fallback: If no strict class match, try checking if the controller ends with the class name
+                    foreach ($context['trace'] as $frame) {
+                        if (isset($frame['class']) && str_ends_with($controllerClass, $frame['class']) && isset($frame['function'])) {
                             return $frame['function'];
                         }
                     }
@@ -47,7 +63,7 @@ class FailingControllersController extends Controller
             });
 
             return (object) [
-                'controller' => $controller,
+                'controller' => $controllerClass,
                 'total' => $logs->count(),
                 'methods' => $methods,
             ];

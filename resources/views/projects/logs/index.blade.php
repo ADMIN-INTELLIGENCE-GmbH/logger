@@ -330,10 +330,10 @@
                         <td class="px-6 py-4 whitespace-nowrap" @click.stop>
                             <input type="checkbox" :checked="selectedLogs.includes({{ $log->id }})" @change="toggleLogSelection({{ $log->id }})" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 cursor-pointer" @click="openLog({{ $log->toJson() }})">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {{ ($log->logged_at ?? $log->created_at)->format('M d, H:i:s') }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap cursor-pointer" @click="openLog({{ $log->toJson() }})">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center space-x-2">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                         @if($log->level === 'critical') bg-red-900 text-white
@@ -350,17 +350,17 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md truncate cursor-pointer" @click="openLog({{ $log->toJson() }})">
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md truncate">
                             {{ Str::limit($log->message, 80) }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 cursor-pointer" @click="openLog({{ $log->toJson() }})">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {{ $log->controller ? class_basename($log->controller) : '-' }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 cursor-pointer" @click="openLog({{ $log->toJson() }})">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {{ $log->user_id ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+                            <button @click="openLog({{ $log->toJson() }})" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
                                 View
                             </button>
                         </td>

@@ -70,6 +70,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced webhook dispatcher with support for multiple notification formats
 
 ### Fixed
+- Webhook SSL handshake failures with Cloudflare-proxied domains by using IP-based resolution
+- Log Explorer "View" interaction to prevent accidental modal opening when selecting rows
+- Failing Controllers method breakdown showing "unknown" for errors by improving stack trace parsing logic
 - Webhook threshold validation was missing notice, warning, alert, and emergency levels
 - URL safety checks enhanced for better testability in non-production environments
 - Whitespace and formatting cleaned up across multiple controllers and configuration files
