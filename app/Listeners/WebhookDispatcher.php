@@ -639,7 +639,7 @@ class WebhookDispatcher implements ShouldQueue
     protected function formatContextForSlack(array $data, int $maxDepth = 2, int $currentDepth = 0): string
     {
         if ($currentDepth >= $maxDepth) {
-            return '```' . json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '```';
+            return '```'.json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).'```';
         }
 
         $lines = [];
@@ -657,7 +657,7 @@ class WebhookDispatcher implements ShouldQueue
             } elseif (is_string($value)) {
                 // Truncate very long strings
                 if (strlen($value) > 500) {
-                    $formatted = substr($value, 0, 500) . '...';
+                    $formatted = substr($value, 0, 500).'...';
                 } else {
                     $formatted = $value;
                 }
@@ -665,7 +665,7 @@ class WebhookDispatcher implements ShouldQueue
                 if (str_starts_with(trim($value), '{') || str_starts_with(trim($value), '[')) {
                     $decoded = json_decode($value, true);
                     if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        $formatted = '```' . json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '```';
+                        $formatted = '```'.json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).'```';
                     }
                 }
             } elseif (is_array($value)) {
@@ -769,7 +769,7 @@ class WebhookDispatcher implements ShouldQueue
     protected function formatContextForMattermost(array $data, int $maxDepth = 2, int $currentDepth = 0): string
     {
         if ($currentDepth >= $maxDepth) {
-            return '```' . json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '```';
+            return '```'.json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).'```';
         }
 
         $lines = [];
@@ -787,7 +787,7 @@ class WebhookDispatcher implements ShouldQueue
             } elseif (is_string($value)) {
                 // Truncate very long strings
                 if (strlen($value) > 500) {
-                    $formatted = substr($value, 0, 500) . '...';
+                    $formatted = substr($value, 0, 500).'...';
                 } else {
                     $formatted = $value;
                 }
@@ -795,7 +795,7 @@ class WebhookDispatcher implements ShouldQueue
                 if (str_starts_with(trim($value), '{') || str_starts_with(trim($value), '[')) {
                     $decoded = json_decode($value, true);
                     if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        $formatted = '```json\n' . json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '\n```';
+                        $formatted = '```json\n'.json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).'\n```';
                     }
                 }
             } elseif (is_array($value)) {
