@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Project Permissions**: Per-project access control (view/edit) with user assignments
+  - Project-user membership table with permission levels
+  - Project policy enforcement for dashboards, logs, and settings
+  - User admin UI to assign project access
 - **Daily Digest Feature**: Scheduled email summaries of project logs with user preferences
   - User profile settings for daily digest configuration (enable/disable, time preference)
   - Timezone support for users to receive digests at their preferred local time
@@ -62,6 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WebhookDelivery factory for testing
 
 ### Changed
+- Project creation and settings access now enforced via permissions (admins can create, edit permissions gate edits)
+- Daily digest content is scoped to the projects a user can access
 - Webhook threshold now supports all 8 PSR-3 log levels (debug, info, notice, warning, error, critical, alert, emergency)
 - Request signature hashing upgraded to SHA-256 for improved security
 - Enhanced IngestLogRequest validation with support for server statistics

@@ -18,7 +18,7 @@ class SendDailyDigestsTest extends TestCase
     public function test_sends_digests_to_users_at_their_scheduled_time(): void
     {
         Mail::fake();
-        Project::factory()->create(); // Ensure we have logs/projects to report on
+        $project = Project::factory()->create(); // Ensure we have logs/projects to report on
 
         // User in UTC, scheduled for 09:00
         $utcUser = User::factory()->create([
@@ -26,6 +26,7 @@ class SendDailyDigestsTest extends TestCase
             'timezone' => 'UTC',
             'daily_digest_at' => '09:00:00',
         ]);
+        $project->users()->attach($utcUser->id, ['permission' => Project::PERMISSION_VIEW]);
 
         // User in Tokyo (UTC+9), scheduled for 09:00 (which is 00:00 UTC)
         $tokyoUser = User::factory()->create([
@@ -33,6 +34,7 @@ class SendDailyDigestsTest extends TestCase
             'timezone' => 'Asia/Tokyo',
             'daily_digest_at' => '09:00:00', // 9 AM in Tokyo
         ]);
+        $project->users()->attach($tokyoUser->id, ['permission' => Project::PERMISSION_VIEW]);
 
         // 1. Test at 09:00 UTC
         // Should send to UTC user (it's 9 AM for them)
@@ -82,13 +84,14 @@ class SendDailyDigestsTest extends TestCase
     public function test_handles_invalid_timezones_gracefully(): void
     {
         Mail::fake();
-        Project::factory()->create();
+        $project = Project::factory()->create();
 
         $user = User::factory()->create([
             'daily_digest_enabled' => true,
             'timezone' => 'Invalid/Timezone',
             'daily_digest_at' => '09:00:00',
         ]);
+        $project->users()->attach($user->id, ['permission' => Project::PERMISSION_VIEW]);
 
         // Should default to UTC
         Carbon::setTestNow(Carbon::createFromTime(9, 0, 0, 'UTC'));

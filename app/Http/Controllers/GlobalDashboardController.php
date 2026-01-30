@@ -15,7 +15,10 @@ class GlobalDashboardController extends Controller
      */
     public function index(Request $request): View
     {
+        $user = $request->user();
+
         $projects = Project::where('is_active', true)
+            ->visibleTo($user)
             ->with('tags')
             ->orderBy('name')
             ->get()
@@ -46,11 +49,19 @@ class GlobalDashboardController extends Controller
             })->values();
 
         // Overall stats
-        $totalProjects = Project::where('is_active', true)->count();
-        $totalLogs24h = Log::where('created_at', '>=', now()->subDay())->count();
-        $totalErrors24h = Log::where('created_at', '>=', now()->subDay())
-            ->whereIn('level', ['error', 'critical', 'alert', 'emergency'])
-            ->count();
+        $projectIds = $projects->pluck('project.id')->filter()->values();
+        $totalProjects = $projects->count();
+        $totalLogs24h = $projectIds->isEmpty()
+            ? 0
+            : Log::where('created_at', '>=', now()->subDay())
+                ->whereIn('project_id', $projectIds)
+                ->count();
+        $totalErrors24h = $projectIds->isEmpty()
+            ? 0
+            : Log::where('created_at', '>=', now()->subDay())
+                ->whereIn('project_id', $projectIds)
+                ->whereIn('level', ['error', 'critical', 'alert', 'emergency'])
+                ->count();
 
         $overallStats = [
             'total_projects' => $totalProjects,
@@ -62,7 +73,7 @@ class GlobalDashboardController extends Controller
         $project = null; // Ensure project-specific nav is hidden
 
         // Get user's hidden metrics (defaults to empty array)
-        $hiddenMetrics = $request->user()->dashboard_preferences['hidden_metrics'] ?? [];
+        $hiddenMetrics = $user->dashboard_preferences['hidden_metrics'] ?? [];
 
         return view('dashboard', compact('projects', 'overallStats', 'project', 'hiddenMetrics'));
     }

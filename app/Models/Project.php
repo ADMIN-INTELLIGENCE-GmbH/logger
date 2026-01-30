@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,18 @@ class Project extends Model
         'discord' => 'Discord',
         'teams' => 'Microsoft Teams',
         'generic' => 'Generic JSON',
+    ];
+
+    /**
+     * Supported project permissions.
+     */
+    public const PERMISSION_VIEW = 'view';
+
+    public const PERMISSION_EDIT = 'edit';
+
+    public const PERMISSIONS = [
+        self::PERMISSION_VIEW,
+        self::PERMISSION_EDIT,
     ];
 
     protected $fillable = [
@@ -154,6 +167,45 @@ class Project extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    /**
+     * Get all users assigned to this project.
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->withPivot('permission')
+            ->withTimestamps();
+    }
+
+    /**
+     * Scope projects visible to the given user.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->whereHas('users', function (Builder $builder) use ($user) {
+            $builder->where('users.id', $user->id);
+        });
+    }
+
+    /**
+     * Scope projects editable by the given user.
+     */
+    public function scopeEditableBy(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->whereHas('users', function (Builder $builder) use ($user) {
+            $builder->where('users.id', $user->id)
+                ->where('project_user.permission', self::PERMISSION_EDIT);
+        });
     }
 
     /**

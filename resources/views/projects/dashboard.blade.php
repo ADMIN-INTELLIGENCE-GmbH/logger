@@ -28,23 +28,25 @@
             </div>
         </div>
 
-        <!-- Magic Key Section -->
-        <div class="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Project Key</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Use this key in the X-Project-Key header</p>
+        @can('update', $project)
+            <!-- Magic Key Section -->
+            <div class="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Project Key</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Use this key in the X-Project-Key header</p>
+                    </div>
+                    <button @click="showMagicKey = !showMagicKey" class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <i x-show="!showMagicKey" class="mdi mdi-eye mr-2"></i>
+                        <i x-show="showMagicKey" x-cloak class="mdi mdi-eye-off mr-2"></i>
+                        <span x-text="showMagicKey ? 'Hide' : 'Show'"></span>
+                    </button>
                 </div>
-                <button @click="showMagicKey = !showMagicKey" class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <i x-show="!showMagicKey" class="mdi mdi-eye mr-2"></i>
-                    <i x-show="showMagicKey" x-cloak class="mdi mdi-eye-off mr-2"></i>
-                    <span x-text="showMagicKey ? 'Hide' : 'Show'"></span>
-                </button>
+                <div x-show="showMagicKey" x-cloak class="mt-3">
+                    <code class="block bg-gray-800 dark:bg-gray-900 text-green-400 p-3 rounded-md text-sm font-mono break-all">{{ $project->magic_key }}</code>
+                </div>
             </div>
-            <div x-show="showMagicKey" x-cloak class="mt-3">
-                <code class="block bg-gray-800 dark:bg-gray-900 text-green-400 p-3 rounded-md text-sm font-mono break-all">{{ $project->magic_key }}</code>
-            </div>
-        </div>
+        @endcan
     </div>
 
     @if($project->server_stats)
@@ -579,18 +581,19 @@
                 </div>
             </div>
         </a>
-
-        <a href="{{ route('projects.settings.show', $project) }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow group">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
-                    <i class="mdi mdi-cog text-2xl text-gray-600 dark:text-gray-400"></i>
+        @can('update', $project)
+            <a href="{{ route('projects.settings.show', $project) }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow group">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                        <i class="mdi mdi-cog text-2xl text-gray-600 dark:text-gray-400"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Settings</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Configure project</p>
+                    </div>
                 </div>
-                <div class="ml-4">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Settings</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Configure project</p>
-                </div>
-            </div>
-        </a>
+            </a>
+        @endcan
     </div>
 </div>
 @endsection

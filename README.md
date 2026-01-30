@@ -21,6 +21,7 @@ Logger provides a simple HTTP API for ingesting logs from any application, a web
 - **Multi-Project Support**: Manage logs from multiple applications with isolated project keys
 - **Log Explorer**: Search, filter, and browse logs with pagination and bulk delete functionality
 - **Failing Controllers Report**: Identify error hotspots by controller
+- **Project Permissions**: Assign users to projects with view/edit access
 - **Retention Policies**: Configurable per-project log retention (7, 14, 30, 90 days, or infinite)
 - **Webhook Notifications**: Slack/Discord/Mattermost/Teams-compatible alerts for errors and critical events
 - **AI-Powered Analysis**: Optional OpenAI integration for intelligent log analysis
@@ -96,6 +97,19 @@ php artisan setup:admin --name="John Doe" --email="admin@example.com" --password
 ```
 
 Once created, you can log in to the dashboard at `/login` using the admin credentials.
+
+## Managing Users & Project Access
+
+Admins can create users and assign access per project:
+
+1. Go to **Users** → **Add User** (or edit an existing user).
+2. Set the user role (Admin or User).
+3. Assign project permissions:
+   - **No access**: User cannot see the project.
+   - **View**: User can access dashboards/logs/failing controllers.
+   - **Edit**: User can access settings, regenerate keys, and delete/truncate logs.
+
+Admins always have access to all projects regardless of assignments.
 
 ## Configuration
 

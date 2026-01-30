@@ -8,7 +8,9 @@
     <div class="mb-6 flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-1">Overview of all projects and server status</p>
+            <p class="text-gray-600 dark:text-gray-400 mt-1">
+                Overview of {{ auth()->user()->isAdmin() ? 'all' : 'your' }} projects and server status
+            </p>
         </div>
         <div x-data="autoRefresh()" class="flex items-center gap-3">
             <div class="flex items-center gap-2">
@@ -78,7 +80,9 @@
     <!-- Projects Section -->
     <div x-data='projectList(@json($projects, JSON_HEX_APOS), @json($hiddenMetrics))'>
         <div class="mb-6 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">All Projects</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {{ auth()->user()->isAdmin() ? 'All Projects' : 'Projects' }}
+            </h2>
             
             <div class="flex items-center gap-3">
                 <!-- Metrics Settings -->

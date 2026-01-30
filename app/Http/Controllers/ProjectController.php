@@ -15,7 +15,10 @@ class ProjectController extends Controller
      */
     public function index(): View
     {
-        $projects = Project::orderBy('name')->get();
+        $user = auth()->user();
+        $projects = Project::visibleTo($user)
+            ->orderBy('name')
+            ->get();
 
         // Add 24h log count for each project
         $projects->each(function ($item) {
@@ -53,6 +56,12 @@ class ProjectController extends Controller
             'webhook_format' => $validated['webhook_format'] ?? 'slack',
             'is_active' => $validated['is_active'] ?? true,
         ]);
+
+        if ($request->user()) {
+            $project->users()->syncWithoutDetaching([
+                $request->user()->id => ['permission' => Project::PERMISSION_EDIT],
+            ]);
+        }
 
         return redirect()->route('projects.dashboard', $project)
             ->with('success', 'Project created successfully. Your magic key: '.$project->magic_key);

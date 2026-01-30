@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
@@ -28,8 +29,9 @@ class UserController extends Controller
     public function create(): View
     {
         $project = null; // Ensure project-specific nav is hidden
+        $projects = Project::orderBy('name')->get();
 
-        return view('users.create', compact('project'));
+        return view('users.create', compact('project', 'projects'));
     }
 
     /**
@@ -37,13 +39,15 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        User::create([
+        $user = User::create([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
             'password' => Hash::make($request->validated('password')),
             'role' => $request->validated('role'),
             'email_verified_at' => now(),
         ]);
+
+        $this->syncProjectPermissions($user, $request->input('project_permissions', []));
 
         return redirect()->route('users.index')
             ->with('success', 'User created successfully.');
@@ -55,8 +59,12 @@ class UserController extends Controller
     public function edit(User $user): View
     {
         $project = null; // Ensure project-specific nav is hidden
+        $projects = Project::orderBy('name')->get();
+        $userProjectPermissions = $user->projects()
+            ->pluck('project_user.permission', 'projects.id')
+            ->toArray();
 
-        return view('users.edit', compact('user', 'project'));
+        return view('users.edit', compact('user', 'project', 'projects', 'userProjectPermissions'));
     }
 
     /**
@@ -76,6 +84,7 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        $this->syncProjectPermissions($user, $request->input('project_permissions', []));
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully.');
@@ -96,5 +105,26 @@ class UserController extends Controller
 
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');
+    }
+
+    /**
+     * Sync project permissions for the given user.
+     *
+     * @param  array<string, string|null>  $permissions
+     */
+    protected function syncProjectPermissions(User $user, array $permissions): void
+    {
+        $validProjectIds = Project::whereIn('id', array_keys($permissions))
+            ->pluck('id')
+            ->all();
+
+        $syncData = collect($permissions)
+            ->filter(fn ($permission) => in_array($permission, Project::PERMISSIONS, true))
+            ->only($validProjectIds)
+            ->mapWithKeys(function ($permission, $projectId) {
+                return [$projectId => ['permission' => $permission]];
+            });
+
+        $user->projects()->sync($syncData->all());
     }
 }

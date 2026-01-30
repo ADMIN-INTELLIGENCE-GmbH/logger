@@ -74,6 +74,50 @@
                 </div>
             </div>
 
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Project Access</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Assign projects and permissions for this user.</p>
+                    </div>
+                </div>
+
+                @if($projects->isEmpty())
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No projects available yet.</p>
+                @else
+                    <div class="divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        @foreach($projects as $projectItem)
+                            @php
+                                $selectedPermission = old('project_permissions.' . $projectItem->id, 'none');
+                            @endphp
+                            <div class="flex items-center justify-between p-4">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $projectItem->name }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ $projectItem->id }}</p>
+                                </div>
+                                <div class="w-40">
+                                    <label class="sr-only" for="project_permissions_{{ $projectItem->id }}">Permission</label>
+                                    <select name="project_permissions[{{ $projectItem->id }}]" id="project_permissions_{{ $projectItem->id }}"
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                        <option value="none" {{ $selectedPermission === 'none' ? 'selected' : '' }}>No access</option>
+                                        <option value="view" {{ $selectedPermission === 'view' ? 'selected' : '' }}>View</option>
+                                        <option value="edit" {{ $selectedPermission === 'edit' ? 'selected' : '' }}>Edit</option>
+                                    </select>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                @error('project_permissions')
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+                @error('project_permissions.*')
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Admins have access to all projects regardless of assignments.</p>
+            </div>
+
             <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <a href="{{ route('users.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
                     Cancel

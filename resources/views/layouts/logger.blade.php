@@ -50,7 +50,9 @@
                                 <a href="{{ route('projects.dashboard', $project) }}" class="{{ request()->routeIs('projects.dashboard') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Server Dashboard</a>
                                 <a href="{{ route('projects.logs.index', $project) }}" class="{{ request()->routeIs('projects.logs.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Log Explorer</a>
                                 <a href="{{ route('projects.failing-controllers.index', $project) }}" class="{{ request()->routeIs('projects.failing-controllers.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Failing Controllers</a>
-                                <a href="{{ route('projects.settings.show', $project) }}" class="{{ request()->routeIs('projects.settings.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Settings</a>
+                                @can('update', $project)
+                                    <a href="{{ route('projects.settings.show', $project) }}" class="{{ request()->routeIs('projects.settings.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Settings</a>
+                                @endcan
                             @endif
                         </div>
                     </div>

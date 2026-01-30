@@ -44,6 +44,7 @@ class DailyDigestServiceTest extends TestCase
         $this->assertTrue($user->daily_digest_settings['logs']);
 
         $project = Project::factory()->create();
+        $project->users()->attach($user->id, ['permission' => Project::PERMISSION_VIEW]);
         Log::factory()->count(3)->create(['project_id' => $project->id, 'level' => 'error']);
         Log::factory()->count(2)->create(['project_id' => $project->id, 'level' => 'info']);
 
@@ -63,7 +64,7 @@ class DailyDigestServiceTest extends TestCase
         ]);
 
         // Normal project
-        Project::factory()->create([
+        $normalProject = Project::factory()->create([
             'server_stats' => ['system' => ['server_memory' => ['percent_used' => 50]]],
         ]);
 
@@ -71,6 +72,8 @@ class DailyDigestServiceTest extends TestCase
         $highMemProject = Project::factory()->create([
             'server_stats' => ['system' => ['server_memory' => ['percent_used' => 85.5]]],
         ]);
+        $normalProject->users()->attach($user->id, ['permission' => Project::PERMISSION_VIEW]);
+        $highMemProject->users()->attach($user->id, ['permission' => Project::PERMISSION_VIEW]);
 
         $service = new DailyDigestService;
         $data = $service->gatherData($user);
@@ -87,7 +90,7 @@ class DailyDigestServiceTest extends TestCase
         ]);
 
         // Normal project
-        Project::factory()->create([
+        $normalProject = Project::factory()->create([
             'server_stats' => ['system' => ['disk_space' => ['percent_used' => 40]]],
         ]);
 
@@ -95,6 +98,8 @@ class DailyDigestServiceTest extends TestCase
         $highStorageProject = Project::factory()->create([
             'server_stats' => ['system' => ['disk_space' => ['percent_used' => 90.2]]],
         ]);
+        $normalProject->users()->attach($user->id, ['permission' => Project::PERMISSION_VIEW]);
+        $highStorageProject->users()->attach($user->id, ['permission' => Project::PERMISSION_VIEW]);
 
         $service = new DailyDigestService;
         $data = $service->gatherData($user);

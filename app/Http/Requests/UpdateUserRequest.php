@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
@@ -27,6 +29,12 @@ class UpdateUserRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$this->user->id],
             'password' => ['nullable', 'string', Password::defaults(), 'confirmed'],
             'role' => ['required', 'string', 'in:admin,user'],
+            'project_permissions' => ['nullable', 'array'],
+            'project_permissions.*' => [
+                'nullable',
+                'string',
+                Rule::in(array_merge(Project::PERMISSIONS, ['none'])),
+            ],
         ];
     }
 }

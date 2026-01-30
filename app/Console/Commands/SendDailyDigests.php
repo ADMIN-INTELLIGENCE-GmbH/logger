@@ -79,7 +79,16 @@ class SendDailyDigests extends Command
             foreach ($users as $user) {
                 dump('Sending to (Wait): '.$user->email);
                 try {
-                    $data = $digestService->gatherData($user, $projects, $logStats);
+                    $userProjects = $user->isAdmin()
+                        ? $projects
+                        : $user->projects()->where('is_active', true)->get();
+
+                    if ($userProjects->isEmpty()) {
+                        continue;
+                    }
+
+                    $userLogStats = $logStats->only($userProjects->pluck('id')->all());
+                    $data = $digestService->gatherData($user, $userProjects, $userLogStats);
                     Mail::to($user)->send(new DailyDigest($data));
                     dump('Sent to: '.$user->email);
                 } catch (\Exception $e) {

@@ -18,7 +18,9 @@ class DailyDigestService
     {
         // Fetch projects if not provided
         if (! $projects) {
-            $projects = Project::where('is_active', true)->get();
+            $projects = Project::where('is_active', true)
+                ->visibleTo($user)
+                ->get();
         }
 
         // Fetch log stats if not provided and needed

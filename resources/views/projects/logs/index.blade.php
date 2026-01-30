@@ -268,39 +268,41 @@
         </form>
     </div>
 
-    <!-- Bulk Actions Bar -->
-    <div x-show="selectedLogs.length > 0" x-cloak class="mb-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <span class="text-sm font-medium text-gray-900 dark:text-white">
-                    <span x-text="selectedLogs.length"></span> log<span x-show="selectedLogs.length !== 1">s</span> selected
-                </span>
-                <button @click="selectedLogs = []" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
-                    Clear selection
-                </button>
-            </div>
-            <div class="flex items-center space-x-3">
-                <template x-if="!showBulkDeleteConfirm">
-                    <button @click="showBulkDeleteConfirm = true" class="inline-flex items-center px-4 py-2 border border-red-300 dark:border-red-600 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20">
-                        <i class="mdi mdi-trash-can mr-2"></i>
-                        Delete Selected
+    @can('update', $project)
+        <!-- Bulk Actions Bar -->
+        <div x-show="selectedLogs.length > 0" x-cloak class="mb-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">
+                        <span x-text="selectedLogs.length"></span> log<span x-show="selectedLogs.length !== 1">s</span> selected
+                    </span>
+                    <button @click="selectedLogs = []" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
+                        Clear selection
                     </button>
-                </template>
-                <template x-if="showBulkDeleteConfirm">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm text-red-600 dark:text-red-400 font-medium">Are you sure?</span>
-                        <button @click="bulkDelete()" :disabled="bulkDeleting" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span x-show="!bulkDeleting">Yes, Delete</span>
-                            <span x-show="bulkDeleting">Deleting...</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <template x-if="!showBulkDeleteConfirm">
+                        <button @click="showBulkDeleteConfirm = true" class="inline-flex items-center px-4 py-2 border border-red-300 dark:border-red-600 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20">
+                            <i class="mdi mdi-trash-can mr-2"></i>
+                            Delete Selected
                         </button>
-                        <button @click="showBulkDeleteConfirm = false" :disabled="bulkDeleting" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Cancel
-                        </button>
-                    </div>
-                </template>
+                    </template>
+                    <template x-if="showBulkDeleteConfirm">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-red-600 dark:text-red-400 font-medium">Are you sure?</span>
+                            <button @click="bulkDelete()" :disabled="bulkDeleting" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="!bulkDeleting">Yes, Delete</span>
+                                <span x-show="bulkDeleting">Deleting...</span>
+                            </button>
+                            <button @click="showBulkDeleteConfirm = false" :disabled="bulkDeleting" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Cancel
+                            </button>
+                        </div>
+                    </template>
+                </div>
             </div>
         </div>
-    </div>
+    @endcan
 
     <!-- Results Count -->
     <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
@@ -313,9 +315,11 @@
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                        <th class="px-6 py-3 text-left">
-                            <input type="checkbox" :checked="allLogsSelected" @change="toggleAllLogs()" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
-                        </th>
+                        @can('update', $project)
+                            <th class="px-6 py-3 text-left">
+                                <input type="checkbox" :checked="allLogsSelected" @change="toggleAllLogs()" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            </th>
+                        @endcan
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Timestamp</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Level</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message</th>
@@ -327,9 +331,11 @@
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($logs as $log)
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 whitespace-nowrap" @click.stop>
-                            <input type="checkbox" :checked="selectedLogs.includes({{ $log->id }})" @change="toggleLogSelection({{ $log->id }})" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
-                        </td>
+                        @can('update', $project)
+                            <td class="px-6 py-4 whitespace-nowrap" @click.stop>
+                                <input type="checkbox" :checked="selectedLogs.includes({{ $log->id }})" @change="toggleLogSelection({{ $log->id }})" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
+                            </td>
+                        @endcan
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {{ ($log->logged_at ?? $log->created_at)->format('M d, H:i:s') }}
                         </td>
@@ -562,34 +568,36 @@
                     <button type="button" @click="showModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
                         Close
                     </button>
-                    <!-- Delete Button -->
-                    <div class="sm:flex-1"></div>
-                    <template x-if="!showDeleteConfirm">
-                        <button
-                            type="button"
-                            @click="showDeleteConfirm = true"
-                            class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-red-300 dark:border-red-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm">
-                            <i class="mdi mdi-trash-can mr-2"></i>
-                            Delete
-                        </button>
-                    </template>
-                    <template x-if="showDeleteConfirm">
-                        <div class="mt-3 sm:mt-0 flex items-center gap-2">
-                            <span class="text-sm text-red-600 dark:text-red-400">Are you sure?</span>
+                    @can('update', $project)
+                        <!-- Delete Button -->
+                        <div class="sm:flex-1"></div>
+                        <template x-if="!showDeleteConfirm">
                             <button
                                 type="button"
-                                @click="deleteLog()"
-                                class="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                Yes, Delete
+                                @click="showDeleteConfirm = true"
+                                class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-red-300 dark:border-red-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:w-auto sm:text-sm">
+                                <i class="mdi mdi-trash-can mr-2"></i>
+                                Delete
                             </button>
-                            <button
-                                type="button"
-                                @click="showDeleteConfirm = false"
-                                class="inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-3 py-1.5 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                Cancel
-                            </button>
-                        </div>
-                    </template>
+                        </template>
+                        <template x-if="showDeleteConfirm">
+                            <div class="mt-3 sm:mt-0 flex items-center gap-2">
+                                <span class="text-sm text-red-600 dark:text-red-400">Are you sure?</span>
+                                <button
+                                    type="button"
+                                    @click="deleteLog()"
+                                    class="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    Yes, Delete
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="showDeleteConfirm = false"
+                                    class="inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-3 py-1.5 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    Cancel
+                                </button>
+                            </div>
+                        </template>
+                    @endcan
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -76,5 +77,44 @@ class User extends Authenticatable
     public function isUser(): bool
     {
         return $this->role === self::ROLE_USER;
+    }
+
+    /**
+     * Get the projects assigned to the user.
+     */
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class)
+            ->withPivot('permission')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if the user can view the given project.
+     */
+    public function canViewProject(Project $project): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $this->projects()
+            ->where('projects.id', $project->id)
+            ->exists();
+    }
+
+    /**
+     * Check if the user can edit the given project.
+     */
+    public function canEditProject(Project $project): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $this->projects()
+            ->where('projects.id', $project->id)
+            ->wherePivot('permission', Project::PERMISSION_EDIT)
+            ->exists();
     }
 }
