@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExternalCheckController;
 use App\Http\Controllers\FailingControllersController;
 use App\Http\Controllers\GlobalDashboardController;
 use App\Http\Controllers\LogExplorerController;
@@ -18,6 +19,24 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Global Dashboard
     Route::get('/dashboard', [GlobalDashboardController::class, 'index'])->name('dashboard');
+
+    // External Checks
+    Route::get('/checks', [ExternalCheckController::class, 'index'])
+        ->name('checks.index');
+    Route::post('/checks', [ExternalCheckController::class, 'store'])
+        ->name('checks.store');
+    Route::get('/checks/{externalCheck}/edit', [ExternalCheckController::class, 'edit'])
+        ->middleware('can:view,externalCheck')
+        ->name('checks.edit');
+    Route::put('/checks/{externalCheck}', [ExternalCheckController::class, 'update'])
+        ->middleware('can:update,externalCheck')
+        ->name('checks.update');
+    Route::post('/checks/{externalCheck}/rotate-token', [ExternalCheckController::class, 'rotateToken'])
+        ->middleware('can:update,externalCheck')
+        ->name('checks.rotate-token');
+    Route::delete('/checks/{externalCheck}', [ExternalCheckController::class, 'destroy'])
+        ->middleware('can:delete,externalCheck')
+        ->name('checks.destroy');
 
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

@@ -39,6 +39,7 @@
                         <div class="hidden md:flex items-center space-x-4 text-sm">
                             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Dashboard</a>
                             <a href="{{ route('projects.index') }}" class="{{ request()->routeIs('projects.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Projects</a>
+                            <a href="{{ route('checks.index') }}" class="{{ request()->routeIs('checks.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Checks</a>
                             
                             @if(Auth::user()->isAdmin())
                                 <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' }}">Users</a>

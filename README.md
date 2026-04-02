@@ -24,6 +24,7 @@ Logger provides a simple HTTP API for ingesting logs from any application, a web
 - **Project Permissions**: Assign users to projects with view/edit access
 - **Retention Policies**: Configurable per-project log retention (7, 14, 30, 90 days, or infinite)
 - **Webhook Notifications**: Slack/Discord/Mattermost/Teams-compatible alerts for errors and critical events
+- **External Checks**: Saved UI-managed issue checks with stable tokens and tag-based project auto-inclusion
 - **AI-Powered Analysis**: Optional OpenAI integration for intelligent log analysis
 - **Dark Mode**: Full dark theme support
 
@@ -120,6 +121,23 @@ Admins always have access to all projects regardless of assignments.
 3. Click "New Project"
 4. Configure the project name, retention policy, and optional webhook URL
 5. Copy the generated project key
+
+### Creating an External Check
+
+External checks let you expose a stable issue endpoint for monitoring systems without rewriting the caller whenever you add a new project.
+
+1. Log in to the dashboard.
+2. Navigate to **Checks**.
+3. Create a new external check with:
+  - a minimum log level
+  - a count threshold within a time window
+  - optional memory and disk thresholds
+  - tag selectors for automatic project inclusion
+  - optional explicit include and exclude project overrides
+4. Copy the generated token once and store it in your monitoring system.
+5. Tag future projects appropriately in project settings to have them picked up automatically by the same external check.
+
+This keeps the external caller stable while the project set evolves in the UI.
 
 ### Using the .env Configurator
 
@@ -255,6 +273,17 @@ Success (201):
 }
 ```
 
+### Querying Saved External Checks
+
+Create the check in the UI first, then call the stable endpoint with the generated bearer token:
+
+```bash
+curl -X GET https://your-logger-instance.com/api/external-checks/production-api-errors/issues \
+  -H "Authorization: Bearer your-external-check-token"
+```
+
+The response contains the matched projects and the currently detected issues for that saved check, including grouped repeated log issues and optional memory or disk threshold breaches.
+
 Error (401):
 ```json
 {
@@ -334,6 +363,7 @@ Run specific tests:
 ```bash
 php artisan test --filter=IngestApiTest
 php artisan test --filter=PruneLogsTest
+php artisan test --filter=ExternalCheck
 ```
 
 ## Project Structure

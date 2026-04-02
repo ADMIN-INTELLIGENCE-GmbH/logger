@@ -312,20 +312,20 @@
     <!-- Logs Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <table class="w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         @can('update', $project)
-                            <th class="px-6 py-3 text-left">
+                            <th class="w-12 px-6 py-3 text-left">
                                 <input type="checkbox" :checked="allLogsSelected" @change="toggleAllLogs()" class="w-4 h-4 text-indigo-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500">
                             </th>
                         @endcan
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Timestamp</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Level</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Controller</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"></th>
+                        <th class="w-36 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Timestamp</th>
+                        <th class="w-32 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Level</th>
+                        <th class="w-[34%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message</th>
+                        <th class="w-[26%] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Controller</th>
+                        <th class="w-40 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User ID</th>
+                        <th class="w-20 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"></th>
                     </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -356,14 +356,20 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md truncate">
-                            {{ Str::limit($log->message, 80) }}
+                        <td class="px-6 py-4 align-top text-sm text-gray-900 dark:text-white">
+                            <div class="max-w-full truncate" title="{{ $log->message }}">
+                                {{ Str::limit($log->message, 80) }}
+                            </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {{ $log->controller ? class_basename($log->controller) : '-' }}
+                        <td class="px-6 py-4 align-top text-sm text-gray-500 dark:text-gray-400">
+                            <div class="max-w-full truncate" title="{{ $log->controller ? class_basename($log->controller) : '-' }}">
+                                {{ $log->controller ? class_basename($log->controller) : '-' }}
+                            </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {{ $log->user_id ?? '-' }}
+                        <td class="px-6 py-4 align-top text-sm text-gray-500 dark:text-gray-400">
+                            <div class="max-w-full truncate" title="{{ $log->user_id ?? '-' }}">
+                                {{ $log->user_id ?? '-' }}
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button @click="openLog({{ $log->toJson() }})" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">

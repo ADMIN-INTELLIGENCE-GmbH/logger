@@ -38,6 +38,8 @@ tags:
     description: Health check endpoints
   - name: Logs
     description: Log ingestion endpoints
+  - name: External Checks
+    description: Saved issue queries configured in the dashboard
 
 paths:
   /health:
@@ -193,6 +195,51 @@ paths:
                 error: Too Many Requests
                 message: Rate limit exceeded. Try again later.
 
+  /external-checks/{slug}/issues:
+    get:
+      tags:
+        - External Checks
+      summary: Execute a saved external check
+      description: |
+        Returns the live issue state for an external check that was configured in the dashboard.
+
+        Project selection and thresholds are managed in the UI, including tag-based auto-inclusion for future projects.
+      operationId: executeExternalCheck
+      security:
+        - ExternalCheckBearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Stable slug of the saved external check
+          schema:
+            type: string
+      responses:
+        '200':
+          description: External check executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalCheckIssuesResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Unauthorized
+                message: Missing or invalid bearer token
+        '403':
+          description: External check is disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Forbidden
+                message: External check is disabled
+
 components:
   securitySchemes:
     ProjectKeyAuth:
@@ -201,6 +248,12 @@ components:
       name: X-Project-Key
       description: |
         Project-specific API key (64 characters). Obtain this from your project settings in the Logger dashboard.
+    ExternalCheckBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque token
+      description: |
+        Token generated when creating or rotating an external check in the Logger dashboard.
 
   headers:
     X-RateLimit-Limit:
@@ -415,3 +468,84 @@ components:
           example:
             level:
               - The log level is required.
+
+    ExternalCheckIssuesResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            check:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Production API Errors
+                slug:
+                  type: string
+                  example: production-api-errors
+                enabled:
+                  type: boolean
+                  example: true
+                min_level:
+                  type: string
+                  example: error
+                time_window_minutes:
+                  type: integer
+                  example: 60
+                count_threshold:
+                  type: integer
+                  example: 5
+                group_across_projects:
+                  type: boolean
+                  example: false
+            matched_projects_count:
+              type: integer
+              example: 3
+            matched_projects:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: 019d4d92-36f1-71c4-b9b6-4a5069af9443
+                  name:
+                    type: string
+                    example: Billing API
+                  tags:
+                    type: array
+                    items:
+                      type: string
+            issue_count:
+              type: integer
+              example: 2
+            issues:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: log_group
+                  fingerprint:
+                    type: string
+                    example: 7b41b2f445d562d8f80ef7b516b3023ed7ce1e6f
+                  severity:
+                    type: string
+                    example: error
+                  title:
+                    type: string
+                    example: Database connection failed
+                  count:
+                    type: integer
+                    example: 8
+                  group_across_projects:
+                    type: boolean
+                    example: false

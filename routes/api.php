@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ExternalCheckIssuesController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\IngestController;
 use App\Http\Controllers\Api\StatsController;
@@ -29,6 +30,11 @@ Route::post('/ingest', IngestController::class)
 Route::post('/stats', StatsController::class)
     ->middleware(['throttle:60,1', 'rate.headers:60,1'])
     ->name('api.stats');
+
+// External saved check endpoint
+Route::get('/external-checks/{externalCheck:slug}/issues', ExternalCheckIssuesController::class)
+    ->middleware(['throttle:60,1', 'rate.headers:60,1'])
+    ->name('api.external-checks.issues');
 
 // Tag search endpoint (for autocomplete)
 Route::get('/tags/search', [TagController::class, 'search'])
