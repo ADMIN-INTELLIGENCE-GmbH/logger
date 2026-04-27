@@ -14,6 +14,7 @@
     selectedLogs: [],
     showBulkDeleteConfirm: false,
     bulkDeleting: false,
+    allLogsData: {{ $logs->getCollection()->toJson() }},
     llmFields: {
         channel: true,
         controller: true,
@@ -79,6 +80,65 @@
         } catch (error) {
             alert('Failed to connect to the server');
             this.bulkDeleting = false;
+        }
+    },
+    async bulkCopyToClipboard(event) {
+        if (this.selectedLogs.length === 0) return;
+
+        const logsToExport = this.allLogsData.filter(log => this.selectedLogs.includes(log.id));
+
+        let text = '';
+        logsToExport.forEach((log, index) => {
+            text += `=== LOG ${index + 1} OF ${logsToExport.length} ===\n\n`;
+            text += 'Level: ' + log.level.toUpperCase() + '\n';
+            text += 'Logged At: ' + (log.logged_at || log.created_at) + '\n';
+            if (log.logged_at && log.created_at !== log.logged_at) {
+                text += 'Received At: ' + log.created_at + '\n';
+            }
+            text += 'Channel: ' + (log.channel || '-') + '\n';
+            text += 'Environment: ' + (log.app_env || '-');
+            if (log.app_debug) text += ' (debug)';
+            text += '\n';
+            text += 'Route: ' + (log.route_name || '-') + '\n';
+            text += 'Method: ' + (log.method || '-') + '\n';
+            text += 'User ID: ' + (log.user_id || '-') + '\n';
+            text += 'IP Address: ' + (log.ip_address || '-') + '\n';
+
+            if (log.controller) {
+                text += '\nController:\n' + log.controller + '\n';
+            }
+            if (log.user_agent) {
+                text += '\nUser Agent:\n' + log.user_agent + '\n';
+            }
+            if (log.request_url) {
+                text += '\nRequest URL:\n' + log.request_url + '\n';
+            }
+            if (log.referrer) {
+                text += '\nReferrer:\n' + log.referrer + '\n';
+            }
+
+            text += '\n=== MESSAGE ===\n' + log.message + '\n';
+
+            if (log.context) {
+                text += '\n=== CONTEXT ===\n' + JSON.stringify(log.context, null, 2) + '\n';
+            }
+            if (log.extra && Object.keys(log.extra).length > 0) {
+                text += '\n=== EXTRA (Monolog Data) ===\n' + JSON.stringify(log.extra, null, 2) + '\n';
+            }
+
+            if (index < logsToExport.length - 1) {
+                text += '\n' + '─'.repeat(60) + '\n\n';
+            }
+        });
+
+        try {
+            await navigator.clipboard.writeText(text);
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+        } catch (error) {
+            alert('Failed to copy to clipboard');
         }
     },
     openLog(log) {
@@ -281,6 +341,10 @@
                     </button>
                 </div>
                 <div class="flex items-center space-x-3">
+                    <button @click="bulkCopyToClipboard($event)" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <i class="mdi mdi-content-copy mr-2"></i>
+                        Copy Selected
+                    </button>
                     <template x-if="!showBulkDeleteConfirm">
                         <button @click="showBulkDeleteConfirm = true" class="inline-flex items-center px-4 py-2 border border-red-300 dark:border-red-600 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20">
                             <i class="mdi mdi-trash-can mr-2"></i>
