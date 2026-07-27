@@ -87,7 +87,7 @@
             <div class="flex items-center gap-3">
                 <!-- Metrics Settings -->
                 <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                    <button @click="open = !open" class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                    <button @click="open = !open" class="flex items-center gap-2 h-10 px-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
                         <i class="mdi mdi-tune-variant"></i>
                         Metrics
                     </button>
@@ -151,12 +151,12 @@
                 </div>
                 
                 <!-- View Toggle -->
-                <div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                    <button @click="view = 'grid'" :class="{ 'bg-white dark:bg-gray-600 shadow-sm': view === 'grid', 'text-gray-500 dark:text-gray-400': view !== 'grid' }" class="p-2 rounded-md transition-all">
-                        <i class="mdi mdi-view-grid text-xl"></i>
+                <div class="flex items-center h-10 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                    <button @click="view = 'grid'" :class="{ 'bg-white dark:bg-gray-600 shadow-sm': view === 'grid', 'text-gray-500 dark:text-gray-400': view !== 'grid' }" class="flex items-center justify-center h-full px-2.5 rounded-md transition-all">
+                        <i class="mdi mdi-view-grid text-xl leading-none"></i>
                     </button>
-                    <button @click="view = 'table'" :class="{ 'bg-white dark:bg-gray-600 shadow-sm': view === 'table', 'text-gray-500 dark:text-gray-400': view !== 'table' }" class="p-2 rounded-md transition-all">
-                        <i class="mdi mdi-view-list text-xl"></i>
+                    <button @click="view = 'table'" :class="{ 'bg-white dark:bg-gray-600 shadow-sm': view === 'table', 'text-gray-500 dark:text-gray-400': view !== 'table' }" class="flex items-center justify-center h-full px-2.5 rounded-md transition-all">
+                        <i class="mdi mdi-view-list text-xl leading-none"></i>
                     </button>
                 </div>
             </div>
@@ -271,7 +271,10 @@
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         <template x-for="item in sortedFilteredProjects" :key="item.project.id">
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer" @click="window.location.href = item.dashboard_url">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+                                @click="$event.ctrlKey || $event.metaKey || $event.shiftKey ? window.open(item.dashboard_url, '_blank') : window.location.href = item.dashboard_url"
+                                @mousedown="if ($event.button === 1) $event.preventDefault()"
+                                @auxclick="if ($event.button === 1) { $event.preventDefault(); window.open(item.dashboard_url, '_blank'); }">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white" x-text="item.project.name"></div>
                                 </td>

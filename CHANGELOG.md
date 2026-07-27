@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **External Checks**: Manage external uptime/health checks per project
+- **Log Explorer Page Size**: Selectable logs per page (10, 25, 50, 100, 250, 500) in the table footer, defaulting to 10
+- Bulk copy to clipboard for selected log entries
+- Middle-click (and Ctrl/Cmd/Shift-click) on a global dashboard table row opens the project dashboard in a new tab
 - **Project Permissions**: Per-project access control (view/edit) with user assignments
   - Project-user membership table with permission levels
   - Project policy enforcement for dashboards, logs, and settings
@@ -66,6 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WebhookDelivery factory for testing
 
 ### Changed
+- Log Explorer `per_page` values are validated against a fixed option list instead of a raw numeric cap
+- Global dashboard "grid/list" view toggle now matches the height of the metrics selector
 - Project creation and settings access now enforced via permissions (admins can create, edit permissions gate edits)
 - Daily digest content is scoped to the projects a user can access
 - Webhook threshold now supports all 8 PSR-3 log levels (debug, info, notice, warning, error, critical, alert, emergency)

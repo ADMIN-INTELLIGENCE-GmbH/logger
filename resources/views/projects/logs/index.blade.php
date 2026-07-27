@@ -315,6 +315,9 @@
                 <input type="text" name="method" id="method" value="{{ request('method') }}" placeholder="Method name..." class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
             </div>
 
+            <!-- Keep the selected page size when filters are re-submitted -->
+            <input type="hidden" name="per_page" value="{{ $logs->perPage() }}">
+
             <!-- Filter Buttons -->
             <div class="lg:col-span-5 flex justify-end space-x-3">
                 <a href="{{ route('projects.logs.index', $project) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -453,10 +456,29 @@
             </table>
         </div>
 
-        <!-- Pagination -->
-        @if($logs->hasPages())
-        <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-t border-gray-200 dark:border-gray-600">
-            {{ $logs->withQueryString()->links() }}
+        <!-- Table Footer: Page Size + Pagination -->
+        @if($logs->total() > 0)
+        <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-t border-gray-200 dark:border-gray-600 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <form method="GET" action="{{ route('projects.logs.index', $project) }}" class="flex items-center gap-2 shrink-0">
+                {{-- Carry the active filters over; page resets so the new size always starts at page 1 --}}
+                @foreach(request()->except(['per_page', 'page']) as $filterKey => $filterValue)
+                    @if(! is_array($filterValue))
+                    <input type="hidden" name="{{ $filterKey }}" value="{{ $filterValue }}">
+                    @endif
+                @endforeach
+                <label for="per_page" class="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">Logs per page</label>
+                <select name="per_page" id="per_page" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border pl-3 pr-9 py-1">
+                    @foreach(\App\Http\Controllers\LogExplorerController::PER_PAGE_OPTIONS as $option)
+                    <option value="{{ $option }}" {{ (int) $logs->perPage() === $option ? 'selected' : '' }}>{{ $option }}</option>
+                    @endforeach
+                </select>
+            </form>
+
+            @if($logs->hasPages())
+            <div class="min-w-0">
+                {{ $logs->withQueryString()->links() }}
+            </div>
+            @endif
         </div>
         @endif
     </div>

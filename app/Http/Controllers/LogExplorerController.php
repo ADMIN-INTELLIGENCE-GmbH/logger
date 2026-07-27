@@ -12,6 +12,11 @@ use Illuminate\View\View;
 class LogExplorerController extends Controller
 {
     /**
+     * Selectable page sizes for the log explorer. First entry is the default.
+     */
+    public const PER_PAGE_OPTIONS = [10, 25, 50, 100, 250, 500];
+
+    /**
      * List logs with filtering and pagination.
      */
     public function index(Request $request, Project $project): View
@@ -78,8 +83,11 @@ class LogExplorerController extends Controller
         // Order by most recent
         $query->orderBy('created_at', 'desc');
 
-        // Paginate results
-        $perPage = min($request->input('per_page', 25), 100);
+        // Paginate results (per_page restricted to the options offered in the UI)
+        $perPage = in_array((int) $request->input('per_page'), self::PER_PAGE_OPTIONS, true)
+            ? (int) $request->input('per_page')
+            : self::PER_PAGE_OPTIONS[0];
+
         $logs = $query->paginate($perPage);
 
         return view('projects.logs.index', compact('project', 'logs'));
