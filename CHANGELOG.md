@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Assign access under user administration after upgrading.
 
 ### Added
+- **System Updates panel** on the project dashboard, surfacing the log shipper's `updates` payload:
+  pending and security update counts, reboot-required flag, package manager, last refresh time, and a
+  table of pending packages with installed/available versions and security tagging
+- **Host & Operating System panel**: hostname, OS name, kernel, architecture, web server, PHP SAPI,
+  timezone, locale, application URL, and loaded PHP extensions
+- **Mounted Volumes panel**: per-mount disk usage from `system.disk_space.disks`, so a filling
+  `/boot` or similar is visible instead of being hidden behind the aggregate figure
+- Reporting instance identifier (`instance_id`) shown beside the Server Status heading
+- npm version badge in the Stack panel
 - **External Checks**: Manage external uptime/health checks per project
 - **Log Explorer Page Size**: Selectable logs per page (10, 25, 50, 100, 250, 500) in the table footer, defaulting to 10
 - Bulk copy to clipboard for selected log entries
@@ -92,6 +101,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced webhook dispatcher with support for multiple notification formats
 
 ### Fixed
+- Queue Status panel reported a confident "0 Jobs Waiting" when the shipper sent
+  `queue.error` instead of metrics, making failed collection look like a healthy empty queue. The
+  error is now surfaced, and a missing queue payload renders "No data" rather than zero
+- Database panel now surfaces `database.error` instead of falling through to "No data"
+- Project dashboard no longer throws when `foldersize` contains only unreadable (`-1`) entries
+  (`max(): Argument #1 ($value) must contain at least one element`)
+- Project dashboard no longer throws when `filesize`/`foldersize` values are non-numeric; unreadable
+  files are now labelled explicitly rather than being grouped with healthy ones
 - Webhook SSL handshake failures with Cloudflare-proxied domains by using IP-based resolution
 - Log Explorer "View" interaction to prevent accidental modal opening when selecting rows
 - Failing Controllers method breakdown showing "unknown" for errors by improving stack trace parsing logic

@@ -53,7 +53,15 @@
     <!-- Server Status -->
     <div class="mb-8">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Server Status</h3>
+            <div class="flex items-center gap-3">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Server Status</h3>
+                @if(!empty($project->server_stats['instance_id']))
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300" title="Reporting instance">
+                    <i class="mdi mdi-server mr-1"></i>
+                    {{ $project->server_stats['instance_id'] }}
+                </span>
+                @endif
+            </div>
             @if($project->last_server_stats_at)
                 <span class="text-sm text-gray-500 dark:text-gray-400">
                     @if($project->last_server_stats_at->diffInHours() > 24)
@@ -69,12 +77,19 @@
             $serverStats = $project->server_stats;
             // Helper function to format bytes
                 $formatBytes = function($bytes) {
+                    if (! is_numeric($bytes)) return '<span class="text-red-600 dark:text-red-400">Error</span>';
+                    $bytes = (float) $bytes;
                     if ($bytes < 0) return '<span class="text-red-600 dark:text-red-400">Error</span>';
                     if ($bytes == 0) return '0 B';
                     if ($bytes < 1024) return $bytes . ' B';
                     if ($bytes < 1024 * 1024) return round($bytes / 1024, 1) . ' KB';
                     if ($bytes < 1024 * 1024 * 1024) return round($bytes / 1024 / 1024, 1) . ' MB';
                     return round($bytes / 1024 / 1024 / 1024, 2) . ' GB';
+                };
+
+                // Numeric coercion for values that arrive unvalidated from the stats API
+                $toNumber = function($value, $default = 0) {
+                    return is_numeric($value) ? $value + 0 : $default;
                 };
 
                 // Helper function for usage color
@@ -171,7 +186,13 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Database</h4>
                 <div class="flex flex-col items-center justify-center h-24">
-                    @if(isset($serverStats['database']['status']))
+                    @if(isset($serverStats['database']['error']))
+                    <i class="mdi mdi-alert-circle-outline text-2xl text-red-600 dark:text-red-400"></i>
+                    <div class="text-sm font-medium text-red-600 dark:text-red-400 mt-1">Metrics unavailable</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center break-words">
+                        {{ $serverStats['database']['error'] }}
+                    </div>
+                    @elseif(isset($serverStats['database']['status']))
                     <div class="flex items-center space-x-2 mb-2">
                         <div class="w-3 h-3 rounded-full {{ $serverStats['database']['status'] === 'connected' ? 'bg-green-500' : 'bg-red-500' }} animate-pulse"></div>
                         <span class="text-lg font-bold {{ $serverStats['database']['status'] === 'connected' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
@@ -180,7 +201,7 @@
                     </div>
                     @if(isset($serverStats['database']['latency_ms']))
                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                        Latency: <span class="font-medium text-gray-900 dark:text-white">{{ round($serverStats['database']['latency_ms'], 2) }}ms</span>
+                        Latency: <span class="font-medium text-gray-900 dark:text-white">{{ round($toNumber($serverStats['database']['latency_ms']), 2) }}ms</span>
                     </div>
                     @endif
                     @else
@@ -216,16 +237,26 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Queue Status</h4>
                 <div class="flex flex-col items-center justify-center">
-                    <div class="text-4xl font-bold {{ isset($serverStats['queue']['size']) && $serverStats['queue']['size'] > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white' }}">
-                        {{ $serverStats['queue']['size'] ?? 0 }}
+                    @if(isset($serverStats['queue']['error']))
+                    <i class="mdi mdi-alert-circle-outline text-3xl text-red-600 dark:text-red-400"></i>
+                    <div class="text-sm font-medium text-red-600 dark:text-red-400 mt-2">Metrics unavailable</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center break-words">
+                        {{ $serverStats['queue']['error'] }}
+                    </div>
+                    @elseif(isset($serverStats['queue']['size']))
+                    <div class="text-4xl font-bold {{ $toNumber($serverStats['queue']['size']) > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white' }}">
+                        {{ $serverStats['queue']['size'] }}
                     </div>
                     <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                        {{ isset($serverStats['queue']['size']) && $serverStats['queue']['size'] == 1 ? 'Job Waiting' : 'Jobs Waiting' }}
+                        {{ $toNumber($serverStats['queue']['size']) == 1 ? 'Job Waiting' : 'Jobs Waiting' }}
                     </div>
                     @if(isset($serverStats['queue']['connection']))
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {{ $serverStats['queue']['connection'] }}
                     </div>
+                    @endif
+                    @else
+                    <div class="text-gray-500 dark:text-gray-400 py-4">No data</div>
                     @endif
                 </div>
             </div>
@@ -287,6 +318,11 @@
                     @if(isset($serverStats['system']['node_version']))
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                         Node {{ $serverStats['system']['node_version'] }}
+                    </span>
+                    @endif
+                    @if(isset($serverStats['system']['npm_version']))
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 dark:bg-rose-900/30 text-rose-800 dark:text-rose-400">
+                        npm {{ $serverStats['system']['npm_version'] }}
                     </span>
                     @endif
                     @if(isset($serverStats['log_shipper_version']))
@@ -352,12 +388,254 @@
             </div>
         </div>
 
+        <!-- Row 3b: Operating System Updates -->
+        @if(isset($serverStats['updates']) && is_array($serverStats['updates']))
+        @php
+            $updates = $serverStats['updates'];
+            $updateSecurityCount = (int) $toNumber($updates['security_count'] ?? 0);
+            $updateTotalCount = (int) $toNumber($updates['total_count'] ?? 0);
+            $updatePackages = (isset($updates['packages']) && is_array($updates['packages'])) ? $updates['packages'] : [];
+            $updateRefreshedAt = null;
+            if (!empty($updates['last_refresh']) && is_string($updates['last_refresh'])) {
+                $updateRefreshedAt = rescue(fn() => \Illuminate\Support\Carbon::parse($updates['last_refresh']), null, false);
+            }
+        @endphp
+        <div class="mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border {{ $updateSecurityCount > 0 ? 'border-red-300 dark:border-red-800' : 'border-gray-200 dark:border-gray-700' }} p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">System Updates</h4>
+                    <div class="flex items-center gap-2">
+                        @if(!empty($updates['manager']))
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                            <i class="mdi mdi-package-variant-closed mr-1"></i>
+                            {{ $updates['manager'] }}
+                        </span>
+                        @endif
+                        @if($updateRefreshedAt)
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Refreshed {{ $updateRefreshedAt->diffForHumans() }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                @if(!empty($updates['error']))
+                <div class="flex items-start gap-2 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <i class="mdi mdi-alert-circle-outline text-xl text-red-600 dark:text-red-400"></i>
+                    <div>
+                        <div class="text-sm font-medium text-red-800 dark:text-red-300">Update check failed</div>
+                        <div class="text-xs text-red-700 dark:text-red-400 mt-0.5 break-words">{{ $updates['error'] }}</div>
+                    </div>
+                </div>
+                @elseif(array_key_exists('supported', $updates) && ! $updates['supported'])
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    <i class="mdi mdi-information-outline mr-1"></i>
+                    Update reporting is not supported on this host's package manager.
+                </div>
+                @else
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                    <!-- Security Updates -->
+                    <div class="flex items-center justify-between p-6 rounded-lg {{ $updateSecurityCount > 0 ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800' : 'bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 dark:text-white mb-2">Security Updates</div>
+                            <span class="text-3xl font-bold {{ $updateSecurityCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">
+                                {{ $updateSecurityCount }}
+                            </span>
+                        </div>
+                        <i class="mdi mdi-shield-alert-outline text-4xl {{ $updateSecurityCount > 0 ? 'text-red-400 dark:text-red-600' : 'text-gray-400 dark:text-gray-600' }}"></i>
+                    </div>
+
+                    <!-- Pending Updates -->
+                    <div class="flex items-center justify-between p-6 rounded-lg bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 dark:text-white mb-2">Pending Updates</div>
+                            <span class="text-3xl font-bold {{ $updateTotalCount > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-white' }}">
+                                {{ $updateTotalCount }}
+                            </span>
+                        </div>
+                        <i class="mdi mdi-update text-4xl text-gray-400 dark:text-gray-600"></i>
+                    </div>
+
+                    <!-- Reboot -->
+                    <div class="flex items-center justify-between p-6 rounded-lg {{ !empty($updates['reboot_required']) ? 'bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800' : 'bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900 dark:text-white mb-2">Reboot</div>
+                            @if(!empty($updates['reboot_required']))
+                            <span class="text-lg font-bold text-orange-600 dark:text-orange-400">Reboot Required</span>
+                            @else
+                            <span class="text-lg font-bold text-green-600 dark:text-green-400">Not Required</span>
+                            @endif
+                        </div>
+                        <i class="mdi mdi-restart text-4xl {{ !empty($updates['reboot_required']) ? 'text-orange-400 dark:text-orange-600' : 'text-gray-400 dark:text-gray-600' }}"></i>
+                    </div>
+                </div>
+
+                @if(count($updatePackages) > 0)
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <div class="overflow-y-auto" style="max-height: 320px;">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-900/50 sticky top-0">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Package</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Installed</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Available</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                @foreach($updatePackages as $package)
+                                @continue(! is_array($package))
+                                <tr class="{{ !empty($package['security']) ? 'bg-red-50 dark:bg-red-900/20' : '' }}">
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white break-all">
+                                        {{ $package['name'] ?? '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 break-all font-mono text-xs">
+                                        {{ $package['current_version'] ?? '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-white break-all font-mono text-xs">
+                                        {{ $package['available_version'] ?? '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if(!empty($package['security']))
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
+                                            <i class="mdi mdi-shield-alert-outline mr-1"></i>Security
+                                        </span>
+                                        @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                                            Regular
+                                        </span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @if(!empty($updates['truncated']))
+                    <div class="p-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
+                        <i class="mdi mdi-information-outline mr-1"></i>
+                        Package list truncated by the reporting agent — showing {{ count($updatePackages) }} of {{ $updateTotalCount }}.
+                    </div>
+                    @endif
+                </div>
+                @endif
+                @endif
+            </div>
+        </div>
+        @endif
+
+        <!-- Row 3c: Host & Operating System -->
+        @php
+            $osStats = (isset($serverStats['os']) && is_array($serverStats['os'])) ? $serverStats['os'] : [];
+            $hostStats = (isset($serverStats['host']) && is_array($serverStats['host'])) ? $serverStats['host'] : [];
+            $mountedDisks = (isset($serverStats['system']['disk_space']['disks']) && is_array($serverStats['system']['disk_space']['disks']))
+                ? $serverStats['system']['disk_space']['disks']
+                : [];
+            $phpExtensions = (isset($hostStats['php_extensions']) && is_array($hostStats['php_extensions'])) ? $hostStats['php_extensions'] : [];
+        @endphp
+        @if(count($osStats) > 0 || count($hostStats) > 0 || count($mountedDisks) > 0)
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style="grid-auto-rows: 1fr;">
+            @if(count($osStats) > 0 || count($hostStats) > 0)
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Host &amp; Operating System</h4>
+                </div>
+                <div class="p-6 flex-1">
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+                        @php
+                            $hostFields = [
+                                'Hostname' => $hostStats['hostname'] ?? null,
+                                'Operating System' => $osStats['name'] ?? ($osStats['family'] ?? null),
+                                'Kernel' => $osStats['kernel'] ?? null,
+                                'Architecture' => $osStats['architecture'] ?? null,
+                                'Web Server' => $hostStats['server_software'] ?? null,
+                                'PHP SAPI' => $hostStats['php_sapi'] ?? null,
+                                'Timezone' => $hostStats['timezone'] ?? null,
+                                'Locale' => $hostStats['locale'] ?? null,
+                            ];
+                        @endphp
+                        @foreach($hostFields as $label => $value)
+                        @continue($value === null || $value === '' || is_array($value))
+                        <div>
+                            <dt class="text-xs text-gray-500 dark:text-gray-400">{{ $label }}</dt>
+                            <dd class="text-sm font-medium text-gray-900 dark:text-white break-all">{{ $value }}</dd>
+                        </div>
+                        @endforeach
+                        @if(!empty($hostStats['app_url']))
+                        <div class="sm:col-span-2">
+                            <dt class="text-xs text-gray-500 dark:text-gray-400">Application URL</dt>
+                            <dd class="text-sm font-medium break-all">
+                                <a href="{{ $hostStats['app_url'] }}" target="_blank" rel="noopener noreferrer"
+                                   class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ $hostStats['app_url'] }}</a>
+                            </dd>
+                        </div>
+                        @endif
+                    </dl>
+
+                    @if(count($phpExtensions) > 0)
+                    <div class="mt-5 pt-5 border-t border-gray-200 dark:border-gray-700">
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Loaded PHP Extensions ({{ count($phpExtensions) }})</div>
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($phpExtensions as $extension)
+                            @continue(is_array($extension))
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                {{ $extension }}
+                            </span>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+            @endif
+
+            @if(count($mountedDisks) > 0)
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mounted Volumes</h4>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1" style="max-height: 400px;">
+                    <div class="space-y-4">
+                        @foreach($mountedDisks as $disk)
+                        @continue(! is_array($disk))
+                        @php
+                            $diskPercent = $toNumber($disk['percent_used'] ?? 0);
+                        @endphp
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-900 dark:text-white truncate font-mono" title="{{ $disk['path'] ?? '-' }}">
+                                    <i class="mdi mdi-harddisk text-gray-500 dark:text-gray-400 mr-1"></i>
+                                    {{ $disk['path'] ?? '-' }}
+                                </span>
+                                <span class="text-sm font-bold {{ $getUsageTextColor($diskPercent) }}">
+                                    {{ round($diskPercent, 1) }}%
+                                </span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="{{ $getUsageColor($diskPercent) }} h-2 rounded-full transition-all"
+                                     style="width: {{ min(max($diskPercent, 0), 100) }}%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {!! $formatBytes($disk['free'] ?? 0) !!} free of {!! $formatBytes($disk['total'] ?? 0) !!}
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="p-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 mt-auto">
+                    Total mounted volumes: {{ count($mountedDisks) }}
+                </div>
+            </div>
+            @endif
+        </div>
+        @endif
+
         <!-- Row 4: Dynamic Content (Files & Folders) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style="grid-auto-rows: 1fr;">
             <!-- Folder Sizes (Scrollable List) -->
             @if(isset($serverStats['foldersize']) && is_array($serverStats['foldersize']) && count($serverStats['foldersize']) > 0)
             @php
-                $maxSize = max(array_filter($serverStats['foldersize'], fn($s) => $s > 0));
+                // Sizes arrive unvalidated: -1 means unreadable, and non-numeric values are possible.
+                $positiveFolderSizes = array_filter($serverStats['foldersize'], fn($s) => is_numeric($s) && $s > 0);
+                $maxSize = count($positiveFolderSizes) > 0 ? max($positiveFolderSizes) : 0;
             @endphp
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -372,16 +650,16 @@
                                     <i class="mdi mdi-folder text-yellow-600 dark:text-yellow-400 mr-1"></i>
                                     {{ $folder }}
                                 </span>
-                                <span class="text-sm font-medium {{ $size < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white' }}">
-                                    {!! $size < 0 ? 'Error' : $formatBytes($size) !!}
+                                <span class="text-sm font-medium {{ $toNumber($size, -1) < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white' }}">
+                                    {!! $toNumber($size, -1) < 0 ? 'Error' : $formatBytes($size) !!}
                                 </span>
                             </div>
-                            @if($size > 0 && $maxSize > 0)
+                            @if($toNumber($size, -1) > 0 && $maxSize > 0)
                             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all" 
-                                     style="width: {{ ($size / $maxSize) * 100 }}%"></div>
+                                <div class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all"
+                                     style="width: {{ ($toNumber($size) / $maxSize) * 100 }}%"></div>
                             </div>
-                            @elseif($size < 0)
+                            @elseif($toNumber($size, -1) < 0)
                             <div class="text-xs text-red-600 dark:text-red-400">Access Denied / Unknown</div>
                             @endif
                         </div>
@@ -411,22 +689,30 @@
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach(collect($serverStats['filesize'])->sortDesc() as $file => $size)
-                            <tr class="{{ $size > (1024 * 1024 * 1024) ? 'bg-red-50 dark:bg-red-900/20' : '' }}">
+                            @php
+                                $fileSize = $toNumber($size, -1);
+                                $isLarge = $fileSize > (1024 * 1024 * 1024);
+                            @endphp
+                            <tr class="{{ $isLarge ? 'bg-red-50 dark:bg-red-900/20' : '' }}">
                                 <td class="px-4 py-3 text-sm text-gray-900 dark:text-white truncate" title="{{ $file }}">
                                     <i class="mdi mdi-file-document text-blue-600 dark:text-blue-400 mr-1"></i>
                                     {{ $file }}
                                 </td>
-                                <td class="px-4 py-3 text-sm text-right font-medium {{ $size == 0 ? 'text-gray-500 dark:text-gray-400' : ($size > (1024 * 1024 * 1024) ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white') }}">
-                                    {!! $size == 0 ? 'Empty' : $formatBytes($size) !!}
+                                <td class="px-4 py-3 text-sm text-right font-medium {{ $fileSize == 0 ? 'text-gray-500 dark:text-gray-400' : ($isLarge ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white') }}">
+                                    {!! $fileSize == 0 ? 'Empty' : $formatBytes($size) !!}
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    @if($size > (1024 * 1024 * 1024))
+                                    @if($isLarge)
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
                                         <i class="mdi mdi-alert-circle-outline mr-1"></i>Large
                                     </span>
-                                    @elseif($size == 0)
+                                    @elseif($fileSize == 0)
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
                                         Empty
+                                    </span>
+                                    @elseif($fileSize < 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
+                                        <i class="mdi mdi-alert-circle-outline mr-1"></i>Unreadable
                                     </span>
                                     @else
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
