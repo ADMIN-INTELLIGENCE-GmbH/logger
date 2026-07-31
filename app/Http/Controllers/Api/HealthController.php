@@ -40,7 +40,7 @@ class HealthController extends Controller
         return response()->json([
             'status' => $healthy ? 'healthy' : 'unhealthy',
             'checks' => $checks,
-            'version' => config('app.version', '1.0.0'),
+            'version' => config('app.version', '1.1.0'),
             'timestamp' => now()->toIso8601String(),
         ], $healthy ? 200 : 503);
     }

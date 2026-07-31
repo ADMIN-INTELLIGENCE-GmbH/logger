@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-31
+
+### Upgrade Notes
+- Webhook request signatures are now hashed with SHA-256 instead of SHA-1. Any consumer verifying
+  the signature header must be updated to compute SHA-256 before upgrading, or deliveries will fail
+  verification.
+- Project creation and settings are now gated by permissions. Existing non-admin users lose the
+  ability to create projects, and need explicit `edit` access on a project to change its settings.
+  Assign access under user administration after upgrading.
+
 ### Added
 - **External Checks**: Manage external uptime/health checks per project
 - **Log Explorer Page Size**: Selectable logs per page (10, 25, 50, 100, 250, 500) in the table footer, defaulting to 10
@@ -118,5 +128,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rate limiting on webhook dispatching (30 webhooks/minute per project)
 - Sensitive fields hidden from API responses (magic_key, webhook_secret, password)
 
-[Unreleased]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/releases/tag/v1.0.0
