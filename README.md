@@ -203,6 +203,31 @@ php artisan app:prune-logs
 php artisan app:prune-logs --dry-run  # Preview without deleting
 ```
 
+## MCP Server
+
+Logger exposes an [MCP](https://modelcontextprotocol.io) endpoint at `/mcp`, so an AI client can look at new logs and onboard projects.
+
+1. Profile > API Tokens > Create Token. The token is shown once.
+2. Register it, e.g. in Claude Code:
+
+```bash
+claude mcp add --transport http logger https://your-logger.example.com/mcp --header "Authorization: Bearer <token>"
+```
+
+A token sees the projects its owner sees; `get_ingest_config` needs `edit` permission, `create_project` needs an admin.
+
+| Tool | Purpose |
+|------|---------|
+| `list_projects` | Visible projects with 24h log and error counts |
+| `project_overview` | Level counts, top failing controllers/routes, server stats |
+| `new_log_groups` | Messages first seen since a point in time ("what is new") |
+| `search_logs` | Filter by level, time, text, controller, route |
+| `get_log` | Full entry with context and stack trace |
+| `create_project` | New project (admin) |
+| `get_ingest_config` | Endpoint, project key and `.env` lines (edit permission) |
+
+Project keys are secrets: `get_ingest_config` writes an audit line to the application log on every call.
+
 ## API Usage
 
 ### OpenAPI Specification

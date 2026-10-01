@@ -205,6 +205,70 @@
                 </form>
             </div>
 
+            <!-- API Tokens (MCP) -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">API Tokens</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tokens for the MCP endpoint at <code>{{ url('/mcp') }}</code>. A token sees exactly the projects you see and can edit what you can edit.</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    @if (session('new_token'))
+                        <div class="rounded-md bg-green-50 dark:bg-green-900/30 p-4">
+                            <p class="text-sm font-medium text-green-800 dark:text-green-300">Copy this token now. It is not shown again.</p>
+                            <code class="mt-2 block break-all text-sm text-gray-900 dark:text-white select-all">{{ session('new_token') }}</code>
+                        </div>
+                    @endif
+                    @if (session('status') === 'token-revoked')
+                        <p class="text-sm text-green-600 dark:text-green-400">Token revoked.</p>
+                    @endif
+
+                    @if ($tokens->isNotEmpty())
+                        <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach ($tokens as $apiToken)
+                                <li class="py-2 flex items-center justify-between text-sm">
+                                    <div>
+                                        <span class="font-medium text-gray-900 dark:text-white">{{ $apiToken->name }}</span>
+                                        <span class="text-gray-500 dark:text-gray-400">
+                                            · last used {{ $apiToken->last_used_at?->diffForHumans() ?? 'never' }}
+                                            · {{ $apiToken->expires_at && $apiToken->expires_at->isPast() ? 'expired' : 'expires '.($apiToken->expires_at?->format('M d, Y') ?? 'never') }}
+                                        </span>
+                                    </div>
+                                    <form method="POST" action="{{ route('profile.tokens.destroy', $apiToken->id) }}">
+                                        @csrf
+                                        @method('delete')
+                                        <button type="submit" class="text-red-600 dark:text-red-400 hover:underline">Revoke</button>
+                                    </form>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    <form method="POST" action="{{ route('profile.tokens.store') }}" class="flex flex-wrap items-end gap-3">
+                        @csrf
+                        <div class="flex-1 min-w-[12rem]">
+                            <label for="token_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                            <input type="text" name="token_name" id="token_name" required maxlength="100" placeholder="claude-code mac"
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @error('token_name')
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="token_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Expires</label>
+                            <select name="token_days" id="token_days"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="30">30 days</option>
+                                <option value="90" selected>90 days</option>
+                                <option value="365">1 year</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Create Token
+                        </button>
+                    </form>
+                </div>
+            </div>
+
             <!-- Danger Zone -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-red-200 dark:border-red-800">
                 <div class="px-6 py-4 border-b border-red-200 dark:border-red-800">

@@ -97,6 +97,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/digest', [ProfileController::class, 'updateDigest'])->name('profile.digest.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/tokens', [ProfileController::class, 'storeToken'])->name('profile.tokens.store');
+    Route::delete('/profile/tokens/{token}', [ProfileController::class, 'destroyToken'])->name('profile.tokens.destroy');
 
     // Dashboard Preferences
     Route::post('/dashboard/preferences', [GlobalDashboardController::class, 'updatePreferences'])->name('dashboard.preferences.update');
