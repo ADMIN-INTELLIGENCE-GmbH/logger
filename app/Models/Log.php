@@ -39,6 +39,7 @@ class Log extends Model
         'app_debug' => 'boolean',
         'created_at' => 'datetime',
         'logged_at' => 'datetime',
+        'resolved_at' => 'datetime',
     ];
 
     /**

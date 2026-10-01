@@ -33,6 +33,7 @@ class SearchLogsTool extends Tool
             'app_env' => $schema->string()->description('e.g. production.'),
             'limit' => $schema->integer()->description('Default 25, max 100.'),
             'offset' => $schema->integer()->description('For paging.'),
+            'include_resolved' => $schema->boolean()->description('Also return logs marked fixed via resolve_log_group. Default false.'),
         ];
     }
 
@@ -50,6 +51,7 @@ class SearchLogsTool extends Tool
             'app_env' => 'nullable|string',
             'limit' => 'nullable|integer|min:1',
             'offset' => 'nullable|integer|min:0',
+            'include_resolved' => 'nullable|boolean',
         ]);
 
         [$project, $error] = $this->resolveProject($request, $data['project']);
@@ -68,6 +70,9 @@ class SearchLogsTool extends Tool
 
         if ($until) {
             $query->where('created_at', '<=', $until);
+        }
+        if (empty($data['include_resolved'])) {
+            $query->whereNull('resolved_at');
         }
         if (! empty($data['min_level'])) {
             $query->whereIn('level', $this->levelsFrom($data['min_level']));
@@ -106,6 +111,7 @@ class SearchLogsTool extends Tool
                 'route_name' => $log->route_name,
                 'request_url' => $log->request_url,
                 'app_env' => $log->app_env,
+                'resolved_at' => $log->resolved_at?->toIso8601String(),
             ])->all(),
         ]);
     }

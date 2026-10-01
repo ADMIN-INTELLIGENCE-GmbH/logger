@@ -27,6 +27,7 @@ class NewLogGroupsTool extends Tool
             'since' => $schema->string()->description('Relative ("24h", "7d") or a date. Default 24h.'),
             'min_level' => $schema->string()->enum(Log::LEVELS)->description('Default "warning".'),
             'limit' => $schema->integer()->description('Default 30, max 100.'),
+            'include_resolved' => $schema->boolean()->description('Also count logs marked fixed via resolve_log_group. Default false: a fixed group that recurs shows up as new.'),
         ];
     }
 
@@ -37,6 +38,7 @@ class NewLogGroupsTool extends Tool
             'since' => 'nullable|string',
             'min_level' => 'nullable|in:'.implode(',', Log::LEVELS),
             'limit' => 'nullable|integer|min:1',
+            'include_resolved' => 'nullable|boolean',
         ]);
 
         [$project, $error] = $this->resolveProject($request, $data['project']);
@@ -55,6 +57,7 @@ class NewLogGroupsTool extends Tool
 
         $groups = Log::where('project_id', $project->id)
             ->whereIn('level', $levels)
+            ->when(empty($data['include_resolved']), fn ($q) => $q->whereNull('resolved_at'))
             ->select([
                 'level',
                 DB::raw('SUBSTR(message, 1, 200) as message_head'),

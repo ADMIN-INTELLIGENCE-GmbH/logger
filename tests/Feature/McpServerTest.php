@@ -9,6 +9,7 @@ use App\Mcp\Tools\GetLogTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Mcp\Tools\NewLogGroupsTool;
 use App\Mcp\Tools\ProjectOverviewTool;
+use App\Mcp\Tools\ResolveLogGroupTool;
 use App\Mcp\Tools\SearchLogsTool;
 use App\Models\Log;
 use App\Models\Project;
@@ -149,5 +150,44 @@ class McpServerTest extends TestCase
 
         $this->actingAs($user)->delete('/profile/tokens/'.$user->tokens->first()->id)->assertRedirect('/profile');
         $this->assertCount(0, $user->fresh()->tokens);
+    }
+
+    public function test_resolve_log_group_hides_group_and_recurrence_shows_as_new(): void
+    {
+        [$user, $project] = $this->member('edit');
+        $first = $this->log($project, 'error', 'SQLSTATE 1140 GROUP BY');
+        $this->log($project, 'error', 'SQLSTATE 1140 GROUP BY');
+        $this->log($project, 'warning', 'SQLSTATE 1140 GROUP BY'); // other level, other group
+        $this->log($project, 'error', 'unrelated failure');
+
+        LoggerServer::actingAs($user)->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $first->id, 'note' => 'fixed in abc123'])
+            ->assertSee('"logs_affected":2');
+
+        $this->assertSame(2, Log::whereNotNull('resolved_at')->where('resolution_note', 'fixed in abc123')->where('resolved_by', $user->id)->count());
+
+        LoggerServer::actingAs($user)->tool(SearchLogsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
+            ->assertSee('unrelated failure')->assertDontSee('1140');
+        LoggerServer::actingAs($user)->tool(SearchLogsTool::class, ['project' => 'Shop', 'min_level' => 'error', 'include_resolved' => true])
+            ->assertSee('1140');
+        LoggerServer::actingAs($user)->tool(NewLogGroupsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
+            ->assertDontSee('1140');
+
+        $this->log($project, 'error', 'SQLSTATE 1140 GROUP BY'); // regression
+        LoggerServer::actingAs($user)->tool(NewLogGroupsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
+            ->assertSee('1140');
+
+        LoggerServer::actingAs($user)->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $first->id, 'reopen' => true])
+            ->assertSee('"logs_affected":2');
+        $this->assertSame(0, Log::whereNotNull('resolved_at')->count());
+    }
+
+    public function test_resolve_log_group_needs_edit_permission(): void
+    {
+        [$user, $project] = $this->member('view');
+        $log = $this->log($project, 'error', 'boom');
+
+        LoggerServer::actingAs($user)->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $log->id])
+            ->assertHasErrors();
+        $this->assertNull($log->fresh()->resolved_at);
     }
 }
