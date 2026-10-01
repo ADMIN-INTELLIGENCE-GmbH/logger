@@ -63,6 +63,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/projects/{project}/logs/bulk-delete', [LogExplorerController::class, 'bulkDestroy'])
         ->middleware('can:update,project')
         ->name('projects.logs.bulk-destroy');
+    Route::post('/projects/{project}/logs/bulk-resolve', [LogExplorerController::class, 'bulkResolve'])
+        ->middleware('can:update,project')
+        ->name('projects.logs.bulk-resolve');
+    Route::post('/projects/{project}/logs/{log}/resolve-group', [LogExplorerController::class, 'resolveGroup'])
+        ->middleware('can:update,project')
+        ->name('projects.logs.resolve-group');
 
     // Failing Controllers
     Route::get('/projects/{project}/failing-controllers', [FailingControllersController::class, 'index'])

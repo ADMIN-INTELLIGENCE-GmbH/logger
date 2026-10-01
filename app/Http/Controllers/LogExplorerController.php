@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Log;
 use App\Models\Project;
+use App\Services\LogResolver;
 use App\Services\OpenAIService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -79,6 +80,13 @@ class LogExplorerController extends Controller
         if ($request->filled('to_date')) {
             $query->where('created_at', '<=', $request->input('to_date'));
         }
+
+        // Resolved logs are hidden unless asked for
+        match ($request->input('status', 'open')) {
+            'resolved' => $query->whereNotNull('resolved_at'),
+            'all' => null,
+            default => $query->whereNull('resolved_at'),
+        };
 
         // Order by most recent
         $query->orderBy('created_at', 'desc');
@@ -235,6 +243,63 @@ class LogExplorerController extends Controller
             'success' => true,
             'message' => "Deleted {$deletedCount} log ".($deletedCount === 1 ? 'entry' : 'entries'),
             'deleted_count' => $deletedCount,
+        ]);
+    }
+
+    /**
+     * Mark selected log entries as resolved, or reopen them.
+     */
+    public function bulkResolve(Request $request, Project $project, LogResolver $resolver): JsonResponse
+    {
+        $validated = $request->validate([
+            'log_ids' => 'required|array|min:1',
+            'log_ids.*' => 'required|integer',
+            'reopen' => 'nullable|boolean',
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $query = Log::where('project_id', $project->id)->whereIn('id', $validated['log_ids']);
+        $reopen = (bool) ($validated['reopen'] ?? false);
+
+        $count = $reopen
+            ? $resolver->reopen($query)
+            : $resolver->resolve($query, $request->user(), $validated['note'] ?? null);
+
+        return response()->json([
+            'success' => true,
+            'message' => ($reopen ? 'Reopened' : 'Resolved')." {$count} log ".($count === 1 ? 'entry' : 'entries'),
+            'count' => $count,
+        ]);
+    }
+
+    /**
+     * Resolve (or reopen) every log of this entry's group: same level and message prefix, up to now.
+     */
+    public function resolveGroup(Request $request, Project $project, Log $log, LogResolver $resolver): JsonResponse
+    {
+        if ($log->project_id !== $project->id) {
+            return response()->json([
+                'error' => 'Not Found',
+                'message' => 'Log entry not found in this project',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'reopen' => 'nullable|boolean',
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        $query = $resolver->groupQuery($log);
+        $reopen = (bool) ($validated['reopen'] ?? false);
+
+        $count = $reopen
+            ? $resolver->reopen($query)
+            : $resolver->resolve($query, $request->user(), $validated['note'] ?? null);
+
+        return response()->json([
+            'success' => true,
+            'message' => ($reopen ? 'Reopened' : 'Resolved')." {$count} log ".($count === 1 ? 'entry' : 'entries'),
+            'count' => $count,
         ]);
     }
 }

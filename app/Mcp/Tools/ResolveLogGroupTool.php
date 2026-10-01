@@ -4,8 +4,8 @@ namespace App\Mcp\Tools;
 
 use App\Mcp\Concerns\ResolvesProjects;
 use App\Models\Log;
+use App\Services\LogResolver;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -48,24 +48,12 @@ class ResolveLogGroupTool extends Tool
         }
 
         $reopen = (bool) ($data['reopen'] ?? false);
-        $head = mb_substr($sample->message, 0, 200);
-
-        $query = Log::where('project_id', $project->id)
-            ->where('level', $sample->level)
-            ->where(DB::raw('SUBSTR(message, 1, 200)'), $head)
-            ->where('created_at', '<=', now());
+        $resolver = app(LogResolver::class);
+        $query = $resolver->groupQuery($sample);
 
         $affected = $reopen
-            ? $query->whereNotNull('resolved_at')->update([
-                'resolved_at' => null,
-                'resolved_by' => null,
-                'resolution_note' => null,
-            ])
-            : $query->whereNull('resolved_at')->update([
-                'resolved_at' => now(),
-                'resolved_by' => $request->user()->id,
-                'resolution_note' => $data['note'] ?? null,
-            ]);
+            ? $resolver->reopen($query)
+            : $resolver->resolve($query, $request->user(), $data['note'] ?? null);
 
         $this->audit($request, $reopen ? 'reopen_log_group' : 'resolve_log_group', $project);
 
@@ -73,7 +61,7 @@ class ResolveLogGroupTool extends Tool
             'project' => $project->name,
             'action' => $reopen ? 'reopened' : 'resolved',
             'level' => $sample->level,
-            'message' => $head,
+            'message' => mb_substr($sample->message, 0, LogResolver::GROUP_PREFIX),
             'logs_affected' => $affected,
         ]);
     }

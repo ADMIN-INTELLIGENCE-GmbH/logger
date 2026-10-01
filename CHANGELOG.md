@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   chars) as fixed, with an optional note. Resolved logs stay stored but are hidden from `search_logs`
   and `new_log_groups` unless `include_resolved` is set; later occurrences are unresolved, so a
   regression shows up as new. `reopen` clears the mark.
+- Log explorer: Status filter (Open by default, Resolved, All), resolved badge, Resolve/Reopen
+  Selected in the bulk bar and Resolve/Reopen Group in the log modal, each with an optional note.
 
 ## [1.1.0] - 2026-07-31
 

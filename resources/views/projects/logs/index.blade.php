@@ -14,6 +14,10 @@
     selectedLogs: [],
     showBulkDeleteConfirm: false,
     bulkDeleting: false,
+    resolving: false,
+    showResolveNote: false,
+    showBulkResolveNote: false,
+    resolveNote: '',
     allLogsData: {{ $logs->getCollection()->toJson() }},
     llmFields: {
         channel: true,
@@ -82,6 +86,39 @@
             this.bulkDeleting = false;
         }
     },
+    async postResolve(url, payload) {
+        this.resolving = true;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to update logs');
+                this.resolving = false;
+            }
+        } catch (error) {
+            alert('Failed to connect to the server');
+            this.resolving = false;
+        }
+    },
+    bulkResolve(reopen = false) {
+        if (this.selectedLogs.length === 0) return;
+        this.postResolve('/projects/{{ $project->id }}/logs/bulk-resolve', { log_ids: this.selectedLogs, reopen, note: reopen ? null : (this.resolveNote.trim() || null) });
+    },
+    resolveGroup(reopen = false) {
+        if (!this.selectedLog) return;
+        this.postResolve(`/projects/{{ $project->id }}/logs/${this.selectedLog.id}/resolve-group`, { reopen, note: reopen ? null : (this.resolveNote.trim() || null) });
+    },
     async bulkCopyToClipboard(event) {
         if (this.selectedLogs.length === 0) return;
 
@@ -145,6 +182,8 @@
         this.selectedLog = log;
         this.showModal = true;
         this.showDeleteConfirm = false;
+        this.showResolveNote = false;
+        this.resolveNote = '';
         this.llmAnalysis = null;
         this.llmError = null;
     },
@@ -315,11 +354,21 @@
                 <input type="text" name="method" id="method" value="{{ request('method') }}" placeholder="Method name..." class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
             </div>
 
+            <!-- Status -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                <select name="status" id="status" class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                    <option value="open" {{ request('status', 'open') === 'open' ? 'selected' : '' }}>Open</option>
+                    <option value="resolved" {{ request('status') === 'resolved' ? 'selected' : '' }}>Resolved</option>
+                    <option value="all" {{ request('status') === 'all' ? 'selected' : '' }}>All</option>
+                </select>
+            </div>
+
             <!-- Keep the selected page size when filters are re-submitted -->
             <input type="hidden" name="per_page" value="{{ $logs->perPage() }}">
 
             <!-- Filter Buttons -->
-            <div class="lg:col-span-5 flex justify-end space-x-3">
+            <div class="md:col-span-2 lg:col-span-4 flex justify-end space-x-3">
                 <a href="{{ route('projects.logs.index', $project) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                     Clear Filters
                 </a>
@@ -348,6 +397,32 @@
                         <i class="mdi mdi-content-copy mr-2"></i>
                         Copy Selected
                     </button>
+                    @if(request('status') !== 'resolved')
+                    <template x-if="!showBulkResolveNote">
+                        <button @click="showBulkResolveNote = true; resolveNote = ''; $nextTick(() => $refs.bulkNote?.focus())" class="inline-flex items-center px-4 py-2 border border-green-300 dark:border-green-700 text-sm font-medium rounded-md text-green-700 dark:text-green-400 bg-white dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20">
+                            <i class="mdi mdi-check-circle-outline mr-2"></i>
+                            Resolve Selected
+                        </button>
+                    </template>
+                    <template x-if="showBulkResolveNote">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" x-ref="bulkNote" x-model="resolveNote" maxlength="500" placeholder="What fixed it? (optional)" @keydown.enter="bulkResolve()" @keydown.escape="showBulkResolveNote = false" class="w-64 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm px-3 py-2 focus:border-green-500 focus:ring-green-500">
+                            <button @click="bulkResolve()" :disabled="resolving" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="!resolving">Resolve</span>
+                                <span x-show="resolving">Resolving...</span>
+                            </button>
+                            <button @click="showBulkResolveNote = false" :disabled="resolving" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                Cancel
+                            </button>
+                        </div>
+                    </template>
+                    @endif
+                    @if(in_array(request('status'), ['resolved', 'all'], true))
+                    <button @click="bulkResolve(true)" :disabled="resolving" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
+                        <i class="mdi mdi-restore mr-2"></i>
+                        Reopen Selected
+                    </button>
+                    @endif
                     <template x-if="!showBulkDeleteConfirm">
                         <button @click="showBulkDeleteConfirm = true" class="inline-flex items-center px-4 py-2 border border-red-300 dark:border-red-600 text-sm font-medium rounded-md text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20">
                             <i class="mdi mdi-trash-can mr-2"></i>
@@ -419,6 +494,11 @@
                                 @if($log->channel === 'javascript')
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                                         JS
+                                    </span>
+                                @endif
+                                @if($log->resolved_at)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" title="Resolved {{ $log->resolved_at->format('M d, H:i') }}{{ $log->resolution_note ? ': '.$log->resolution_note : '' }}">
+                                        <i class="mdi mdi-check"></i>
                                     </span>
                                 @endif
                             </div>
@@ -501,6 +581,10 @@
 
                     <template x-if="selectedLog">
                         <div class="space-y-4">
+                            <div x-show="selectedLog.resolved_at" class="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-3 py-2 text-sm text-green-800 dark:text-green-200">
+                                <i class="mdi mdi-check-circle-outline mr-1"></i>
+                                Resolved <span x-text="selectedLog.resolved_at ? new Date(selectedLog.resolved_at).toLocaleString() : ''"></span><span x-show="selectedLog.resolution_note">: <span x-text="selectedLog.resolution_note"></span></span>
+                            </div>
                             <!-- Log Info Grid -->
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div>
@@ -661,6 +745,35 @@
                         Close
                     </button>
                     @can('update', $project)
+                        <!-- Resolve Group Button -->
+                        <button
+                            type="button"
+                            x-show="selectedLog && !selectedLog.resolved_at && !showResolveNote"
+                            @click="showResolveNote = true; resolveNote = ''; $nextTick(() => $refs.groupNote?.focus())"
+                            title="Marks every log with the same level and message start as fixed. New occurrences show up again."
+                            class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-green-300 dark:border-green-700 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 sm:mt-0 sm:w-auto sm:text-sm">
+                            <i class="mdi mdi-check-circle-outline mr-2"></i>
+                            Resolve Group
+                        </button>
+                        <div x-show="selectedLog && !selectedLog.resolved_at && showResolveNote" class="mt-3 sm:mt-0 flex items-center gap-2">
+                            <input type="text" x-ref="groupNote" x-model="resolveNote" maxlength="500" placeholder="What fixed it? (optional)" @keydown.enter="resolveGroup()" @keydown.escape="showResolveNote = false" class="w-56 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm px-3 py-1.5 focus:border-green-500 focus:ring-green-500">
+                            <button type="button" @click="resolveGroup()" :disabled="resolving" class="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-green-600 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
+                                <span x-show="!resolving">Resolve</span>
+                                <span x-show="resolving">Resolving...</span>
+                            </button>
+                            <button type="button" @click="showResolveNote = false" class="inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-3 py-1.5 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                Cancel
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            x-show="selectedLog && selectedLog.resolved_at"
+                            @click="resolveGroup(true)"
+                            :disabled="resolving"
+                            class="mt-3 w-full inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 sm:mt-0 sm:w-auto sm:text-sm">
+                            <i class="mdi mdi-restore mr-2"></i>
+                            Reopen Group
+                        </button>
                         <!-- Delete Button -->
                         <div class="sm:flex-1"></div>
                         <template x-if="!showDeleteConfirm">
