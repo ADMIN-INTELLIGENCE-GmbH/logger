@@ -131,7 +131,7 @@ deploy_development:
     - echo "$PULLED_FILES"
     - |
       if echo "$PULLED_FILES" | grep -E 'composer.json|composer.lock'; then
-        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && composer install --no-dev --optimize-autoloader"
+        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && composer install --no-dev --no-scripts --optimize-autoloader && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php && php artisan package:discover --ansi"
       else
         echo "No composer changes, skipping composer install"
       fi
@@ -180,7 +180,7 @@ deploy_staging:
     - echo "$PULLED_FILES"
     - |
       if echo "$PULLED_FILES" | grep -E 'composer.json|composer.lock'; then
-        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && composer install --no-dev --optimize-autoloader"
+        ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && composer install --no-dev --no-scripts --optimize-autoloader && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php && php artisan package:discover --ansi"
       else
         echo "No composer changes, skipping composer install"
       fi
@@ -229,7 +229,7 @@ deploy_production:
     - echo "$PULLED_FILES"
     - |
       if echo "$PULLED_FILES" | grep -E 'composer.json|composer.lock'; then
-        ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && composer install --no-dev --optimize-autoloader"
+        ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && composer install --no-dev --no-scripts --optimize-autoloader && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php && php artisan package:discover --ansi"
       else
         echo "No composer changes, skipping composer install"
       fi
