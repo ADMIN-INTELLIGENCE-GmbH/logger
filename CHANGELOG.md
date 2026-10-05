@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Composer dependencies updated within their constraints, among them Laravel 12.42.0 to 12.69.3,
   `laravel/mcp` 0.7.1 to 0.7.2, `league/commonmark` 2.8.0 to 2.10.3 and `guzzlehttp/guzzle` 7.10.0 to
   7.15.5. npm dependencies updated; `npm audit fix` applied.
+- `composer.json` pins the platform to PHP 8.2.0 so the lock file resolves for the lowest supported PHP
+  (Symfony 7.4 instead of 8.x) and `laravel/pint` to `~1.26.0` (newer Pint flags 27 existing files).
 
 ### Security
 - Resolves all open `composer audit` advisories (Laravel email-rule CRLF injection, `league/commonmark`
