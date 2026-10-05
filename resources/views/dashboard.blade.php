@@ -16,7 +16,7 @@
             <div class="flex items-center gap-2">
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" x-model="enabled" class="sr-only peer">
-                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-hidden peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:rtl:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:inset-s-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
                 </label>
                 <div class="flex flex-col">
                     <span class="text-sm font-medium text-gray-900 dark:text-white">Auto-refresh</span>
@@ -28,9 +28,9 @@
 
     <!-- Overall Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                <div class="shrink-0 p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
                     <i class="mdi mdi-folder-multiple text-2xl text-indigo-600 dark:text-indigo-400"></i>
                 </div>
                 <div class="ml-4">
@@ -40,9 +40,9 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <div class="shrink-0 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
                     <i class="mdi mdi-file-document-multiple text-2xl text-blue-600 dark:text-blue-400"></i>
                 </div>
                 <div class="ml-4">
@@ -52,9 +52,9 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg">
+                <div class="shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg">
                     <i class="mdi mdi-alert-circle text-2xl text-red-600 dark:text-red-400"></i>
                 </div>
                 <div class="ml-4">
@@ -64,9 +64,9 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 {{ $overallStats['overall_error_rate'] > 10 ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900' }} rounded-lg">
+                <div class="shrink-0 p-3 {{ $overallStats['overall_error_rate'] > 10 ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900' }} rounded-lg">
                     <i class="mdi mdi-chart-bar text-2xl {{ $overallStats['overall_error_rate'] > 10 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}"></i>
                 </div>
                 <div class="ml-4">
@@ -97,47 +97,47 @@
                             <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Show Metrics</h3>
                             <div class="space-y-2">
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('php_version')" @change="toggleMetric('php_version')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('php_version')" @change="toggleMetric('php_version')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">PHP Version</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('laravel_version')" @change="toggleMetric('laravel_version')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('laravel_version')" @change="toggleMetric('laravel_version')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Laravel Version</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('log_shipper_version')" @change="toggleMetric('log_shipper_version')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('log_shipper_version')" @change="toggleMetric('log_shipper_version')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Log Shipper Version</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('debug_mode')" @change="toggleMetric('debug_mode')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('debug_mode')" @change="toggleMetric('debug_mode')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Debug Mode</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('cpu')" @change="toggleMetric('cpu')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('cpu')" @change="toggleMetric('cpu')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">CPU Usage</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('memory')" @change="toggleMetric('memory')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('memory')" @change="toggleMetric('memory')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Memory Usage</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('disk')" @change="toggleMetric('disk')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('disk')" @change="toggleMetric('disk')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Disk Usage</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('queue')" @change="toggleMetric('queue')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('queue')" @change="toggleMetric('queue')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Queue Size</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('composer')" @change="toggleMetric('composer')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('composer')" @change="toggleMetric('composer')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Composer Status</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('npm')" @change="toggleMetric('npm')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('npm')" @change="toggleMetric('npm')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">npm Status</span>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" :checked="!hiddenMetrics.includes('updated')" @change="toggleMetric('updated')" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                    <input type="checkbox" :checked="!hiddenMetrics.includes('updated')" @change="toggleMetric('updated')" class="rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
                                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Last Updated</span>
                                 </label>
                             </div>
@@ -152,10 +152,10 @@
                 
                 <!-- View Toggle -->
                 <div class="flex items-center h-10 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                    <button @click="view = 'grid'" :class="{ 'bg-white dark:bg-gray-600 shadow-sm': view === 'grid', 'text-gray-500 dark:text-gray-400': view !== 'grid' }" class="flex items-center justify-center h-full px-2.5 rounded-md transition-all">
+                    <button @click="view = 'grid'" :class="{ 'bg-white dark:bg-gray-600 shadow-xs': view === 'grid', 'text-gray-500 dark:text-gray-400': view !== 'grid' }" class="flex items-center justify-center h-full px-2.5 rounded-md transition-all">
                         <i class="mdi mdi-view-grid text-xl leading-none"></i>
                     </button>
-                    <button @click="view = 'table'" :class="{ 'bg-white dark:bg-gray-600 shadow-sm': view === 'table', 'text-gray-500 dark:text-gray-400': view !== 'table' }" class="flex items-center justify-center h-full px-2.5 rounded-md transition-all">
+                    <button @click="view = 'table'" :class="{ 'bg-white dark:bg-gray-600 shadow-xs': view === 'table', 'text-gray-500 dark:text-gray-400': view !== 'table' }" class="flex items-center justify-center h-full px-2.5 rounded-md transition-all">
                         <i class="mdi mdi-view-list text-xl leading-none"></i>
                     </button>
                 </div>
@@ -165,7 +165,7 @@
         <!-- Search Bar -->
         <div class="mb-6">
             <div class="relative">
-                <input type="text" x-model="searchQuery" placeholder="Search projects by name or tag..." class="block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <input type="text" x-model="searchQuery" placeholder="Search projects by name or tag..." class="block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" x-show="searchQuery" x-cloak>
                 Showing <span x-text="filteredProjects.length"></span> of <span x-text="projects.length"></span> projects
@@ -175,7 +175,7 @@
         <!-- Grid View -->
         <div x-show="view === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <template x-for="item in sortedFilteredProjects" :key="item.project.id">
-                <a :href="item.dashboard_url" class="relative group block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow overflow-hidden">
+                <a :href="item.dashboard_url" class="relative group block bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow overflow-hidden">
                     
                     <div class="p-6 h-full flex flex-col gap-4">
                         <!-- Fixed Header -->
@@ -183,7 +183,7 @@
                             <div class="space-y-2 min-w-0 flex-1">
                                 <div class="flex items-center gap-2">
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate" x-text="item.project.name"></h3>
-                                    <span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase tracking-wide" 
+                                    <span class="px-2 py-1 rounded-sm text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase tracking-wide" 
                                           x-text="item.project.server_stats && item.project.server_stats.app_env ? item.project.server_stats.app_env : 'Unknown'"></span>
                                 </div>
                                 <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -197,11 +197,11 @@
                                 </div>
                                 <div class="flex flex-wrap gap-1.5" x-show="item.tags && item.tags.length > 0">
                                     <template x-for="tag in item.tags" :key="tag">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300" x-text="tag"></span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300" x-text="tag"></span>
                                     </template>
                                 </div>
                             </div>
-                            <div class="text-right space-y-1 flex-shrink-0">
+                            <div class="text-right space-y-1 shrink-0">
                                 <div class="text-sm font-medium"
                                     :class="item.project.is_active ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'"
                                     x-text="item.project.is_active ? 'Active' : 'Inactive'"></div>
@@ -239,7 +239,7 @@
         </div>
 
         <!-- Table View -->
-        <div x-show="view === 'table'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div x-show="view === 'table'" class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-900/50">

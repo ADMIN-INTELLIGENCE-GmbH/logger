@@ -17,7 +17,7 @@
     </div>
 
     <!-- Form -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
         <form action="{{ route('users.store') }}" method="POST" class="p-6 space-y-6">
             @csrf
 
@@ -26,7 +26,7 @@
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                     <input type="text" name="name" id="name" value="{{ old('name') }}" required
-                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                     @error('name')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -36,7 +36,7 @@
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                     <input type="email" name="email" id="email" value="{{ old('email') }}" required
-                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                     @error('email')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -46,7 +46,7 @@
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
                     <input type="password" name="password" id="password" required
-                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                     @error('password')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -56,14 +56,14 @@
                 <div>
                     <label for="password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</label>
                     <input type="password" name="password_confirmation" id="password_confirmation" required
-                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                 </div>
 
                 <!-- Role -->
                 <div>
                     <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
                     <select name="role" id="role" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                         <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
                         <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
@@ -98,7 +98,7 @@
                                 <div class="w-40">
                                     <label class="sr-only" for="project_permissions_{{ $projectItem->id }}">Permission</label>
                                     <select name="project_permissions[{{ $projectItem->id }}]" id="project_permissions_{{ $projectItem->id }}"
-                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                         <option value="none" {{ $selectedPermission === 'none' ? 'selected' : '' }}>No access</option>
                                         <option value="view" {{ $selectedPermission === 'view' ? 'selected' : '' }}>View</option>
                                         <option value="edit" {{ $selectedPermission === 'edit' ? 'selected' : '' }}>Edit</option>
@@ -122,7 +122,7 @@
                 <a href="{{ route('users.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Create User
                 </button>
             </div>

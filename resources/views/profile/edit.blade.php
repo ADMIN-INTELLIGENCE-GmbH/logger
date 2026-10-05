@@ -14,7 +14,7 @@
         <!-- Main Settings -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Profile Information -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">Profile Information</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Update your account's profile information and email address.</p>
@@ -26,7 +26,7 @@
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                         <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                         @error('name')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -35,7 +35,7 @@
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                         <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                         @error('email')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -63,7 +63,7 @@
                     <div>
                         <label for="timezone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Timezone</label>
                         <select name="timezone" id="timezone" required
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                             @foreach(DateTimeZone::listIdentifiers() as $timezone)
                                 <option value="{{ $timezone }}" {{ old('timezone', $user->timezone) == $timezone ? 'selected' : '' }}>
                                     {{ $timezone }}
@@ -76,7 +76,7 @@
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Save Changes
                         </button>
                         @if (session('status') === 'profile-updated')
@@ -87,7 +87,7 @@
             </div>
 
             <!-- Update Password -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">Update Password</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Ensure your account is using a long, random password to stay secure.</p>
@@ -99,7 +99,7 @@
                     <div>
                         <label for="current_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
                         <input type="password" name="current_password" id="current_password"
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                         @error('current_password', 'updatePassword')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -108,7 +108,7 @@
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
                         <input type="password" name="password" id="password"
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                         @error('password', 'updatePassword')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -117,14 +117,14 @@
                     <div>
                         <label for="password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</label>
                         <input type="password" name="password_confirmation" id="password_confirmation"
-                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                         @error('password_confirmation', 'updatePassword')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Update Password
                         </button>
                         @if (session('status') === 'password-updated')
@@ -135,7 +135,7 @@
             </div>
 
             <!-- Daily Digest -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">Daily Digest</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Configure your daily email summary preferences.</p>
@@ -146,7 +146,7 @@
 
                     <div class="flex items-start">
                         <div class="flex items-center h-5">
-                            <input id="daily_digest_enabled" name="daily_digest_enabled" type="checkbox" value="1" {{ $user->daily_digest_enabled ? 'checked' : '' }} @change="enabled = $event.target.checked" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600">
+                            <input id="daily_digest_enabled" name="daily_digest_enabled" type="checkbox" value="1" {{ $user->daily_digest_enabled ? 'checked' : '' }} @change="enabled = $event.target.checked" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded-sm dark:bg-gray-700 dark:border-gray-600">
                         </div>
                         <div class="ml-3 text-sm">
                             <label for="daily_digest_enabled" class="font-medium text-gray-700 dark:text-gray-300">Enable Daily Digest</label>
@@ -158,7 +158,7 @@
                          <div>
                             <label for="daily_digest_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Time of Day</label>
                             <input type="time" name="daily_digest_at" id="daily_digest_at" value="{{ old('daily_digest_at', \Carbon\Carbon::parse($user->daily_digest_at)->format('H:i')) }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
 
                         <fieldset>
@@ -166,7 +166,7 @@
                             <div class="space-y-2">
                                 <div class="flex items-start">
                                     <div class="flex items-center h-5">
-                                        <input id="digest_logs" name="daily_digest_settings[logs]" type="checkbox" value="1" {{ ($user->daily_digest_settings['logs'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600">
+                                        <input id="digest_logs" name="daily_digest_settings[logs]" type="checkbox" value="1" {{ ($user->daily_digest_settings['logs'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded-sm dark:bg-gray-700 dark:border-gray-600">
                                     </div>
                                     <div class="ml-3 text-sm">
                                         <label for="digest_logs" class="font-medium text-gray-700 dark:text-gray-300">Recent Logs</label>
@@ -175,7 +175,7 @@
 
                                 <div class="flex items-start">
                                      <div class="flex items-center h-5">
-                                        <input id="digest_memory" name="daily_digest_settings[memory_usage]" type="checkbox" value="1" {{ ($user->daily_digest_settings['memory_usage'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600">
+                                        <input id="digest_memory" name="daily_digest_settings[memory_usage]" type="checkbox" value="1" {{ ($user->daily_digest_settings['memory_usage'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded-sm dark:bg-gray-700 dark:border-gray-600">
                                     </div>
                                     <div class="ml-3 text-sm">
                                         <label for="digest_memory" class="font-medium text-gray-700 dark:text-gray-300">High Memory Usage alerts</label>
@@ -184,7 +184,7 @@
 
                                  <div class="flex items-start">
                                      <div class="flex items-center h-5">
-                                        <input id="digest_filesize" name="daily_digest_settings[filesize]" type="checkbox" value="1" {{ ($user->daily_digest_settings['filesize'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600">
+                                        <input id="digest_filesize" name="daily_digest_settings[filesize]" type="checkbox" value="1" {{ ($user->daily_digest_settings['filesize'] ?? false) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded-sm dark:bg-gray-700 dark:border-gray-600">
                                     </div>
                                     <div class="ml-3 text-sm">
                                         <label for="digest_filesize" class="font-medium text-gray-700 dark:text-gray-300">Filesize / Storage alerts</label>
@@ -195,7 +195,7 @@
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Save Preferences
                         </button>
                         @if (session('status') === 'digest-updated')
@@ -206,7 +206,7 @@
             </div>
 
             <!-- API Tokens (MCP) -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">API Tokens</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tokens for the MCP endpoint at <code>{{ url('/mcp') }}</code>. A token sees exactly the projects you see and can edit what you can edit.</p>
@@ -245,10 +245,10 @@
 
                     <form method="POST" action="{{ route('profile.tokens.store') }}" class="flex flex-wrap items-end gap-3">
                         @csrf
-                        <div class="flex-1 min-w-[12rem]">
+                        <div class="flex-1 min-w-48">
                             <label for="token_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                             <input type="text" name="token_name" id="token_name" required maxlength="100" placeholder="claude-code mac"
-                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                             @error('token_name')
                                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -256,13 +256,13 @@
                         <div>
                             <label for="token_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Expires</label>
                             <select name="token_days" id="token_days"
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="30">30 days</option>
                                 <option value="90" selected>90 days</option>
                                 <option value="365">1 year</option>
                             </select>
                         </div>
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Create Token
                         </button>
                     </form>
@@ -270,7 +270,7 @@
             </div>
 
             <!-- Danger Zone -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-red-200 dark:border-red-800">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-red-200 dark:border-red-800">
                 <div class="px-6 py-4 border-b border-red-200 dark:border-red-800">
                     <h3 class="text-lg font-medium text-red-600 dark:text-red-400">Danger Zone</h3>
                 </div>
@@ -290,7 +290,7 @@
 
         <!-- Sidebar Info -->
         <div class="space-y-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Account Info</h3>
                 <dl class="space-y-3 text-sm">
                     <div>
@@ -323,7 +323,7 @@
                     @method('delete')
                     <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <div class="sm:flex sm:items-start">
-                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                            <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
                                 <i class="mdi mdi-alert text-2xl text-red-600 dark:text-red-400"></i>
                             </div>
                             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -336,7 +336,7 @@
                                 <div class="mt-4">
                                     <label for="delete_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
                                     <input type="password" name="password" id="delete_password" required
-                                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500">
                                     @error('password', 'userDeletion')
                                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
@@ -345,10 +345,10 @@
                         </div>
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-xs px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
                             Delete Account
                         </button>
-                        <button type="button" @click="showDeleteModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="button" @click="showDeleteModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-xs px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             Cancel
                         </button>
                     </div>

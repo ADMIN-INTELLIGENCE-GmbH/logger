@@ -14,7 +14,7 @@
         <!-- Main Settings Form -->
         <div class="lg:col-span-2 space-y-6">
             <!-- General Settings -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">General Settings</h3>
                 </div>
@@ -25,7 +25,7 @@
                     <!-- Project Name -->
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Name</label>
-                        <input type="text" name="name" id="name" value="{{ old('name', $project->name) }}" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                        <input type="text" name="name" id="name" value="{{ old('name', $project->name) }}" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                         @error('name')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -34,7 +34,7 @@
                     <!-- Retention Policy -->
                     <div>
                         <label for="retention_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Retention Policy</label>
-                        <select name="retention_days" id="retention_days" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                        <select name="retention_days" id="retention_days" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                             <option value="7" {{ $project->retention_days == 7 ? 'selected' : '' }}>7 days</option>
                             <option value="14" {{ $project->retention_days == 14 ? 'selected' : '' }}>14 days</option>
                             <option value="30" {{ $project->retention_days == 30 ? 'selected' : '' }}>30 days</option>
@@ -51,7 +51,7 @@
                     <div>
                         <label for="allowed_domains" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Allowed Domains (CORS & Origin)</label>
                         <div class="mt-1">
-                            <textarea name="allowed_domains" id="allowed_domains" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2" placeholder="example.com&#10;*.example.org">{{ $project->allowed_domains ? implode("\n", $project->allowed_domains) : '' }}</textarea>
+                            <textarea name="allowed_domains" id="allowed_domains" rows="3" class="shadow-xs focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2" placeholder="example.com&#10;*.example.org">{{ $project->allowed_domains ? implode("\n", $project->allowed_domains) : '' }}</textarea>
                         </div>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                             Enter one domain per line. Use <code>*.domain.com</code> for wildcards. Leave empty to allow all domains (not recommended for public sites).
@@ -79,13 +79,13 @@
                                 @focus="showSuggestions = true"
                                 autocomplete="off"
                                 placeholder="Type to add or search tags..."
-                                class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                             
                             <!-- Suggestions Dropdown -->
                             <div x-show="showSuggestions && (suggestions.length > 0 || tagInput.length > 0)" 
                                  x-cloak
                                  @click.away="showSuggestions = false"
-                                 class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                                 class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-hidden sm:text-sm">
                                 <template x-if="suggestions.length > 0">
                                     <div>
                                         <template x-for="(suggestion, index) in suggestions" :key="suggestion">
@@ -136,7 +136,7 @@
                     <!-- Webhook URL -->
                     <div>
                         <label for="webhook_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL</label>
-                        <input type="url" name="webhook_url" id="webhook_url" value="{{ old('webhook_url', $project->webhook_url) }}" placeholder="https://hooks.slack.com/..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                        <input type="url" name="webhook_url" id="webhook_url" value="{{ old('webhook_url', $project->webhook_url) }}" placeholder="https://hooks.slack.com/..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Slack, Discord, Mattermost, or any HTTP endpoint that accepts JSON</p>
                         @error('webhook_url')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -146,7 +146,7 @@
                     <!-- Webhook Enabled -->
                     <div class="flex items-center">
                         <input type="hidden" name="webhook_enabled" value="0">
-                        <input type="checkbox" name="webhook_enabled" id="webhook_enabled" value="1" {{ $project->webhook_enabled ? 'checked' : '' }} class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded">
+                        <input type="checkbox" name="webhook_enabled" id="webhook_enabled" value="1" {{ $project->webhook_enabled ? 'checked' : '' }} class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded-sm">
                         <label for="webhook_enabled" class="ml-2 block text-sm text-gray-900 dark:text-white">Enable webhook notifications</label>
                     </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 -mt-4 ml-6">When disabled, no webhooks will be sent even if a URL is configured</p>
@@ -154,7 +154,7 @@
                     <!-- Webhook Threshold -->
                     <div>
                         <label for="webhook_threshold" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notification Threshold</label>
-                        <select name="webhook_threshold" id="webhook_threshold" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                        <select name="webhook_threshold" id="webhook_threshold" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                             @foreach(\App\Models\Log::LEVELS as $level)
                                 <option value="{{ $level }}" {{ $project->webhook_threshold == $level ? 'selected' : '' }}>
                                     {{ ucfirst($level) }}{{ $level === 'debug' ? ' (all logs)' : ' and above' }}
@@ -170,7 +170,7 @@
                     <!-- Webhook Format -->
                     <div>
                         <label for="webhook_format" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook Format</label>
-                        <select name="webhook_format" id="webhook_format" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                        <select name="webhook_format" id="webhook_format" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                             @foreach(App\Models\Project::WEBHOOK_FORMATS as $value => $label)
                                 <option value="{{ $value }}" {{ $project->webhook_format == $value ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
@@ -184,13 +184,13 @@
                     <!-- Active Status -->
                     <div class="flex items-center">
                         <input type="hidden" name="is_active" value="0">
-                        <input type="checkbox" name="is_active" id="is_active" value="1" {{ $project->is_active ? 'checked' : '' }} class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded">
+                        <input type="checkbox" name="is_active" id="is_active" value="1" {{ $project->is_active ? 'checked' : '' }} class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded-sm">
                         <label for="is_active" class="ml-2 block text-sm text-gray-900 dark:text-white">Project is active</label>
                     </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 -mt-4 ml-6">Inactive projects will reject incoming logs</p>
 
                     <div class="pt-4">
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Save Changes
                         </button>
                     </div>
@@ -198,7 +198,7 @@
             </div>
 
             <!-- Webhook Configuration -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">Webhook Security & Testing</h3>
                 </div>
@@ -218,7 +218,7 @@
                                 <code x-show="!showWebhookSecret" class="block bg-gray-100 dark:bg-gray-900 p-3 rounded-md text-sm text-gray-500 dark:text-gray-400">••••••••••••••••••••••••••••••••</code>
                             </div>
                             <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                Use this secret to verify webhook authenticity. The signature is sent in the <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">X-Logger-Signature</code> header.
+                                Use this secret to verify webhook authenticity. The signature is sent in the <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded-sm">X-Logger-Signature</code> header.
                             </p>
                         @else
                             <p class="text-sm text-gray-500 dark:text-gray-400">No webhook secret configured. Generate one to enable signature verification.</p>
@@ -253,7 +253,7 @@
 
             <!-- Webhook Delivery History -->
             <!-- .env Configurator -->
-            <div x-data="envConfigurator({ endpoint: '{{ url('/api/ingest') }}', statsEndpoint: '{{ url('/api/stats') }}', key: '{{ $project->magic_key }}' })" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div x-data="envConfigurator({ endpoint: '{{ url('/api/ingest') }}', statsEndpoint: '{{ url('/api/stats') }}', key: '{{ $project->magic_key }}' })" class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">.env Configurator</h3>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Generate configuration for your .env file.</p>
@@ -271,7 +271,7 @@
                                         <label :for="'feature-' + feature.id" class="font-medium text-gray-700 dark:text-gray-300 select-none cursor-pointer" x-text="feature.name"></label>
                                     </div>
                                     <div class="ml-3 flex items-center h-5">
-                                        <input :id="'feature-' + feature.id" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" x-model="feature.selected">
+                                        <input :id="'feature-' + feature.id" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded-sm" x-model="feature.selected">
                                     </div>
                                 </div>
                             </template>
@@ -295,7 +295,7 @@
                                             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase" x-text="field.label"></label>
                                             
                                             <template x-if="field.type === 'select'">
-                                                <select x-model="configs[feature.id][field.key]" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                                <select x-model="configs[feature.id][field.key]" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                                     <template x-for="option in field.options" :key="option">
                                                         <option :value="option" x-text="option"></option>
                                                     </template>
@@ -303,7 +303,7 @@
                                             </template>
                                             
                                             <template x-if="field.type !== 'select'">
-                                                <input :type="field.type" x-model="configs[feature.id][field.key]" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                                <input :type="field.type" x-model="configs[feature.id][field.key]" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                             </template>
 
                                             <p class="mt-1 text-xs text-gray-400 dark:text-gray-500" x-text="field.description"></p>
@@ -328,7 +328,7 @@
                         <p class="text-sm text-gray-600 dark:text-gray-400">You can copy this and paste it directly into your .env file.</p>
                         <div class="relative group" x-data="{ copied: false }">
                             <div class="relative bg-gray-900 dark:bg-gray-950 rounded-md border border-gray-300 dark:border-gray-600 overflow-auto max-h-[500px]">
-                                <pre class="text-gray-300 font-mono text-sm p-4 whitespace-pre-wrap break-words" x-text="generatedEnv"></pre>
+                                <pre class="text-gray-300 font-mono text-sm p-4 whitespace-pre-wrap wrap-break-word" x-text="generatedEnv"></pre>
                             </div>
                             <button
                                 @click="navigator.clipboard.writeText(generatedEnv); copied = true; setTimeout(() => copied = false, 2000)"
@@ -470,7 +470,7 @@
 
             <!-- Webhook Delivery History -->
             @if($webhookDeliveries->count() > 0)
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">Recent Webhook Deliveries</h3>
                 </div>
@@ -526,7 +526,7 @@
             @endif
 
             <!-- Danger Zone -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-red-200 dark:border-red-800">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-red-200 dark:border-red-800">
                 <div class="px-6 py-4 border-b border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
                     <h3 class="text-lg font-medium text-red-800 dark:text-red-400">Danger Zone</h3>
                 </div>
@@ -574,7 +574,7 @@
         <!-- Sidebar Info -->
         <div class="space-y-6">
             <!-- Project Info -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Project Info</h3>
                 <dl class="space-y-3 text-sm">
                     <div>
@@ -593,7 +593,7 @@
             </div>
 
             <!-- API Key -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" x-data="{ showKey: false, copiedKey: false }">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6" x-data="{ showKey: false, copiedKey: false }">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">API Key</h3>
                     <button type="button" @click="showKey = !showKey" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
@@ -617,7 +617,7 @@
                     </button>
                 </div>
                 <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    Use this key in the <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">X-Project-Key</code> header when sending logs.
+                    Use this key in the <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded-sm">X-Project-Key</code> header when sending logs.
                 </p>
                 <div class="mt-3">
                     <button @click="showRegenerateConfirm = true" type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -628,7 +628,7 @@
             </div>
 
             <!-- Integration Guide -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" x-data="{ copiedEndpoint: false, copiedHeader: false }">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6" x-data="{ copiedEndpoint: false, copiedHeader: false }">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Integration</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Send logs to:</p>
                 <div class="relative group mb-6">
@@ -661,7 +661,7 @@
             </div>
 
             <!-- Laravel Log Shipper -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" x-data="{ copiedComposer: false, copiedEnv: false }">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6" x-data="{ copiedComposer: false, copiedEnv: false }">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Laravel Log Shipper</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                     This application is designed to work with the <strong>Laravel Log Shipper</strong> package. Install it in your Laravel application to automatically ship logs here.
@@ -669,7 +669,7 @@
 
                 <div class="bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-400 p-4 mb-6">
                     <div class="flex">
-                        <div class="flex-shrink-0">
+                        <div class="shrink-0">
                             <i class="mdi mdi-information-outline text-xl text-indigo-400"></i>
                         </div>
                         <div class="ml-3">
@@ -711,7 +711,7 @@
             <div x-show="showRegenerateConfirm" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900 sm:mx-0 sm:h-10 sm:w-10">
                             <i class="mdi mdi-alert text-2xl text-orange-600 dark:text-orange-400"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -725,11 +725,11 @@
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                     <form action="{{ route('projects.regenerate-key', $project) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-orange-600 text-base font-medium text-white hover:bg-orange-700 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-xs px-4 py-2 bg-orange-600 text-base font-medium text-white hover:bg-orange-700 sm:ml-3 sm:w-auto sm:text-sm">
                             Regenerate
                         </button>
                     </form>
-                    <button type="button" @click="showRegenerateConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
+                    <button type="button" @click="showRegenerateConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-xs px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
                         Cancel
                     </button>
                 </div>
@@ -745,7 +745,7 @@
             <div x-show="showRegenerateWebhookSecretConfirm" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900 sm:mx-0 sm:h-10 sm:w-10">
                             <i class="mdi mdi-key text-2xl text-indigo-600 dark:text-indigo-400"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -765,11 +765,11 @@
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                     <form action="{{ route('projects.regenerate-webhook-secret', $project) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-xs px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm">
                             {{ $project->webhook_secret ? 'Regenerate' : 'Generate' }}
                         </button>
                     </form>
-                    <button type="button" @click="showRegenerateWebhookSecretConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
+                    <button type="button" @click="showRegenerateWebhookSecretConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-xs px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
                         Cancel
                     </button>
                 </div>
@@ -785,7 +785,7 @@
             <div x-show="showDeleteConfirm" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
                             <i class="mdi mdi-delete text-2xl text-red-600 dark:text-red-400"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -800,11 +800,11 @@
                     <form action="{{ route('projects.destroy', $project) }}" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-xs px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm">
                             Delete Project
                         </button>
                     </form>
-                    <button type="button" @click="showDeleteConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
+                    <button type="button" @click="showDeleteConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-xs px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
                         Cancel
                     </button>
                 </div>
@@ -820,7 +820,7 @@
             <div x-show="showTruncateConfirm" class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
                             <i class="mdi mdi-delete-sweep text-2xl text-red-600 dark:text-red-400"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
@@ -834,11 +834,11 @@
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                     <form action="{{ route('projects.truncate-logs', $project) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-xs px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm">
                             Truncate All Logs
                         </button>
                     </form>
-                    <button type="button" @click="showTruncateConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
+                    <button type="button" @click="showTruncateConfirm = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-xs px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto sm:text-sm">
                         Cancel
                     </button>
                 </div>

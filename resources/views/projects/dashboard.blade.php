@@ -15,7 +15,7 @@
                 <div x-data="autoRefresh()" class="flex items-center gap-2">
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" x-model="enabled" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-hidden peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:rtl:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:inset-s-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
                     </label>
                     <div class="flex flex-col">
                         <span class="text-sm font-medium text-gray-900 dark:text-white">Auto-refresh</span>
@@ -116,7 +116,7 @@
         <!-- Row 1: Critical Health (Heartbeat) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <!-- Server Health (CPU + Memory) -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Server Health</h4>
                 <div class="space-y-4">
                     <!-- CPU -->
@@ -154,7 +154,7 @@
             </div>
 
             <!-- Disk Storage -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Disk Storage</h4>
                 @if(isset($serverStats['system']['disk_space']))
                 <div class="flex items-center justify-center">
@@ -183,13 +183,13 @@
             </div>
 
             <!-- Database -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Database</h4>
                 <div class="flex flex-col items-center justify-center h-24">
                     @if(isset($serverStats['database']['error']))
                     <i class="mdi mdi-alert-circle-outline text-2xl text-red-600 dark:text-red-400"></i>
                     <div class="text-sm font-medium text-red-600 dark:text-red-400 mt-1">Metrics unavailable</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center break-words">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center wrap-break-word">
                         {{ $serverStats['database']['error'] }}
                     </div>
                     @elseif(isset($serverStats['database']['status']))
@@ -211,7 +211,7 @@
             </div>
 
             <!-- Uptime -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Uptime</h4>
                 <div class="flex flex-col items-center justify-center h-24">
                     @if(isset($serverStats['system']['uptime']))
@@ -234,13 +234,13 @@
         <!-- Row 2: Application Performance & State -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <!-- Queue Status -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Queue Status</h4>
                 <div class="flex flex-col items-center justify-center">
                     @if(isset($serverStats['queue']['error']))
                     <i class="mdi mdi-alert-circle-outline text-3xl text-red-600 dark:text-red-400"></i>
                     <div class="text-sm font-medium text-red-600 dark:text-red-400 mt-2">Metrics unavailable</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center break-words">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center wrap-break-word">
                         {{ $serverStats['queue']['error'] }}
                     </div>
                     @elseif(isset($serverStats['queue']['size']))
@@ -262,7 +262,7 @@
             </div>
 
             <!-- App Memory -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">App Memory</h4>
                 <div class="flex flex-col items-center justify-center">
                     <div class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -277,7 +277,7 @@
             </div>
 
             <!-- App Mode (Environment + Debug) -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">App Mode</h4>
                 <div class="flex flex-col items-center justify-center">
                     <div class="text-2xl font-bold text-gray-900 dark:text-white uppercase">
@@ -302,7 +302,7 @@
             </div>
 
             <!-- System Info (Stack Versions) -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Stack</h4>
                 <div class="flex flex-wrap gap-2 justify-center">
                     @if(isset($serverStats['system']['laravel_version']))
@@ -336,7 +336,7 @@
 
         <!-- Row 3: Maintenance & Security (Package Health) -->
         <div class="mb-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Package Health</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Composer -->
@@ -401,7 +401,7 @@
             }
         @endphp
         <div class="mb-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border {{ $updateSecurityCount > 0 ? 'border-red-300 dark:border-red-800' : 'border-gray-200 dark:border-gray-700' }} p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border {{ $updateSecurityCount > 0 ? 'border-red-300 dark:border-red-800' : 'border-gray-200 dark:border-gray-700' }} p-6">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                     <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">System Updates</h4>
                     <div class="flex items-center gap-2">
@@ -422,7 +422,7 @@
                     <i class="mdi mdi-alert-circle-outline text-xl text-red-600 dark:text-red-400"></i>
                     <div>
                         <div class="text-sm font-medium text-red-800 dark:text-red-300">Update check failed</div>
-                        <div class="text-xs text-red-700 dark:text-red-400 mt-0.5 break-words">{{ $updates['error'] }}</div>
+                        <div class="text-xs text-red-700 dark:text-red-400 mt-0.5 wrap-break-word">{{ $updates['error'] }}</div>
                     </div>
                 </div>
                 @elseif(array_key_exists('supported', $updates) && ! $updates['supported'])
@@ -534,7 +534,7 @@
         @if(count($osStats) > 0 || count($hostStats) > 0 || count($mountedDisks) > 0)
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style="grid-auto-rows: 1fr;">
             @if(count($osStats) > 0 || count($hostStats) > 0)
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 flex flex-col">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Host &amp; Operating System</h4>
                 </div>
@@ -576,7 +576,7 @@
                         <div class="flex flex-wrap gap-1.5">
                             @foreach($phpExtensions as $extension)
                             @continue(is_array($extension))
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                                 {{ $extension }}
                             </span>
                             @endforeach
@@ -588,7 +588,7 @@
             @endif
 
             @if(count($mountedDisks) > 0)
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 flex flex-col">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mounted Volumes</h4>
                 </div>
@@ -637,7 +637,7 @@
                 $positiveFolderSizes = array_filter($serverStats['foldersize'], fn($s) => is_numeric($s) && $s > 0);
                 $maxSize = count($positiveFolderSizes) > 0 ? max($positiveFolderSizes) : 0;
             @endphp
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 flex flex-col">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Storage Distribution</h4>
                 </div>
@@ -674,7 +674,7 @@
 
             <!-- Monitored Files (Data Table) -->
             @if(isset($serverStats['filesize']) && is_array($serverStats['filesize']) && count($serverStats['filesize']) > 0)
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 flex flex-col">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Critical Files</h4>
                 </div>
@@ -741,13 +741,13 @@
     @endif
 
     <!-- Time Range & Filter Controls -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6 mb-6">
         <form method="GET" action="{{ route('projects.dashboard', $project) }}" class="flex flex-wrap items-center gap-4">
             <!-- Time Range -->
 
             <div class="flex items-center space-x-2">
                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range:</label>
-                <select name="range" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                <select name="range" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                     <option value="1h" {{ $stats['range'] === '1h' ? 'selected' : '' }}>Last 1 hour</option>
                     <option value="6h" {{ $stats['range'] === '6h' ? 'selected' : '' }}>Last 6 hours</option>
                     <option value="24h" {{ $stats['range'] === '24h' ? 'selected' : '' }}>Last 24 hours</option>
@@ -760,7 +760,7 @@
             <!-- Level Filter -->
             <div class="flex items-center space-x-2">
                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Show:</label>
-                <select name="level" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                <select name="level" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                     <option value="all" {{ $stats['level_filter'] === 'all' ? 'selected' : '' }}>All Levels</option>
                     <option value="errors" {{ $stats['level_filter'] === 'errors' ? 'selected' : '' }}>Errors & Above</option>
                     <option value="emergency" {{ $stats['level_filter'] === 'emergency' ? 'selected' : '' }}>Emergency</option>
@@ -783,9 +783,9 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <!-- Total Logs -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <div class="shrink-0 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
                     <i class="mdi mdi-file-document-multiple text-2xl text-blue-600 dark:text-blue-400"></i>
                 </div>
                 <div class="ml-4">
@@ -796,9 +796,9 @@
         </div>
 
         <!-- Error Logs -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg">
+                <div class="shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg">
                     <i class="mdi mdi-alert-circle text-2xl text-red-600 dark:text-red-400"></i>
                 </div>
                 <div class="ml-4">
@@ -809,9 +809,9 @@
         </div>
 
         <!-- Error Rate -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 {{ $stats['error_rate'] > 10 ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900' }} rounded-lg">
+                <div class="shrink-0 p-3 {{ $stats['error_rate'] > 10 ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900' }} rounded-lg">
                     <i class="mdi mdi-chart-bar text-2xl {{ $stats['error_rate'] > 10 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}"></i>
                 </div>
                 <div class="ml-4">
@@ -824,7 +824,7 @@
 
     <!-- Chart -->
     @if(isset($chartData) && count($chartData) > 0)
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6 mb-6">
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
             @isset($stats)
                 Logs by {{ ($stats['group_format'] ?? 'day') === 'hour' ? 'Hour' : 'Day' }} 
@@ -844,9 +844,9 @@
 
     <!-- Quick Links -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <a href="{{ route('projects.logs.index', $project) }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow group">
+        <a href="{{ route('projects.logs.index', $project) }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow group">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800 transition-colors">
+                <div class="shrink-0 p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800 transition-colors">
                     <i class="mdi mdi-magnify text-2xl text-indigo-600 dark:text-indigo-400"></i>
                 </div>
                 <div class="ml-4">
@@ -856,9 +856,9 @@
             </div>
         </a>
 
-        <a href="{{ route('projects.failing-controllers.index', $project) }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow group">
+        <a href="{{ route('projects.failing-controllers.index', $project) }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow group">
             <div class="flex items-center">
-                <div class="flex-shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg group-hover:bg-red-200 dark:group-hover:bg-red-800 transition-colors">
+                <div class="shrink-0 p-3 bg-red-100 dark:bg-red-900 rounded-lg group-hover:bg-red-200 dark:group-hover:bg-red-800 transition-colors">
                     <i class="mdi mdi-alert-circle-outline text-2xl text-red-600 dark:text-red-400"></i>
                 </div>
                 <div class="ml-4">
@@ -868,9 +868,9 @@
             </div>
         </a>
         @can('update', $project)
-            <a href="{{ route('projects.settings.show', $project) }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow group">
+            <a href="{{ route('projects.settings.show', $project) }}" class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow group">
                 <div class="flex items-center">
-                    <div class="flex-shrink-0 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                    <div class="shrink-0 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
                         <i class="mdi mdi-cog text-2xl text-gray-600 dark:text-gray-400"></i>
                     </div>
                     <div class="ml-4">

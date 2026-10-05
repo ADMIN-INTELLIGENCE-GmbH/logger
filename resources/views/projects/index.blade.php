@@ -11,7 +11,7 @@
             <p class="text-gray-600 dark:text-gray-400 mt-1">Manage your logging projects</p>
         </div>
         @can('create', \App\Models\Project::class)
-            <button @click="showCreateModal = true" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button @click="showCreateModal = true" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 <i class="mdi mdi-plus mr-2 text-xl"></i>
                 New Project
             </button>
@@ -20,7 +20,7 @@
 
     <!-- Projects Grid -->
     @if($projects->isEmpty())
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-12 text-center">
             <i class="mdi mdi-folder-plus-outline text-5xl text-gray-400 dark:text-gray-500"></i>
             <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">No projects yet</h3>
             @can('create', \App\Models\Project::class)
@@ -35,7 +35,7 @@
     @else
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($projects as $item)
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $item->name }}</h3>
@@ -103,12 +103,12 @@
                             <div class="space-y-4">
                                 <div>
                                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Name</label>
-                                    <input type="text" name="name" id="name" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                    <input type="text" name="name" id="name" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                 </div>
                                 
                                 <div>
                                     <label for="retention_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Retention Policy</label>
-                                    <select name="retention_days" id="retention_days" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                    <select name="retention_days" id="retention_days" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                         <option value="7">7 days</option>
                                         <option value="14">14 days</option>
                                         <option value="30" selected>30 days</option>
@@ -119,21 +119,21 @@
                                 
                                 <div>
                                     <label for="webhook_url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL (optional)</label>
-                                    <input type="url" name="webhook_url" id="webhook_url" placeholder="https://hooks.slack.com/..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                    <input type="url" name="webhook_url" id="webhook_url" placeholder="https://hooks.slack.com/..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Receive alerts for errors and critical logs</p>
                                 </div>
 
                                 <!-- Webhook Enabled -->
                                 <div class="flex items-center">
                                     <input type="hidden" name="webhook_enabled" value="0">
-                                    <input type="checkbox" name="webhook_enabled" id="webhook_enabled" value="1" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded">
+                                    <input type="checkbox" name="webhook_enabled" id="webhook_enabled" value="1" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded-sm">
                                     <label for="webhook_enabled" class="ml-2 block text-sm text-gray-900 dark:text-white">Enable webhook notifications</label>
                                 </div>
 
                                 <!-- Webhook Threshold -->
                                 <div>
                                     <label for="webhook_threshold" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notification Threshold</label>
-                                    <select name="webhook_threshold" id="webhook_threshold" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                    <select name="webhook_threshold" id="webhook_threshold" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                         @foreach(\App\Models\Log::LEVELS as $level)
                                             <option value="{{ $level }}" {{ $level === 'error' ? 'selected' : '' }}>
                                                 {{ ucfirst($level) }}{{ $level === 'debug' ? ' (all logs)' : ' and above' }}
@@ -145,7 +145,7 @@
                                 <!-- Webhook Format -->
                                 <div>
                                     <label for="webhook_format" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook Format</label>
-                                    <select name="webhook_format" id="webhook_format" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                                    <select name="webhook_format" id="webhook_format" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
                                         @foreach(App\Models\Project::WEBHOOK_FORMATS as $value => $label)
                                             <option value="{{ $value }}" {{ $value === 'slack' ? 'selected' : '' }}>{{ $label }}</option>
                                         @endforeach
@@ -155,16 +155,16 @@
                                 <!-- Active Status -->
                                 <div class="flex items-center">
                                     <input type="hidden" name="is_active" value="0">
-                                    <input type="checkbox" name="is_active" id="is_active" value="1" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded">
+                                    <input type="checkbox" name="is_active" id="is_active" value="1" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded-sm">
                                     <label for="is_active" class="ml-2 block text-sm text-gray-900 dark:text-white">Project is active</label>
                                 </div>
                             </div>
                         </div>
                         <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-xs px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
                                 Create Project
                             </button>
-                            <button type="button" @click="showCreateModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            <button type="button" @click="showCreateModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-xs px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                                 Cancel
                             </button>
                         </div>

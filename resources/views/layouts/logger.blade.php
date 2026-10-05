@@ -61,14 +61,14 @@
                     <!-- Right Side: Dark Mode Toggle + User Menu -->
                     <div class="flex items-center space-x-4">
                         <!-- Dark Mode Toggle -->
-                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none">
+                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-hidden">
                             <i x-show="!darkMode" class="mdi mdi-weather-night text-xl"></i>
                             <i x-show="darkMode" class="mdi mdi-weather-sunny text-xl"></i>
                         </button>
 
                         <!-- User Menu -->
                         <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none">
+                            <button @click="open = !open" class="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-hidden">
                                 <span>{{ Auth::user()->name }}</span>
                                 <i class="mdi mdi-chevron-down"></i>
                             </button>
@@ -107,7 +107,7 @@
         @endif
 
         <!-- Page Content -->
-        <main class="py-8 flex-grow">
+        <main class="py-8 grow">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 @yield('content')
             </div>
