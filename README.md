@@ -32,7 +32,7 @@ Logger provides a simple HTTP API for ingesting logs from any application, a web
 
 - PHP 8.2+
 - Composer
-- Node.js 18+ and npm
+- Node.js 20.19+ and npm
 - MySQL 8.0+ or PostgreSQL 14+ or SQLite
 
 ## Installation

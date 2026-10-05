@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade Notes
 - Run `php artisan migrate` (adds `personal_access_tokens`; adds nullable `resolved_at`, `resolved_by`,
   `resolution_note` to `logs`).
+- Run `composer install` and rebuild the frontend (`npm ci && npm run build`); Tailwind CSS is now v4
+  and needs Node.js 20.19+ (was 18+). The build no longer uses autoprefixer or `tailwind.config.js`.
+- Tailwind CSS v4 targets current browsers (Safari 16.4+, Chrome 111+, Firefox 128+).
 
 ### Added
 - MCP server at `/mcp` (Laravel MCP, Streamable HTTP) so AI clients such as Claude Code can triage logs
@@ -22,6 +25,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   regression shows up as new. `reopen` clears the mark.
 - Log explorer: Status filter (Open by default, Resolved, All), resolved badge, Resolve/Reopen
   Selected in the bulk bar and Resolve/Reopen Group in the log modal, each with an optional note.
+- `POST /mcp` documented in `openapi.yaml`.
+
+### Changed
+- Tailwind CSS upgraded from 3.4 to 4.3 (utilities renamed by the official upgrade tool, theme and
+  plugins now configured in `resources/css/app.css`). No intended visual change.
+- Composer dependencies updated within their constraints, among them Laravel 12.42.0 to 12.69.3,
+  `laravel/mcp` 0.7.1 to 0.7.2, `league/commonmark` 2.8.0 to 2.10.3 and `guzzlehttp/guzzle` 7.10.0 to
+  7.15.5. npm dependencies updated; `npm audit fix` applied.
+
+### Security
+- Resolves all open `composer audit` advisories (Laravel email-rule CRLF injection, `league/commonmark`
+  denial-of-service and attributes XSS bypass, Guzzle host and cookie handling, Symfony mime, routing and
+  http-kernel issues) and all `npm audit` findings. `composer audit` and `npm audit` report none.
 
 ## [1.1.0] - 2026-07-31
 
