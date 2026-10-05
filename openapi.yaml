@@ -40,6 +40,8 @@ tags:
     description: Log ingestion endpoints
   - name: External Checks
     description: Saved issue queries configured in the dashboard
+  - name: MCP
+    description: Model Context Protocol endpoint for AI clients
 
 paths:
   /health:
@@ -240,8 +242,85 @@ paths:
                 error: Forbidden
                 message: External check is disabled
 
+  /mcp:
+    servers:
+      - url: https://your-logger-instance.com
+        description: Application root (the MCP endpoint is not under /api)
+    post:
+      tags:
+        - MCP
+      summary: MCP endpoint (JSON-RPC 2.0)
+      description: |
+        [Model Context Protocol](https://modelcontextprotocol.io) server over Streamable HTTP, so an AI client can triage logs and onboard projects. This is JSON-RPC, not REST: every call is a `POST` with a JSON-RPC 2.0 body (`initialize`, `tools/list`, `tools/call`). Use `tools/list` for the exact argument schemas.
+
+        Create the token under Profile > API Tokens; it carries the `mcp` ability and sees the projects its owner sees. Rate limit: 120 requests per minute.
+
+        Tools:
+
+        | Tool | Purpose | Permission |
+        |------|---------|------------|
+        | `list_projects` | Visible projects with 24h log and error counts | view |
+        | `project_overview` | Level counts, top failing controllers/routes, server stats | view |
+        | `new_log_groups` | Messages first seen since a point in time | view |
+        | `search_logs` | Filter by level, time, text, controller, route; hides resolved logs unless `include_resolved` is set | view |
+        | `get_log` | Full entry with context and stack trace | view |
+        | `resolve_log_group` | Mark a group (same level, first 200 message chars) as fixed, optional note | edit |
+        | `create_project` | New project | admin |
+        | `get_ingest_config` | Endpoint, project key and `.env` lines; writes an audit line per call | edit |
+      operationId: callMcp
+      security:
+        - McpBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [jsonrpc, method]
+              properties:
+                jsonrpc:
+                  type: string
+                  enum: ['2.0']
+                id:
+                  oneOf:
+                    - type: integer
+                    - type: string
+                method:
+                  type: string
+                  description: JSON-RPC method, e.g. `initialize`, `tools/list`, `tools/call`
+                params:
+                  type: object
+                  additionalProperties: true
+            example:
+              jsonrpc: '2.0'
+              id: 1
+              method: tools/call
+              params:
+                name: new_log_groups
+                arguments: {}
+      responses:
+        '200':
+          description: JSON-RPC response (result or error object)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
+    McpBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum personal access token
+      description: |
+        Personal access token with the `mcp` ability, created under Profile > API Tokens. Shown once.
     ProjectKeyAuth:
       type: apiKey
       in: header
