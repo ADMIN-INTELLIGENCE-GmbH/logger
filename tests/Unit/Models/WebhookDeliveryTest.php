@@ -97,7 +97,7 @@ class WebhookDeliveryTest extends TestCase
         $newDelivery = WebhookDelivery::factory()->create([
             'project_id' => $project->id,
             'log_id' => $log->id,
-            'created_at' => now(),
+            'created_at' => now()->addMinute(), // WebhookDispatcher may add deliveries at now(); avoid a tie
         ]);
 
         $recent = WebhookDelivery::recent()->get();
