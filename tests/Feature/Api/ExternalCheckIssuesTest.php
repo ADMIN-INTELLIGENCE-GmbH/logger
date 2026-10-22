@@ -164,6 +164,35 @@ class ExternalCheckIssuesTest extends TestCase
             ->assertJsonPath('data.issues.0.affected_projects.0.id', $projectOne->id);
     }
 
+    public function test_external_check_skips_resolved_logs(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::create(['name' => 'production']);
+        $check = ExternalCheck::factory()
+            ->for($user)
+            ->withToken('secret-token')
+            ->create([
+                'selector_tags' => ['production'],
+                'count_threshold' => 1,
+                'time_window_minutes' => 60,
+                'min_level' => 'error',
+            ]);
+
+        $project = $this->makeVisibleProject($user, 'Alpha');
+        $project->tags()->attach($tag->id);
+
+        Log::factory()->forProject($project)->create([
+            'level' => 'error',
+            'message' => 'Queue backlog failed',
+            'created_at' => now()->subMinutes(5),
+        ])->forceFill(['resolved_at' => now()])->save();
+
+        $this->withToken('secret-token')
+            ->getJson(route('api.external-checks.issues', $check->slug))
+            ->assertOk()
+            ->assertJsonPath('data.issue_count', 0);
+    }
+
     protected function makeVisibleProject(User $user, string $name, array $attributes = []): Project
     {
         $project = Project::factory()->create(array_merge([

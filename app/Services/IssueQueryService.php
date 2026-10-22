@@ -60,6 +60,7 @@ class IssueQueryService
             ->whereIn('project_id', $projects->pluck('id'))
             ->where('created_at', '>=', now()->subMinutes($externalCheck->time_window_minutes))
             ->whereIn('level', $this->allowedLevels($externalCheck->min_level))
+            ->whereNull('resolved_at')
             ->select('id', 'project_id', 'level', 'message', 'controller', 'route_name', 'created_at')
             ->orderByDesc('created_at')
             ->get();
