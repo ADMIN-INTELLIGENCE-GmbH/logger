@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Mcp\Concerns\ResolvesProjects;
+use App\Mcp\Concerns\ScopedByToken;
 use App\Models\Log;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 class NewLogGroupsTool extends Tool
 {
     use ResolvesProjects;
+    use ScopedByToken;
 
     public function schema(JsonSchema $schema): array
     {

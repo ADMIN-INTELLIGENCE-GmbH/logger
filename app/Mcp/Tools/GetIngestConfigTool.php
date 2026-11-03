@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Mcp\Concerns\ResolvesProjects;
+use App\Mcp\Concerns\ScopedByToken;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -15,6 +16,7 @@ use Laravel\Mcp\Server\Tool;
 class GetIngestConfigTool extends Tool
 {
     use ResolvesProjects;
+    use ScopedByToken;
 
     public function schema(JsonSchema $schema): array
     {

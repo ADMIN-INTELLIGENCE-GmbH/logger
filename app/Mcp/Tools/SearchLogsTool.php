@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Mcp\Concerns\ResolvesProjects;
+use App\Mcp\Concerns\ScopedByToken;
 use App\Models\Log;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -18,6 +19,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 class SearchLogsTool extends Tool
 {
     use ResolvesProjects;
+    use ScopedByToken;
 
     public function schema(JsonSchema $schema): array
     {

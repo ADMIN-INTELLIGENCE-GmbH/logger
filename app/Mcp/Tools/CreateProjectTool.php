@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools;
 
+use App\Mcp\Concerns\ScopedByToken;
 use App\Models\Project;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -14,6 +15,8 @@ use Laravel\Mcp\Server\Tool;
 #[Description('Create a project and grant the token owner edit permission. Returns id only; fetch the key with get_ingest_config. Admin only.')]
 class CreateProjectTool extends Tool
 {
+    use ScopedByToken;
+
     public function schema(JsonSchema $schema): array
     {
         return [

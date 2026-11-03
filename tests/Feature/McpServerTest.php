@@ -15,6 +15,8 @@ use App\Models\Log;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
+use Laravel\Sanctum\TransientToken;
 use Tests\TestCase;
 
 class McpServerTest extends TestCase
@@ -28,6 +30,17 @@ class McpServerTest extends TestCase
         $project->users()->attach($user->id, ['permission' => $permission]);
 
         return [$user, $project];
+    }
+
+    /** Tool calls run as a token user; a TransientToken carries every ability. */
+    private function withMcpToken(User $user): User
+    {
+        return $user->withAccessToken(new TransientToken);
+    }
+
+    private function rpc(string $token, string $method, array $params = []): TestResponse
+    {
+        return $this->withToken($token)->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => (object) $params]);
     }
 
     private function log(Project $project, string $level, string $message, $at = null): Log
@@ -62,12 +75,55 @@ class McpServerTest extends TestCase
         ])->assertOk()->assertJsonPath('result.serverInfo.name', 'Logger');
     }
 
+    public function test_scoped_token_lists_and_calls_only_its_tools(): void
+    {
+        [$user] = $this->member('edit');
+        $token = $user->createToken('x', ['mcp', 'mcp:read'])->plainTextToken;
+
+        $names = array_column($this->rpc($token, 'tools/list')->assertOk()->json('result.tools'), 'name');
+        $this->assertEqualsCanonicalizing(['list_projects', 'project_overview', 'new_log_groups', 'search_logs', 'get_log'], $names);
+
+        $call = $this->rpc($token, 'tools/call', ['name' => 'get_ingest_config', 'arguments' => ['project' => 'Shop']]);
+        $this->assertTrue($call->json('error') !== null || $call->json('result.isError') === true);
+        $this->assertStringNotContainsString('lk_', (string) $call->getContent());
+    }
+
+    public function test_token_from_before_scopes_keeps_every_tool(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('x', ['mcp'])->plainTextToken;
+
+        $this->assertCount(8, $this->rpc($token, 'tools/list')->assertOk()->json('result.tools'));
+    }
+
+    public function test_profile_caps_scopes_at_the_users_rights(): void
+    {
+        [$user] = $this->member('view');
+
+        $this->actingAs($user)->post(route('profile.tokens.store'), [
+            'token_name' => 'laptop', 'token_days' => 30, 'token_scopes' => ['read', 'get_ingest_config', 'create_project'],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(['mcp', 'mcp:read'], $user->tokens()->first()->abilities);
+    }
+
+    public function test_profile_refuses_a_token_without_an_allowed_scope(): void
+    {
+        [$user] = $this->member('view');
+
+        $this->actingAs($user)->post(route('profile.tokens.store'), [
+            'token_name' => 'laptop', 'token_days' => 30, 'token_scopes' => ['create_project'],
+        ])->assertSessionHasErrors('token_scopes');
+
+        $this->assertSame(0, $user->tokens()->count());
+    }
+
     public function test_list_projects_only_shows_visible(): void
     {
         [$user] = $this->member('view');
         Project::create(['name' => 'Hidden']);
 
-        LoggerServer::actingAs($user)->tool(ListProjectsTool::class)
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(ListProjectsTool::class)
             ->assertSee('Shop')->assertDontSee('Hidden');
     }
 
@@ -78,7 +134,7 @@ class McpServerTest extends TestCase
         $this->log($project, 'info', 'cron ran');
         $this->log($project, 'error', 'ancient failure', now()->subDays(3))->forceFill(['created_at' => now()->subDays(3)])->save();
 
-        LoggerServer::actingAs($user)->tool(SearchLogsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(SearchLogsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
             ->assertSee('payment gateway down')->assertDontSee('cron ran')->assertDontSee('ancient failure');
     }
 
@@ -87,7 +143,7 @@ class McpServerTest extends TestCase
         [$user] = $this->member('view');
         $other = Project::create(['name' => 'Other']);
 
-        LoggerServer::actingAs($user)->tool(SearchLogsTool::class, ['project' => $other->id])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(SearchLogsTool::class, ['project' => $other->id])
             ->assertHasErrors();
     }
 
@@ -99,7 +155,7 @@ class McpServerTest extends TestCase
         $this->log($project, 'error', 'old known error'); // recurs today, not new
         $this->log($project, 'error', 'brand new failure');
 
-        LoggerServer::actingAs($user)->tool(NewLogGroupsTool::class, ['project' => 'Shop', 'since' => '24h'])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(NewLogGroupsTool::class, ['project' => 'Shop', 'since' => '24h'])
             ->assertSee('brand new failure')->assertDontSee('old known error');
     }
 
@@ -108,32 +164,32 @@ class McpServerTest extends TestCase
         [$user, $project] = $this->member('view');
         $log = $this->log($project, 'critical', 'boom');
 
-        LoggerServer::actingAs($user)->tool(GetLogTool::class, ['project' => 'Shop', 'log_id' => $log->id])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(GetLogTool::class, ['project' => 'Shop', 'log_id' => $log->id])
             ->assertSee('boom');
-        LoggerServer::actingAs($user)->tool(ProjectOverviewTool::class, ['project' => 'Shop'])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(ProjectOverviewTool::class, ['project' => 'Shop'])
             ->assertSee('critical');
     }
 
     public function test_ingest_config_needs_edit_permission(): void
     {
         [$viewer, $project] = $this->member('view');
-        LoggerServer::actingAs($viewer)->tool(GetIngestConfigTool::class, ['project' => 'Shop'])
+        LoggerServer::actingAs($this->withMcpToken($viewer))->tool(GetIngestConfigTool::class, ['project' => 'Shop'])
             ->assertHasErrors();
 
         [$editor, $project2] = $this->member('edit');
         $project2->update(['name' => 'Editable']);
-        LoggerServer::actingAs($editor)->tool(GetIngestConfigTool::class, ['project' => 'Editable'])
+        LoggerServer::actingAs($this->withMcpToken($editor))->tool(GetIngestConfigTool::class, ['project' => 'Editable'])
             ->assertSee($project2->magic_key)->assertSee('/api/ingest');
     }
 
     public function test_create_project_is_admin_only(): void
     {
         [$user] = $this->member('edit');
-        LoggerServer::actingAs($user)->tool(CreateProjectTool::class, ['name' => 'New'])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(CreateProjectTool::class, ['name' => 'New'])
             ->assertHasErrors();
 
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
-        LoggerServer::actingAs($admin)->tool(CreateProjectTool::class, ['name' => 'New'])
+        LoggerServer::actingAs($this->withMcpToken($admin))->tool(CreateProjectTool::class, ['name' => 'New'])
             ->assertSee('get_ingest_config');
         $this->assertDatabaseHas('projects', ['name' => 'New']);
         $this->assertTrue(Project::where('name', 'New')->first()->users()->whereKey($admin->id)->exists());
@@ -143,10 +199,10 @@ class McpServerTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->post('/profile/tokens', ['token_name' => 'mac', 'token_days' => 90])
+        $this->actingAs($user)->post('/profile/tokens', ['token_name' => 'mac', 'token_days' => 90, 'token_scopes' => ['read']])
             ->assertRedirect('/profile')->assertSessionHas('new_token');
         $this->assertCount(1, $user->tokens);
-        $this->assertSame(['mcp'], $user->tokens->first()->abilities);
+        $this->assertSame(['mcp', 'mcp:read'], $user->tokens->first()->abilities);
 
         $this->actingAs($user)->delete('/profile/tokens/'.$user->tokens->first()->id)->assertRedirect('/profile');
         $this->assertCount(0, $user->fresh()->tokens);
@@ -160,23 +216,23 @@ class McpServerTest extends TestCase
         $this->log($project, 'warning', 'SQLSTATE 1140 GROUP BY'); // other level, other group
         $this->log($project, 'error', 'unrelated failure');
 
-        LoggerServer::actingAs($user)->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $first->id, 'note' => 'fixed in abc123'])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $first->id, 'note' => 'fixed in abc123'])
             ->assertSee('"logs_affected":2');
 
         $this->assertSame(2, Log::whereNotNull('resolved_at')->where('resolution_note', 'fixed in abc123')->where('resolved_by', $user->id)->count());
 
-        LoggerServer::actingAs($user)->tool(SearchLogsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(SearchLogsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
             ->assertSee('unrelated failure')->assertDontSee('1140');
-        LoggerServer::actingAs($user)->tool(SearchLogsTool::class, ['project' => 'Shop', 'min_level' => 'error', 'include_resolved' => true])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(SearchLogsTool::class, ['project' => 'Shop', 'min_level' => 'error', 'include_resolved' => true])
             ->assertSee('1140');
-        LoggerServer::actingAs($user)->tool(NewLogGroupsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(NewLogGroupsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
             ->assertDontSee('1140');
 
         $this->log($project, 'error', 'SQLSTATE 1140 GROUP BY'); // regression
-        LoggerServer::actingAs($user)->tool(NewLogGroupsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(NewLogGroupsTool::class, ['project' => 'Shop', 'min_level' => 'error'])
             ->assertSee('1140');
 
-        LoggerServer::actingAs($user)->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $first->id, 'reopen' => true])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $first->id, 'reopen' => true])
             ->assertSee('"logs_affected":2');
         $this->assertSame(0, Log::whereNotNull('resolved_at')->count());
     }
@@ -186,7 +242,7 @@ class McpServerTest extends TestCase
         [$user, $project] = $this->member('view');
         $log = $this->log($project, 'error', 'boom');
 
-        LoggerServer::actingAs($user)->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $log->id])
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(ResolveLogGroupTool::class, ['project' => 'Shop', 'log_id' => $log->id])
             ->assertHasErrors();
         $this->assertNull($log->fresh()->resolved_at);
     }

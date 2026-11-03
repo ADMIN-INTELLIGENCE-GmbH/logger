@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Mcp\Concerns\ResolvesProjects;
+use App\Mcp\Concerns\ScopedByToken;
 use App\Models\Log;
 use App\Services\LogResolver;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -17,6 +18,7 @@ use Laravel\Mcp\Server\Tool;
 class ResolveLogGroupTool extends Tool
 {
     use ResolvesProjects;
+    use ScopedByToken;
 
     public function schema(JsonSchema $schema): array
     {

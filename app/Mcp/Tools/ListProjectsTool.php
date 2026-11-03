@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools;
 
+use App\Mcp\Concerns\ScopedByToken;
 use App\Models\Log;
 use App\Models\Project;
 use Laravel\Mcp\Request;
@@ -16,6 +17,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ListProjectsTool extends Tool
 {
+    use ScopedByToken;
+
     public function handle(Request $request): Response
     {
         $user = $request->user();

@@ -229,6 +229,7 @@
                                     <div>
                                         <span class="font-medium text-gray-900 dark:text-white">{{ $apiToken->name }}</span>
                                         <span class="text-gray-500 dark:text-gray-400">
+                                            · {{ implode(', ', \App\Mcp\TokenScopes::of($apiToken) ?? ['all tools']) }}
                                             · last used {{ $apiToken->last_used_at?->diffForHumans() ?? 'never' }}
                                             · {{ $apiToken->expires_at && $apiToken->expires_at->isPast() ? 'expired' : 'expires '.($apiToken->expires_at?->format('M d, Y') ?? 'never') }}
                                         </span>
@@ -265,6 +266,21 @@
                         <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Create Token
                         </button>
+                        <fieldset class="w-full">
+                            <legend class="block text-sm font-medium text-gray-700 dark:text-gray-300">What this token may do</legend>
+                            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                                @foreach ($tokenScopes as $scope)
+                                    <label class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <input type="checkbox" name="token_scopes[]" value="{{ $scope['key'] }}" @checked($scope['default'])
+                                               class="mt-0.5 rounded-sm border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                        <span>{{ $scope['label'] }} <span class="block text-xs text-gray-500 dark:text-gray-400">{{ $scope['description'] }}</span></span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('token_scopes')
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </fieldset>
                     </form>
                 </div>
             </div>
