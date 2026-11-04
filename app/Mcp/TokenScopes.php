@@ -7,8 +7,8 @@ use App\Models\User;
 use Laravel\Sanctum\Contracts\HasAbilities;
 
 /**
- * What an MCP token may do, picked per token at creation (Profile > API
- * Tokens). Abilities: "mcp" marks the token, one "mcp:<scope>" per ticked
+ * What an MCP token may do, picked per token at creation (php artisan
+ * mcp:token). Abilities: "mcp" marks the token, one "mcp:<scope>" per ticked
  * scope. The choice is capped at the owner's rights when the token is made;
  * the tools still check project permissions on every call.
  *

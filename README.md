@@ -207,12 +207,17 @@ php artisan app:prune-logs --dry-run  # Preview without deleting
 
 Logger exposes an [MCP](https://modelcontextprotocol.io) endpoint at `/mcp`, so an AI client can look at new logs and onboard projects.
 
-1. Profile > API Tokens > Create Token. The token is shown once.
-2. Register it, e.g. in Claude Code:
+Tokens are made by an admin on the server; there is no token page in the UI.
+
+1. `php artisan mcp:token` asks for the user, a name, the expiry and the scopes (capped at the user's rights). It prints the token once, with the matching command:
 
 ```bash
-claude mcp add --transport http logger https://your-logger.example.com/mcp --header "Authorization: Bearer <token>"
+claude mcp add --transport http --scope user logger https://your-logger.example.com/mcp --header "Authorization: Bearer <token>"
 ```
+
+Non-interactive: `php artisan mcp:token --user=jane@example.com --name=Claude --scopes=read,resolve_log_group --days=90` (`--scopes=all` for every scope the user may have, `--days=0` for no expiry).
+
+2. `php artisan mcp:token:wipe jane@example.com` lists that user's MCP tokens and deletes them after a confirm (`--force` skips it).
 
 A token sees the projects its owner sees; `get_ingest_config` needs `edit` permission, `create_project` needs an admin.
 

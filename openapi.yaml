@@ -253,7 +253,7 @@ paths:
       description: |
         [Model Context Protocol](https://modelcontextprotocol.io) server over Streamable HTTP, so an AI client can triage logs and onboard projects. This is JSON-RPC, not REST: every call is a `POST` with a JSON-RPC 2.0 body (`initialize`, `tools/list`, `tools/call`). Use `tools/list` for the exact argument schemas.
 
-        Create the token under Profile > API Tokens; it carries the `mcp` ability and sees the projects its owner sees. Rate limit: 120 requests per minute.
+        An admin creates the token on the server with `php artisan mcp:token`; it carries the `mcp` ability and sees the projects its owner sees. Rate limit: 120 requests per minute.
 
         Tools:
 
@@ -320,7 +320,7 @@ components:
       scheme: bearer
       bearerFormat: Sanctum personal access token
       description: |
-        Personal access token with the `mcp` ability, created under Profile > API Tokens. Shown once.
+        Personal access token with the `mcp` ability, created by an admin with `php artisan mcp:token`. Shown once.
     ProjectKeyAuth:
       type: apiKey
       in: header

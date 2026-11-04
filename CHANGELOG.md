@@ -16,8 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - MCP server at `/mcp` (Laravel MCP, Streamable HTTP) so AI clients such as Claude Code can triage logs
-  and onboard projects. Auth is a per-user API token created under Profile > API Tokens; a token has the
-  `mcp` ability and sees only what its owner sees. Tools: `list_projects`, `project_overview`,
+  and onboard projects. Auth is a per-user API token an admin creates on the server with
+  `php artisan mcp:token` (scopes per token, capped at the user's rights) and revokes with
+  `php artisan mcp:token:wipe {user}`; a token has the `mcp` ability and sees only what its owner sees. Tools: `list_projects`, `project_overview`,
   `new_log_groups`, `search_logs`, `get_log`, `create_project` (admin), `get_ingest_config` (edit).
 - MCP tool `resolve_log_group` (edit): marks every log of a group (same level and first 200 message
   chars) as fixed, with an optional note. Resolved logs stay stored but are hidden from `search_logs`

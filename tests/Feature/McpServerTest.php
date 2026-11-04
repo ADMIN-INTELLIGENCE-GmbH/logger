@@ -96,28 +96,6 @@ class McpServerTest extends TestCase
         $this->assertCount(8, $this->rpc($token, 'tools/list')->assertOk()->json('result.tools'));
     }
 
-    public function test_profile_caps_scopes_at_the_users_rights(): void
-    {
-        [$user] = $this->member('view');
-
-        $this->actingAs($user)->post(route('profile.tokens.store'), [
-            'token_name' => 'laptop', 'token_days' => 30, 'token_scopes' => ['read', 'get_ingest_config', 'create_project'],
-        ])->assertSessionHasNoErrors();
-
-        $this->assertSame(['mcp', 'mcp:read'], $user->tokens()->first()->abilities);
-    }
-
-    public function test_profile_refuses_a_token_without_an_allowed_scope(): void
-    {
-        [$user] = $this->member('view');
-
-        $this->actingAs($user)->post(route('profile.tokens.store'), [
-            'token_name' => 'laptop', 'token_days' => 30, 'token_scopes' => ['create_project'],
-        ])->assertSessionHasErrors('token_scopes');
-
-        $this->assertSame(0, $user->tokens()->count());
-    }
-
     public function test_list_projects_only_shows_visible(): void
     {
         [$user] = $this->member('view');
@@ -193,19 +171,6 @@ class McpServerTest extends TestCase
             ->assertSee('get_ingest_config');
         $this->assertDatabaseHas('projects', ['name' => 'New']);
         $this->assertTrue(Project::where('name', 'New')->first()->users()->whereKey($admin->id)->exists());
-    }
-
-    public function test_profile_can_create_and_revoke_token(): void
-    {
-        $user = User::factory()->create();
-
-        $this->actingAs($user)->post('/profile/tokens', ['token_name' => 'mac', 'token_days' => 90, 'token_scopes' => ['read']])
-            ->assertRedirect('/profile')->assertSessionHas('new_token');
-        $this->assertCount(1, $user->tokens);
-        $this->assertSame(['mcp', 'mcp:read'], $user->tokens->first()->abilities);
-
-        $this->actingAs($user)->delete('/profile/tokens/'.$user->tokens->first()->id)->assertRedirect('/profile');
-        $this->assertCount(0, $user->fresh()->tokens);
     }
 
     public function test_resolve_log_group_hides_group_and_recurrence_shows_as_new(): void

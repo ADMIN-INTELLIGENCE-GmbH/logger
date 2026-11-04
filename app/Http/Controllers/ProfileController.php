@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use App\Mcp\TokenScopes;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,49 +21,7 @@ class ProfileController extends Controller
         return view('profile.edit', [
             'user' => $request->user(),
             'project' => $project,
-            'tokens' => $request->user()->tokens()->latest()->get(),
-            'tokenScopes' => TokenScopes::offeredTo($request->user()),
         ]);
-    }
-
-    /**
-     * Create an API token for the MCP endpoint. The plain text is shown once.
-     * The owner ticks what the token may do, capped at their own rights.
-     */
-    public function storeToken(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'token_name' => 'required|string|max:100',
-            'token_days' => 'required|integer|in:30,90,365',
-            'token_scopes' => 'required|array|min:1',
-            'token_scopes.*' => 'string',
-        ]);
-
-        $abilities = TokenScopes::abilitiesFor($request->user(), array_values($validated['token_scopes']));
-
-        if ($abilities === []) {
-            return Redirect::route('profile.edit')->withErrors(['token_scopes' => 'Pick at least one scope.']);
-        }
-
-        $token = $request->user()->createToken(
-            $validated['token_name'],
-            ['mcp', ...$abilities],
-            now()->addDays((int) $validated['token_days']),
-        );
-
-        return Redirect::route('profile.edit')
-            ->with('status', 'token-created')
-            ->with('new_token', $token->plainTextToken);
-    }
-
-    /**
-     * Revoke one of the user's API tokens.
-     */
-    public function destroyToken(Request $request, int $token): RedirectResponse
-    {
-        $request->user()->tokens()->whereKey($token)->delete();
-
-        return Redirect::route('profile.edit')->with('status', 'token-revoked');
     }
 
     /**
