@@ -27,6 +27,56 @@ class ProjectDashboardServerStatsTest extends TestCase
         return $this->actingAs($user)->get(route('projects.dashboard', $project));
     }
 
+    /**
+     * Package Health counters as [label => [value, classes]], e.g. ['composer_audit' => ['—', 'text-gray-400 ...']].
+     */
+    protected function packageCounters(string $html): array
+    {
+        preg_match_all('/<span class="text-2xl font-bold ([^"]*)"[^>]*>\s*(.*?)\s*<\/span>\s*<span[^>]*>(Vulnerabilities|Outdated)</s', $html, $m, PREG_SET_ORDER);
+        $keys = ['composer_audit', 'composer_outdated', 'npm_audit', 'npm_outdated'];
+
+        return array_combine($keys, array_map(fn ($row) => [html_entity_decode($row[2]), $row[1]], $m));
+    }
+
+    public function test_failed_package_checks_render_as_unknown_not_zero(): void
+    {
+        $response = $this->dashboardWithStats([
+            'system' => ['composer_audit' => null, 'composer_outdated' => null, 'npm_audit' => null, 'npm_outdated' => null],
+        ]);
+
+        $response->assertOk();
+        foreach ($this->packageCounters($response->getContent()) as $key => [$value, $classes]) {
+            $this->assertSame('—', $value, $key);
+            $this->assertStringNotContainsString('green', $classes, $key);
+        }
+    }
+
+    public function test_disabled_package_checks_render_as_unknown_not_zero(): void
+    {
+        $response = $this->dashboardWithStats(['system' => ['php_version' => '8.4.15']]);
+
+        $response->assertOk();
+        foreach ($this->packageCounters($response->getContent()) as $key => [$value, $classes]) {
+            $this->assertSame('—', $value, $key);
+            $this->assertStringNotContainsString('green', $classes, $key);
+        }
+    }
+
+    public function test_real_zero_package_counts_stay_green(): void
+    {
+        $response = $this->dashboardWithStats([
+            'system' => ['composer_audit' => 0, 'composer_outdated' => 3, 'npm_audit' => 2, 'npm_outdated' => 0],
+        ]);
+
+        $counters = $this->packageCounters($response->getContent());
+        $this->assertSame('0', $counters['composer_audit'][0]);
+        $this->assertStringContainsString('text-green-600', $counters['composer_audit'][1]);
+        $this->assertSame('3', $counters['composer_outdated'][0]);
+        $this->assertSame('2', $counters['npm_audit'][0]);
+        $this->assertStringContainsString('text-red-600', $counters['npm_audit'][1]);
+        $this->assertSame('0', $counters['npm_outdated'][0]);
+    }
+
     public function test_queue_error_is_surfaced_instead_of_reporting_zero_jobs(): void
     {
         $response = $this->dashboardWithStats([

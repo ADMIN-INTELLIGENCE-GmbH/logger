@@ -617,17 +617,18 @@ document.addEventListener('alpine:init', () => {
                 });
             }
 
+            // null = the shipper's check failed: shown as unknown, never as 0
             const composerAudit = sys.composer_audit;
             const composerOut = sys.composer_outdated;
             if (composerAudit !== undefined || composerOut !== undefined) {
                 const parts = [];
-                if (composerAudit !== undefined) parts.push((composerAudit || 0) + ' vuln');
-                if (composerOut !== undefined) parts.push((composerOut || 0) + ' out');
+                if (composerAudit !== undefined) parts.push((composerAudit ?? '—') + ' vuln');
+                if (composerOut !== undefined) parts.push((composerOut ?? '—') + ' out');
                 const display = parts.join(' / ') || '0';
                 add('composer', { 
                     type: 'counter', 
                     label: 'Composer', 
-                    value: composerAudit ?? composerOut ?? 0, 
+                    value: display, 
                     display 
                 });
             }
@@ -636,13 +637,13 @@ document.addEventListener('alpine:init', () => {
             const npmOut = sys.npm_outdated;
             if (npmAudit !== undefined || npmOut !== undefined) {
                 const parts = [];
-                if (npmAudit !== undefined) parts.push((npmAudit || 0) + ' vuln');
-                if (npmOut !== undefined) parts.push((npmOut || 0) + ' out');
+                if (npmAudit !== undefined) parts.push((npmAudit ?? '—') + ' vuln');
+                if (npmOut !== undefined) parts.push((npmOut ?? '—') + ' out');
                 const display = parts.join(' / ') || '0';
                 add('npm', { 
                     type: 'counter', 
                     label: 'npm', 
-                    value: npmAudit ?? npmOut ?? 0, 
+                    value: display, 
                     display 
                 });
             }

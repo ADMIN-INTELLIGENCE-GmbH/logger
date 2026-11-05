@@ -53,8 +53,13 @@ class LogExplorerController extends Controller
             $method = $request->input('method');
             // Search the context trace for this method
             if ($method !== 'unknown') {
-                // For real methods, search in the context trace (JSON has "function": "methodName")
-                $query->whereRaw('context LIKE ?', ['%"function": "'.$method.'"%']);
+                // Context trace holds "function":"x" (compact json_encode on MariaDB/SQLite)
+                // or "function": "x" (MySQL JSON normalises with a space), so match both.
+                // '!' as LIKE escape: '\' is not portable between MySQL and SQLite.
+                $value = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], json_encode($method));
+                $query->where(fn ($q) => $q
+                    ->whereRaw("context LIKE ? ESCAPE '!'", ['%"function":'.$value.'%'])
+                    ->orWhereRaw("context LIKE ? ESCAPE '!'", ['%"function": '.$value.'%']));
             } else {
                 // For unknown, we need logs where context has no function field
                 $query->whereRaw('context NOT LIKE ?', ['%"function"%']);

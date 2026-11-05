@@ -37,6 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `composer.json` pins the platform to PHP 8.2.0 so the lock file resolves for the lowest supported PHP
   (Symfony 7.4 instead of 8.x) and `laravel/pint` to `~1.26.0` (newer Pint flags 27 existing files).
 
+### Fixed
+- Package Health: a Composer/npm audit or outdated count that is unknown now shows "—" instead of 0
+  (grey instead of green on the project dashboard; also on the dashboard overview tiles). Pairs with laravel-log-shipper 1.6.0, which
+  sends `null` when a check failed and leaves the value out when the checks are disabled.
+- Log Explorer: the method filter now also finds logs whose context is stored as compact JSON
+  (`"function":"x"`, MariaDB/SQLite); before it only matched MySQL's `"function": "x"`. `%` and `_` in
+  the method name are matched literally.
+
 ### Security
 - Resolves all open `composer audit` advisories (Laravel email-rule CRLF injection, `league/commonmark`
   denial-of-service and attributes XSS bypass, Guzzle host and cookie handling, Symfony mime, routing and

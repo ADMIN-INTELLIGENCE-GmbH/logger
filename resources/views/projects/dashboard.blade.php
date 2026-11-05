@@ -339,51 +339,34 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700 p-6">
                 <h4 class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Package Health</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Composer -->
-                    <div class="flex items-center justify-between p-6 rounded-lg {{ (isset($serverStats['system']['composer_audit']) && $serverStats['system']['composer_audit'] > 0) ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800' : 'bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
+                    @foreach (['composer' => ['Composer', 'mdi-package-variant'], 'npm' => ['NPM', 'mdi-npm']] as $pkgKey => [$pkgLabel, $pkgIcon])
+                    @php
+                        // null = the shipper's check failed, key missing = check disabled: both are unknown, never 0
+                        $pkgAudit = is_numeric($serverStats['system'][$pkgKey.'_audit'] ?? null) ? (int) $serverStats['system'][$pkgKey.'_audit'] : null;
+                        $pkgOutdated = is_numeric($serverStats['system'][$pkgKey.'_outdated'] ?? null) ? (int) $serverStats['system'][$pkgKey.'_outdated'] : null;
+                    @endphp
+                    <div class="flex items-center justify-between p-6 rounded-lg {{ $pkgAudit > 0 ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800' : 'bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
                         <div>
-                            <div class="text-sm font-medium text-gray-900 dark:text-white mb-2">Composer</div>
+                            <div class="text-sm font-medium text-gray-900 dark:text-white mb-2">{{ $pkgLabel }}</div>
                             <div class="flex items-center space-x-4">
                                 <div>
-                                    <span class="text-2xl font-bold {{ (isset($serverStats['system']['composer_audit']) && $serverStats['system']['composer_audit'] > 0) ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">
-                                        {{ $serverStats['system']['composer_audit'] ?? 0 }}
+                                    <span class="text-2xl font-bold {{ $pkgAudit === null ? 'text-gray-400 dark:text-gray-500' : ($pkgAudit > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400') }}" @if($pkgAudit === null) title="Unknown: check failed or disabled" @endif>
+                                        {{ $pkgAudit ?? '—' }}
                                     </span>
                                     <span class="text-sm text-gray-600 dark:text-gray-400 ml-1">Vulnerabilities</span>
                                 </div>
                                 <div class="text-gray-300 dark:text-gray-700">|</div>
                                 <div>
-                                    <span class="text-2xl font-bold {{ (isset($serverStats['system']['composer_outdated']) && $serverStats['system']['composer_outdated'] > 0) ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-white' }}">
-                                        {{ $serverStats['system']['composer_outdated'] ?? 0 }}
+                                    <span class="text-2xl font-bold {{ $pkgOutdated === null ? 'text-gray-400 dark:text-gray-500' : ($pkgOutdated > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-white') }}" @if($pkgOutdated === null) title="Unknown: check failed or disabled" @endif>
+                                        {{ $pkgOutdated ?? '—' }}
                                     </span>
                                     <span class="text-sm text-gray-600 dark:text-gray-400 ml-1">Outdated</span>
                                 </div>
                             </div>
                         </div>
-                        <i class="mdi mdi-package-variant text-4xl {{ (isset($serverStats['system']['composer_audit']) && $serverStats['system']['composer_audit'] > 0) ? 'text-red-400 dark:text-red-600' : 'text-gray-400 dark:text-gray-600' }}"></i>
+                        <i class="mdi {{ $pkgIcon }} text-4xl {{ $pkgAudit > 0 ? 'text-red-400 dark:text-red-600' : 'text-gray-400 dark:text-gray-600' }}"></i>
                     </div>
-
-                    <!-- NPM -->
-                    <div class="flex items-center justify-between p-6 rounded-lg {{ (isset($serverStats['system']['npm_audit']) && $serverStats['system']['npm_audit'] > 0) ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800' : 'bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
-                        <div>
-                            <div class="text-sm font-medium text-gray-900 dark:text-white mb-2">NPM</div>
-                            <div class="flex items-center space-x-4">
-                                <div>
-                                    <span class="text-2xl font-bold {{ (isset($serverStats['system']['npm_audit']) && $serverStats['system']['npm_audit'] > 0) ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">
-                                        {{ $serverStats['system']['npm_audit'] ?? 0 }}
-                                    </span>
-                                    <span class="text-sm text-gray-600 dark:text-gray-400 ml-1">Vulnerabilities</span>
-                                </div>
-                                <div class="text-gray-300 dark:text-gray-700">|</div>
-                                <div>
-                                    <span class="text-2xl font-bold {{ (isset($serverStats['system']['npm_outdated']) && $serverStats['system']['npm_outdated'] > 0) ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-white' }}">
-                                        {{ $serverStats['system']['npm_outdated'] ?? 0 }}
-                                    </span>
-                                    <span class="text-sm text-gray-600 dark:text-gray-400 ml-1">Outdated</span>
-                                </div>
-                            </div>
-                        </div>
-                        <i class="mdi mdi-npm text-4xl {{ (isset($serverStats['system']['npm_audit']) && $serverStats['system']['npm_audit'] > 0) ? 'text-red-400 dark:text-red-600' : 'text-gray-400 dark:text-gray-600' }}"></i>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
