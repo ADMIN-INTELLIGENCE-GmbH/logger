@@ -113,6 +113,9 @@ build_frontend:
 
 # Deploy to development environment
 deploy_development:
+  image: alpine:3.22
+  tags:
+    - docker
   stage: deploy
   needs:
     - test_php
@@ -120,6 +123,7 @@ deploy_development:
   only:
     - development
   before_script:
+    - apk add --no-cache openssh-client git
     - mkdir -p ~/.ssh
     - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
@@ -158,10 +162,18 @@ deploy_development:
       fi
     - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && php artisan up"
   after_script:
+    - apk add --no-cache openssh-client git
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && php artisan up || true"
 
 # Deploy to staging environment
 deploy_staging:
+  image: alpine:3.22
+  tags:
+    - docker
   stage: deploy
   needs:
     - test_php
@@ -169,6 +181,7 @@ deploy_staging:
   only:
     - staging
   before_script:
+    - apk add --no-cache openssh-client git
     - mkdir -p ~/.ssh
     - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
@@ -207,10 +220,18 @@ deploy_staging:
       fi
     - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && php artisan up"
   after_script:
+    - apk add --no-cache openssh-client git
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && php artisan up || true"
 
 # Deploy to production environment
 deploy_production:
+  image: alpine:3.22
+  tags:
+    - docker
   stage: deploy
   needs:
     - test_php
@@ -218,6 +239,7 @@ deploy_production:
   only:
     - main
   before_script:
+    - apk add --no-cache openssh-client git
     - mkdir -p ~/.ssh
     - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
@@ -256,4 +278,9 @@ deploy_production:
       fi
     - ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && php artisan up"
   after_script:
+    - apk add --no-cache openssh-client git
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
     - ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && php artisan up || true"
