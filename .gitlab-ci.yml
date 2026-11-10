@@ -139,6 +139,8 @@ deploy_development:
       else
         echo "No composer changes, skipping composer install"
       fi
+    # OAuth signing keys for MCP (KIRA): made once, kept across deploys; PHP-FPM reads them through the group.
+    - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_DEV && ([ -f storage/oauth-private.key ] || php artisan passport:keys) && chmod 660 storage/oauth-*.key"
     - |
       # Only upload pre-built assets if frontend files changed
       if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json|php)$|^resources/|^package'; then
@@ -197,6 +199,8 @@ deploy_staging:
       else
         echo "No composer changes, skipping composer install"
       fi
+    # OAuth signing keys for MCP (KIRA): made once, kept across deploys; PHP-FPM reads them through the group.
+    - ssh website@"$SERVER_IP_DEV" "cd $TARGET_FOLDER_STAGING && ([ -f storage/oauth-private.key ] || php artisan passport:keys) && chmod 660 storage/oauth-*.key"
     - |
       # Only upload pre-built assets if frontend files changed
       if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json|php)$|^resources/|^package'; then
@@ -255,6 +259,8 @@ deploy_production:
       else
         echo "No composer changes, skipping composer install"
       fi
+    # OAuth signing keys for MCP (KIRA): made once, kept across deploys; PHP-FPM reads them through the group.
+    - ssh website@"$SERVER_IP" "cd $TARGET_FOLDER && ([ -f storage/oauth-private.key ] || php artisan passport:keys) && chmod 660 storage/oauth-*.key"
     - |
       # Only upload pre-built assets if frontend files changed
       if git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA | grep -E '\.(js|vue|css|scss|sass|less|json|php)$|^resources/|^package'; then
