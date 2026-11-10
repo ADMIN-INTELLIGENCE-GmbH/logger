@@ -4,6 +4,8 @@ namespace App\Mcp;
 
 use App\Models\Project;
 use App\Models\User;
+use Laravel\Mcp\Server\Registrar;
+use Laravel\Passport\AccessToken;
 use Laravel\Sanctum\Contracts\HasAbilities;
 
 /**
@@ -14,6 +16,9 @@ use Laravel\Sanctum\Contracts\HasAbilities;
  *
  * Tokens from before per-token scopes carry only "mcp" and keep every tool,
  * as they always did, until they are revoked.
+ *
+ * OAuth tokens (Passport) carry no per-tool scopes: KIRA's, and any with only
+ * the "mcp:read" scope, see the read-only tools; others see every tool.
  */
 final class TokenScopes
 {
@@ -95,5 +100,24 @@ final class TokenScopes
         }
 
         return false;
+    }
+
+    /** OAuth scope KIRA asks for: read-only tools. */
+    public const OAUTH_READ = 'mcp:read';
+
+    public static function isKira(AccessToken $token): bool
+    {
+        $kira = config('services.kira.client_id');
+
+        return filled($kira) && (string) $token->oauth_client_id === (string) $kira;
+    }
+
+    /**
+     * Whether only tools with readOnlyHint may be listed and called.
+     */
+    public static function readOnly(mixed $token): bool
+    {
+        return $token instanceof AccessToken
+            && (self::isKira($token) || ! $token->can(Registrar::OAUTH_SCOPE));
     }
 }

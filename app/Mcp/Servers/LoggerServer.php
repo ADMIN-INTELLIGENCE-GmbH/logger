@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Servers;
 
+use App\Mcp\TokenScopes;
 use App\Mcp\Tools\CreateProjectTool;
 use App\Mcp\Tools\GetIngestConfigTool;
 use App\Mcp\Tools\GetLogTool;
@@ -34,4 +35,18 @@ class LoggerServer extends Server
     protected array $resources = [];
 
     protected array $prompts = [];
+
+    /**
+     * KIRA's OAuth tokens (and any with only mcp:read) get the read-only
+     * tools: the others are neither listed nor callable.
+     */
+    protected function boot(): void
+    {
+        if (TokenScopes::readOnly(request()->user()?->currentAccessToken())) {
+            $this->tools = array_values(array_filter(
+                $this->tools,
+                static fn (string $tool): bool => (app($tool)->annotations()['readOnlyHint'] ?? false) === true,
+            ));
+        }
+    }
 }

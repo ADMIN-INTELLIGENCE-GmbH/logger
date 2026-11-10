@@ -62,6 +62,7 @@ class McpTokenCommandTest extends TestCase
     public function test_printed_token_works_on_mcp_and_lists_only_its_tools(): void
     {
         $user = $this->viewer();
+        $user->forceFill(['mcp_external' => true])->save();
 
         [, $output] = $this->make($user, 'read');
 

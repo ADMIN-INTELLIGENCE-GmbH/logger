@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Upgrade Notes
+- OAuth for MCP: run `php artisan migrate` (Passport `oauth_*` tables, `users.mcp_external`) and
+  `php artisan passport:keys`; create KIRA's client with `php artisan passport:client` (see README) and
+  set `MCP_KIRA_CLIENT_ID`. Existing `mcp:token` tokens stop working on `/mcp` until their owner gets
+  `php artisan mcp:external {user}`.
 - Run `php artisan migrate` (adds `personal_access_tokens`; adds nullable `resolved_at`, `resolved_by`,
   `resolution_note` to `logs`).
 - Run `composer install` and rebuild the frontend (`npm ci && npm run build`); Tailwind CSS is now v4
@@ -15,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tailwind CSS v4 targets current browsers (Safari 16.4+, Chrome 111+, Firefox 128+).
 
 ### Added
+- OAuth 2.1 for `/mcp` (Laravel Passport, laravel/mcp 1.x `Mcp::oauthRoutes()`), built for KIRA as a
+  confidential client: KIRA's tokens (scope `mcp:read`, 1 h, refresh 30 days with rotation) see and call
+  only read-only tools. Personal tokens and other OAuth clients need the new per-user permission
+  `mcp.external` (`php artisan mcp:external`); without it `/mcp` answers 403 and `/oauth/authorize`
+  refuses every client but KIRA.
 - MCP server at `/mcp` (Laravel MCP, Streamable HTTP) so AI clients such as Claude Code can triage logs
   and onboard projects. Auth is a per-user API token an admin creates on the server with
   `php artisan mcp:token` (scopes per token, capped at the user's rights) and revokes with

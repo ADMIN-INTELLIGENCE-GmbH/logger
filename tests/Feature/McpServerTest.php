@@ -25,7 +25,7 @@ class McpServerTest extends TestCase
 
     private function member(string $permission): array
     {
-        $user = User::factory()->create(['role' => User::ROLE_USER]);
+        $user = User::factory()->create(['role' => User::ROLE_USER, 'mcp_external' => true]);
         $project = Project::create(['name' => 'Shop']);
         $project->users()->attach($user->id, ['permission' => $permission]);
 
@@ -66,7 +66,7 @@ class McpServerTest extends TestCase
 
     public function test_token_with_mcp_ability_reaches_server(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['mcp_external' => true]);
         $token = $user->createToken('x', ['mcp'])->plainTextToken;
 
         $this->withToken($token)->postJson('/mcp', [
@@ -90,7 +90,7 @@ class McpServerTest extends TestCase
 
     public function test_token_from_before_scopes_keeps_every_tool(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['mcp_external' => true]);
         $token = $user->createToken('x', ['mcp'])->plainTextToken;
 
         $this->assertCount(8, $this->rpc($token, 'tools/list')->assertOk()->json('result.tools'));

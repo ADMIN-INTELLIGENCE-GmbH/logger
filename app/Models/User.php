@@ -62,6 +62,7 @@ class User extends Authenticatable
             'dashboard_preferences' => 'array',
             'daily_digest_enabled' => 'boolean',
             'daily_digest_settings' => 'array',
+            'mcp_external' => 'boolean',
         ];
     }
 

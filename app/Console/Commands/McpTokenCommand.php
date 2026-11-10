@@ -93,6 +93,9 @@ class McpTokenCommand extends Command
         $this->line("claude mcp add --transport http --scope user logger {$url} --header \"Authorization: Bearer {$token->plainTextToken}\"");
         $this->newLine();
         $this->warn('The token is shown only now. It cannot be read back later.');
+        if (! $user->mcp_external) {
+            $this->warn("{$user->email} lacks mcp.external: /mcp refuses this token until php artisan mcp:external {$user->email}.");
+        }
 
         return self::SUCCESS;
     }

@@ -207,7 +207,25 @@ php artisan app:prune-logs --dry-run  # Preview without deleting
 
 Logger exposes an [MCP](https://modelcontextprotocol.io) endpoint at `/mcp`, so an AI client can look at new logs and onboard projects.
 
-Tokens are made by an admin on the server; there is no token page in the UI.
+Two ways in:
+
+- **OAuth (KIRA).** Logger is an OAuth 2.1 server (Laravel Passport, `Mcp::oauthRoutes()`): discovery at `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource/mcp`, `/oauth/authorize` behind the normal login, `/oauth/token`, `/oauth/register`. KIRA is a confidential client; its tokens (scope `mcp:read`) see and call only the tools marked read-only. Access tokens live 1 hour, refresh tokens 30 days and rotate on every use.
+- **Everything else** (own tokens from `mcp:token`, other OAuth clients such as a claude.ai connector) needs the per-user permission `mcp.external`. Without it `/mcp` answers 403 and `/oauth/authorize` refuses any client but KIRA. Nobody has it by default.
+
+Setup on a server (once):
+
+```bash
+php artisan migrate
+php artisan passport:keys        # storage/oauth-{private,public}.key; /mcp fails without them
+php artisan passport:client -n --name=KIRA \
+  --redirect_uri=https://kira.admin-intelligence.de/settings/sources/logger/callback,https://kira.admin-boy.de/settings/sources/logger/callback,http://kira.test/settings/sources/logger/callback
+```
+
+`-n` takes the defaults: authorization code grant, confidential (with secret), no device flow. It prints the client id and secret once: the id goes into Logger's `.env` as `MCP_KIRA_CLIENT_ID`, id and secret into KIRA's `.env` (`KIRA_OAUTH_LOGGER_CLIENT_ID`, `KIRA_OAUTH_LOGGER_CLIENT_SECRET`).
+
+Grant or revoke `mcp.external`: `php artisan mcp:external jane@example.com` (`--revoke` takes it away).
+
+Personal tokens are made by an admin on the server; there is no token page in the UI.
 
 1. `php artisan mcp:token` asks for the user, a name, the expiry and the scopes (capped at the user's rights). It prints the token once, with the matching command:
 
@@ -221,15 +239,16 @@ Non-interactive: `php artisan mcp:token --user=jane@example.com --name=Claude --
 
 A token sees the projects its owner sees; `get_ingest_config` needs `edit` permission, `create_project` needs an admin.
 
-| Tool | Purpose |
-|------|---------|
-| `list_projects` | Visible projects with 24h log and error counts |
-| `project_overview` | Level counts, top failing controllers/routes, server stats |
-| `new_log_groups` | Messages first seen since a point in time ("what is new") |
-| `search_logs` | Filter by level, time, text, controller, route |
-| `get_log` | Full entry with context and stack trace |
-| `create_project` | New project (admin) |
-| `get_ingest_config` | Endpoint, project key and `.env` lines (edit permission) |
+| Tool | Purpose | Read-only (KIRA) |
+|------|---------|------------------|
+| `list_projects` | Visible projects with 24h log and error counts | yes |
+| `project_overview` | Level counts, top failing controllers/routes, server stats | yes |
+| `new_log_groups` | Messages first seen since a point in time ("what is new") | yes |
+| `search_logs` | Filter by level, time, text, controller, route | yes |
+| `get_log` | Full entry with context and stack trace | yes |
+| `resolve_log_group` | Mark a log group fixed, or reopen it (edit permission) | no |
+| `create_project` | New project (admin) | no |
+| `get_ingest_config` | Endpoint, project key and `.env` lines (edit permission) | no (returns a secret) |
 
 Project keys are secrets: `get_ingest_config` writes an audit line to the application log on every call.
 

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // OAuth client of KIRA (php artisan passport:client). Its tokens see read-only MCP tools only.
+    'kira' => [
+        'client_id' => env('MCP_KIRA_CLIENT_ID'),
+    ],
+
 ];
