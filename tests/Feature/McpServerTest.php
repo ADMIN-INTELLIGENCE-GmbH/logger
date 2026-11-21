@@ -96,6 +96,28 @@ class McpServerTest extends TestCase
         $this->assertCount(8, $this->rpc($token, 'tools/list')->assertOk()->json('result.tools'));
     }
 
+    public function test_read_tools_declare_output_schema_in_tools_list(): void
+    {
+        [$user] = $this->member('view');
+        $token = $user->createToken('x', ['mcp', 'mcp:read'])->plainTextToken;
+
+        $listed = collect($this->rpc($token, 'tools/list')->assertOk()->json('result.tools'))->keyBy('name');
+
+        // list_projects returns a bare JSON array; MCP needs an object root, so it has none.
+        foreach (['project_overview', 'new_log_groups', 'search_logs', 'get_log'] as $name) {
+            $this->assertNotEmpty($listed[$name]['outputSchema']['properties'] ?? [], $name);
+        }
+    }
+
+    public function test_overview_logs_by_level_is_an_object_when_empty(): void
+    {
+        [$user] = $this->member('view');
+        $token = $user->createToken('x', ['mcp', 'mcp:read'])->plainTextToken;
+
+        $call = $this->rpc($token, 'tools/call', ['name' => 'project_overview', 'arguments' => ['project' => 'Shop']]);
+        $this->assertSame('{}', json_encode(json_decode($call->json('result.content.0.text'))->logs_by_level));
+    }
+
     public function test_list_projects_only_shows_visible(): void
     {
         [$user] = $this->member('view');

@@ -30,6 +30,27 @@ class ProjectOverviewTool extends Tool
         ];
     }
 
+    public function outputSchema(JsonSchema $schema): array
+    {
+        $top = fn (string $key) => $schema->array()->items($schema->object([
+            $key => $schema->string()->required(),
+            'errors' => $schema->integer()->required(),
+        ])->withoutAdditionalProperties())->description('Up to 10, error level and above, most errors first.')->required();
+
+        return [
+            'id' => $schema->string()->required(),
+            'name' => $schema->string()->required(),
+            'is_active' => $schema->boolean()->required(),
+            'retention_days' => $schema->integer()->required(),
+            'since' => $schema->string()->description('ISO 8601 with offset.')->required(),
+            'logs_by_level' => $schema->object()->description('Level name to count; only levels that occurred. Values are integers.')->required(),
+            'top_error_controllers' => $top('controller'),
+            'top_error_routes' => $top('route_name'),
+            'server_stats' => $schema->union(['object', 'array', 'null'])->description('Last server stats pushed by the app, free-form (memory, cpu, disk, queue, os, host ...); null if none.')->required(),
+            'server_stats_at' => $schema->string()->nullable()->description('ISO 8601 with offset.')->required(),
+        ];
+    }
+
     public function handle(Request $request): Response
     {
         $data = $request->validate([
@@ -65,7 +86,7 @@ class ProjectOverviewTool extends Tool
             'is_active' => $project->is_active,
             'retention_days' => $project->retention_days,
             'since' => $since->toIso8601String(),
-            'logs_by_level' => $byLevel->map(fn ($n) => (int) $n)->all(),
+            'logs_by_level' => (object) $byLevel->map(fn ($n) => (int) $n)->all(), // object even when empty
             'top_error_controllers' => $top('controller'),
             'top_error_routes' => $top('route_name'),
             'server_stats' => $project->server_stats,

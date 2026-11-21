@@ -33,6 +33,22 @@ class NewLogGroupsTool extends Tool
         ];
     }
 
+    public function outputSchema(JsonSchema $schema): array
+    {
+        return [
+            'project' => $schema->string()->description('Project name.')->required(),
+            'new_since' => $schema->string()->description('ISO 8601 with offset.')->required(),
+            'groups' => $schema->array()->items($schema->object([
+                'level' => $schema->string()->enum(Log::LEVELS)->required(),
+                'message' => $schema->string()->description('First 200 chars.')->required(),
+                'occurrences' => $schema->integer()->required(),
+                'first_seen' => $schema->string()->description('Server time, "YYYY-MM-DD HH:MM:SS".')->required(),
+                'last_seen' => $schema->string()->description('Server time, "YYYY-MM-DD HH:MM:SS".')->required(),
+                'sample_log_id' => $schema->integer()->description('Pass to get_log.')->required(),
+            ])->withoutAdditionalProperties())->required(),
+        ];
+    }
+
     public function handle(Request $request): Response
     {
         $data = $request->validate([

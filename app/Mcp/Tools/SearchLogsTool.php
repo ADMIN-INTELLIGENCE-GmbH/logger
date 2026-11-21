@@ -39,6 +39,30 @@ class SearchLogsTool extends Tool
         ];
     }
 
+    public function outputSchema(JsonSchema $schema): array
+    {
+        $text = fn () => $schema->string()->nullable()->required();
+
+        return [
+            'project' => $schema->string()->description('Project name.')->required(),
+            'since' => $schema->string()->description('ISO 8601 with offset.')->required(),
+            'total' => $schema->integer()->description('Matches before paging.')->required(),
+            'offset' => $schema->integer()->required(),
+            'returned' => $schema->integer()->required(),
+            'logs' => $schema->array()->items($schema->object([
+                'id' => $schema->integer()->required(),
+                'at' => $schema->string()->nullable()->description('ISO 8601 with offset.')->required(),
+                'level' => $schema->string()->enum(Log::LEVELS)->required(),
+                'message' => $schema->string()->description('Clipped to 300 chars.')->required(),
+                'controller' => $text(),
+                'route_name' => $text(),
+                'request_url' => $text(),
+                'app_env' => $text(),
+                'resolved_at' => $schema->string()->nullable()->description('ISO 8601 with offset.')->required(),
+            ])->withoutAdditionalProperties())->required(),
+        ];
+    }
+
     public function handle(Request $request): Response
     {
         $data = $request->validate([
