@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Mcp\Concerns\ScopedByToken;
 use App\Models\Log;
 use App\Models\Project;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -18,6 +19,22 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 class ListProjectsTool extends Tool
 {
     use ScopedByToken;
+
+    public function outputSchema(JsonSchema $schema): array
+    {
+        return [
+            'projects' => $schema->array()->items($schema->object([
+                'id' => $schema->string()->required(),
+                'name' => $schema->string()->required(),
+                'is_active' => $schema->boolean()->required(),
+                'permission' => $schema->string()->enum(['edit', 'view'])->required(),
+                'retention_days' => $schema->integer()->required(),
+                'logs_24h' => $schema->integer()->required(),
+                'errors_24h' => $schema->integer()->description('Level error and above.')->required(),
+                'last_log_at' => $schema->string()->nullable()->description('Server time, "YYYY-MM-DD HH:MM:SS"; null if no logs.')->required(),
+            ])->withoutAdditionalProperties())->required(),
+        ];
+    }
 
     public function handle(Request $request): Response
     {
@@ -43,6 +60,6 @@ class ListProjectsTool extends Tool
             ];
         });
 
-        return Response::json($rows->values()->all());
+        return Response::json(['projects' => $rows->values()->all()]);
     }
 }

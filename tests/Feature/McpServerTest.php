@@ -103,8 +103,7 @@ class McpServerTest extends TestCase
 
         $listed = collect($this->rpc($token, 'tools/list')->assertOk()->json('result.tools'))->keyBy('name');
 
-        // list_projects returns a bare JSON array; MCP needs an object root, so it has none.
-        foreach (['project_overview', 'new_log_groups', 'search_logs', 'get_log'] as $name) {
+        foreach (['list_projects', 'project_overview', 'new_log_groups', 'search_logs', 'get_log'] as $name) {
             $this->assertNotEmpty($listed[$name]['outputSchema']['properties'] ?? [], $name);
         }
     }
