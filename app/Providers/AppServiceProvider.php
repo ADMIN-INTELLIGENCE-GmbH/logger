@@ -30,6 +30,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($now = env('BENCH_NOW')) {
+            \Carbon\Carbon::setTestNow($now);
+            \Carbon\CarbonImmutable::setTestNow($now);
+        }
+
         Gate::policy(Project::class, ProjectPolicy::class);
         Gate::policy(ExternalCheck::class, ExternalCheckPolicy::class);
 

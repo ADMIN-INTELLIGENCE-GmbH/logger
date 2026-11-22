@@ -158,6 +158,28 @@ class McpServerTest extends TestCase
             ->assertSee('brand new failure')->assertDontSee('old known error');
     }
 
+    public function test_new_log_groups_fingerprints_across_projects_and_rejects_unknown_args(): void
+    {
+        [$user, $project] = $this->member('view');
+        $this->log($project, 'error', 'Order 123 failed for [session_abc] id deadbeef01');
+        $this->log($project, 'error', 'Order 456 failed for [session_xyz] id cafebabe99');
+
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(NewLogGroupsTool::class, ['min_level' => 'error'])
+            ->assertSee('Order # failed for [session] id <hex>')->assertSee('"occurrences":2')->assertSee('"project":"all"')->assertSee('+01:00');
+        LoggerServer::actingAs($this->withMcpToken($user))->tool(NewLogGroupsTool::class, ['bogus' => 1])
+            ->assertHasErrors(['unknown argument bogus; allowed: project, since, min_level, limit, include_resolved']);
+    }
+
+    public function test_bench_now_freezes_clock(): void
+    {
+        putenv('BENCH_NOW=2026-11-21T14:15:00+01:00');
+        (new \App\Providers\AppServiceProvider($this->app))->boot();
+        putenv('BENCH_NOW');
+        $this->assertSame('2026-11-21 13:15:00', now()->format('Y-m-d H:i:s'));
+        \Carbon\Carbon::setTestNow();
+        \Carbon\CarbonImmutable::setTestNow();
+    }
+
     public function test_get_log_and_overview(): void
     {
         [$user, $project] = $this->member('view');
