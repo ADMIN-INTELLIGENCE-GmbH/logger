@@ -9,6 +9,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
@@ -51,7 +52,7 @@ class ProjectOverviewTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    public function handle(Request $request): Response|ResponseFactory
     {
         $data = $request->validate([
             'project' => 'required|string',
@@ -80,7 +81,7 @@ class ProjectOverviewTool extends Tool
             ->groupBy($column)->orderByDesc('n')->limit(10)->get()
             ->map(fn ($row) => [$column => $row->{$column}, 'errors' => (int) $row->n])->all();
 
-        return Response::json([
+        return Response::structured([
             'id' => $project->id,
             'name' => $project->name,
             'is_active' => $project->is_active,

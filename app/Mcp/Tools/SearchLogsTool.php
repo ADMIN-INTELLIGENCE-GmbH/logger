@@ -8,6 +8,7 @@ use App\Models\Log;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
@@ -63,7 +64,7 @@ class SearchLogsTool extends Tool
         ];
     }
 
-    public function handle(Request $request): Response
+    public function handle(Request $request): Response|ResponseFactory
     {
         $data = $request->validate([
             'project' => 'required|string',
@@ -122,7 +123,7 @@ class SearchLogsTool extends Tool
         $logs = $query->orderByDesc('created_at')->orderByDesc('id')
             ->skip($offset)->take($limit)->get();
 
-        return Response::json([
+        return Response::structured([
             'project' => $project->name,
             'since' => $since->toIso8601String(),
             'total' => $total,

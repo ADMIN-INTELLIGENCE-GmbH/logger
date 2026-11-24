@@ -108,6 +108,17 @@ class McpServerTest extends TestCase
         }
     }
 
+    public function test_tools_with_output_schema_return_structured_content(): void
+    {
+        [$user] = $this->member('view');
+        $token = $user->createToken('x', ['mcp', 'mcp:read'])->plainTextToken;
+
+        // Clients reject a tool with an outputSchema whose result has no structuredContent.
+        $call = $this->rpc($token, 'tools/call', ['name' => 'list_projects', 'arguments' => []])->assertOk();
+        $this->assertSame('Shop', $call->json('result.structuredContent.projects.0.name'));
+        $this->assertSame($call->json('result.structuredContent'), json_decode($call->json('result.content.0.text'), true));
+    }
+
     public function test_overview_logs_by_level_is_an_object_when_empty(): void
     {
         [$user] = $this->member('view');

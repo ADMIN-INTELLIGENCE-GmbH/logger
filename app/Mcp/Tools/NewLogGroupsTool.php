@@ -11,6 +11,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
@@ -66,7 +67,7 @@ class NewLogGroupsTool extends Tool
         return mb_substr(preg_replace('/\d+/', '#', $head), 0, 200);
     }
 
-    public function handle(Request $request): Response
+    public function handle(Request $request): Response|ResponseFactory
     {
         $unknown = array_diff(array_keys($request->all()), ['project', 'since', 'min_level', 'limit', 'include_resolved']);
         if ($unknown) {
@@ -142,7 +143,7 @@ class NewLogGroupsTool extends Tool
             ->map(fn ($g) => [...$g, 'first_seen' => $berlin($g['first_seen'])->toIso8601String(), 'last_seen' => $berlin($g['last_seen'])->toIso8601String()])
             ->values()->all();
 
-        return Response::json([
+        return Response::structured([
             'project' => isset($project) ? $project->name : 'all',
             'new_since' => $since->copy()->setTimezone('Europe/Berlin')->toIso8601String(),
             'groups' => $groups,
