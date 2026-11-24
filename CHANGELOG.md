@@ -45,8 +45,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   7.15.5. npm dependencies updated; `npm audit fix` applied.
 - `composer.json` pins the platform to PHP 8.2.0 so the lock file resolves for the lowest supported PHP
   (Symfony 7.4 instead of 8.x) and `laravel/pint` to `~1.26.0` (newer Pint flags 27 existing files).
+- `laravel/mcp` upgraded to 1.x (needed for `Mcp::oauthRoutes()`).
+- MCP read tools (`list_projects`, `project_overview`, `new_log_groups`, `search_logs`, `get_log`)
+  declare an `outputSchema` and return the result as `structuredContent` as well as JSON text.
+- MCP `list_projects` now returns `{"projects": [...]}` instead of a bare array. Clients that read the
+  array directly must read `projects`.
+- MCP `new_log_groups` without `project` covers every project the caller may see. Groups are keyed by a
+  fingerprint: level plus message with numbers, long hex ids and `[session_*]` masked, first 200 chars.
+- `BENCH_NOW` env variable freezes the app clock (benchmarks and demos only; leave unset in production).
 
 ### Fixed
+- MCP: the read tools with an `outputSchema` sent no `structuredContent`, so clients such as Claude Code
+  rejected every call ("has an output schema but did not return structured content").
 - Package Health: a Composer/npm audit or outdated count that is unknown now shows "—" instead of 0
   (grey instead of green on the project dashboard; also on the dashboard overview tiles). Pairs with laravel-log-shipper 1.6.0, which
   sends `null` when a check failed and leaves the value out when the checks are disabled.
