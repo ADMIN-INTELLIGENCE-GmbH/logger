@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-24
+
 ### Upgrade Notes
 - OAuth for MCP: run `php artisan migrate` (Passport `oauth_*` tables, `users.mcp_external`) and
   `php artisan passport:keys`; create KIRA's client with `php artisan passport:client` (see README) and
@@ -207,6 +209,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rate limiting on webhook dispatching (30 webhooks/minute per project)
 - Sensitive fields hidden from API responses (magic_key, webhook_secret, password)
 
-[Unreleased]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ADMIN-INTELLIGENCE-GmbH/logger/releases/tag/v1.0.0

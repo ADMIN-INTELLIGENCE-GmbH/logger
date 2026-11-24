@@ -18,7 +18,7 @@ info:
     ## Companion Package
     
     For Laravel applications, use the [Laravel Log Shipper](https://github.com/ADMIN-INTELLIGENCE-GmbH/laravel-log-shipper) package to easily ship logs to this service.
-  version: 1.1.0
+  version: 1.2.0
   contact:
     name: ADMIN INTELLIGENCE GmbH
     email: support@admin-intelligence.de
@@ -63,7 +63,7 @@ paths:
                 checks:
                   database: ok
                   cache: ok
-                version: 1.1.0
+                version: 1.2.0
                 timestamp: '2024-12-09T10:30:00+00:00'
         '503':
           description: Service is unhealthy
@@ -76,7 +76,7 @@ paths:
                 checks:
                   database: error
                   cache: ok
-                version: 1.1.0
+                version: 1.2.0
                 timestamp: '2024-12-09T10:30:00+00:00'
 
   /ingest:
@@ -485,7 +485,7 @@ components:
         version:
           type: string
           description: Application version
-          example: 1.1.0
+          example: 1.2.0
         timestamp:
           type: string
           format: date-time
